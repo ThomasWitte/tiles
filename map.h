@@ -14,14 +14,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _MAP_H
+#ifndef MAP_H
 #define MAP_H
-
-#define MAX_TILES_PER_TILESET 256
 
 #include <allegro.h>
 #include <vector>
 #include <string>
+#include "config.h"
 
 using namespace std;
 
@@ -53,6 +52,7 @@ class Tileset {
 class Map {
 	private:
 		vector<BaseObject*> objects;
+		string map_name;
 		int **tilemap;
 		int **walkable;
 		int tilesx;
@@ -67,6 +67,7 @@ class Map {
 		void centre(int index = 0);
 		void update();
 		void draw();
+		string get_level_name();
 };
 
 #endif /* MAP_H */

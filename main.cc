@@ -21,7 +21,9 @@
 
 #include <allegro.h>
 #include <string>
-#include "map.h"
+#include "game.h"
+#include "config.h"
+#include <iostream>
 
 #ifdef GP2X
 	#include <sys/mman.h>
@@ -99,6 +101,14 @@ void gp2x_exit() {
 
 #endif
 
+volatile int timecounter;
+
+void timerupdate() {
+	timecounter++;
+}
+
+END_OF_FUNCTION(timerupdate)
+
 int main()
 {
 	#ifdef GP2X	
@@ -116,13 +126,35 @@ int main()
 	install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL);
 	install_timer();
 	
+	LOCK_VARIABLE(timecounter);
+	LOCK_FUNCTION(timerupdate);
+	install_int_ex(timerupdate, BPS_TO_TIMER(GAME_TIMER_BPS));
+
 	//spiel
-	Map map("defaultLevel");
+	bool needs_redraw = true;
+
+	Game game("defaultSave");
+	timecounter = 0;
+
 	while(!key[KEY_ESC]) {
-		map.update();
-		map.draw();
+		while(timecounter) {
+			timecounter--;
+			needs_redraw = true;
+			if(timecounter > MAX_FRAMESKIP) {
+				timecounter = 0;	
+				break;
+			}
+
+//			game.update();
+		}
+
+		if(needs_redraw) {
+			needs_redraw = false;
+//			game.draw();
+		}
 	}
-	
+	game.speichern("test");	
+
 	#ifdef GP2X	
 		gp2x_exit();
 	#endif

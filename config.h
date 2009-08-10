@@ -14,25 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GAME_H
-#define GAME_H
-
-#include <map>
-#include "map.h"
-
-class Game {
-	public:
-		Game();
-		Game(string);
-		~Game();
-
-		void speichern(string spielstand);
-		void laden(string spielstand);
-		void update();
-		void draw();
-	protected:
-		Map m;
-		map<string, string> vars;
-};
-
-#endif
+#define MAX_TILES_PER_TILESET 256
+#define GAME_TIMER_BPS 60
+#define MAX_FRAMESKIP 4
+//#define GP2X

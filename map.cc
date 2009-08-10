@@ -113,6 +113,7 @@ BITMAP* Tileset::get_tile(int index) {
 }
 
 Map::Map(string dateiname) {
+	map_name = dateiname;
 	tilemap = NULL;
 	walkable = NULL;
 	buffer = create_bitmap(SCREEN_W, SCREEN_H);
@@ -183,7 +184,7 @@ Map::~Map() {
 		for(int i = 0; i < tilesx; i++)
 			delete walkable[i];
 		delete walkable;
-		
+
 		for(int i = 0; i < objects.size(); i++)
 			delete objects[i];
 
@@ -235,4 +236,8 @@ void Map::draw() {
 			objects[i]->draw(ox, oy, buffer);
 	}
 	blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+}
+
+string Map::get_level_name() {
+	return map_name;
 }

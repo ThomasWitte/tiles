@@ -13,3 +13,79 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include <fstream>
+#include <iostream>
+#include <string>
+#include "game.h"
+
+Game::Game() : m("defaultLevel") {
+}
+
+Game::~Game() {
+}
+
+Game::Game(string spielstand) : m("defaultLevel") {
+	laden(spielstand);
+}
+
+void Game::speichern(string spielstand) {
+	ofstream file;
+	spielstand.insert(0, "Saves/");
+	file.open(spielstand.c_str(), ios_base::out);
+
+	file << "[level]" << endl << m.get_level_name() << endl;
+	file << "[userdata]" << endl;
+
+	for(map<string, string>::iterator i = vars.begin(); i != vars.end(); i++) {
+		file << "var " << i->first << " " << i->second << endl; 
+	}
+
+	file << "[eof]" << endl;
+
+	file.close();
+}
+
+void Game::laden(string spielstand) {
+	ifstream savefile;
+	spielstand.insert(0, "Saves/");
+	savefile.open(spielstand.c_str(), ios_base::in);
+
+	vars.clear();
+
+	string input, input2;
+	int state = 0;
+	savefile >> input;
+
+	while(input != "[eof]") {
+		if(input == "[level]") {state = 1; savefile >> input; }
+		if(input == "[userdata]") {state = 2; savefile >> input; }
+
+		switch(state) {
+			case 1:
+				m = Map(input);
+				state = 0;
+			break;
+
+			case 2:
+				if(input == "var") {
+					savefile >> input >> input2;
+					vars[input] = input2;
+				}
+			break;
+		}
+
+		savefile >> input;
+	}
+	
+	savefile.close();	
+}
+
+void Game::update() {
+	m.update();
+}
+
+void Game::draw() {
+	m.draw();
+}
+
