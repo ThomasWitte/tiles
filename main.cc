@@ -145,15 +145,14 @@ int main()
 				break;
 			}
 
-//			game.update();
+			game.update();
 		}
 
 		if(needs_redraw) {
 			needs_redraw = false;
-//			game.draw();
+			game.draw();
 		}
 	}
-	game.speichern("test");	
 
 	#ifdef GP2X	
 		gp2x_exit();

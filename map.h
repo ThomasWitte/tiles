@@ -61,9 +61,11 @@ class Map {
 		BITMAP *buffer;
 		Tileset current_tileset;
 	public:
+		Map();
 		Map(string dateiname);
 		~Map();
 		bool is_walkable(int x, int y);
+		void laden(string dateiname);
 		void centre(int index = 0);
 		void update();
 		void draw();

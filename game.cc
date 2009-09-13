@@ -25,7 +25,7 @@ Game::Game() : m("defaultLevel") {
 Game::~Game() {
 }
 
-Game::Game(string spielstand) : m("defaultLevel") {
+Game::Game(string spielstand) {
 	laden(spielstand);
 }
 
@@ -63,7 +63,7 @@ void Game::laden(string spielstand) {
 
 		switch(state) {
 			case 1:
-				m = Map(input);
+				m.laden(input);
 				state = 0;
 			break;
 

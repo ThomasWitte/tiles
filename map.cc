@@ -112,13 +112,77 @@ BITMAP* Tileset::get_tile(int index) {
 	return tiles[index];
 }
 
-Map::Map(string dateiname) {
-	map_name = dateiname;
+Map::Map() : tilesx(0), tilesy(0) {
 	tilemap = NULL;
 	walkable = NULL;
+
+	buffer = NULL;
 	buffer = create_bitmap(SCREEN_W, SCREEN_H);
+	if(!buffer)
+		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
+
 	objects.push_back(new BaseObject(0, 0, this));
 	centre(0);
+
+	laden("defaultLevel");
+}
+
+Map::Map(string dateiname) : tilesx(0), tilesy(0) {
+	tilemap = NULL;
+	walkable = NULL;
+
+	buffer = NULL;
+	buffer = create_bitmap(SCREEN_W, SCREEN_H);
+	if(!buffer)
+		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
+
+	objects.push_back(new BaseObject(0, 0, this));
+	centre(0);
+
+	laden(dateiname);
+}
+
+Map::~Map() {
+	if(tilemap)
+		for(int i = 0; i < tilesx; i++)
+			delete [] tilemap[i];
+		delete [] tilemap;
+
+	if(walkable)
+		for(int i = 0; i < tilesx; i++)
+			delete [] walkable[i];
+		delete [] walkable;
+
+	for(int i = 0; i < objects.size(); i++)
+		delete objects[i];
+
+	if(buffer)
+		destroy_bitmap(buffer);
+}
+
+bool Map::is_walkable(int x, int y) {
+	x/=current_tileset.get_tilesize();
+	y/=current_tileset.get_tilesize();
+}
+
+void Map::laden(string dateiname) {
+	map_name = dateiname;
+
+	if(tilemap) {
+		for(int i = 0; i < tilesx; i++)
+			delete [] tilemap[i];
+		delete [] tilemap;
+	}
+
+	if(walkable) {
+		for(int i = 0; i < tilesx; i++)
+			delete [] walkable[i];
+		delete [] walkable;
+	}
+
+	for(int i = 1; i < objects.size(); i++) //alle außer dem ersten objekt löschen
+		delete objects[i];
+	objects.resize(1);
 
 	ifstream levelfile;
 	dateiname.insert(0, "Levels/");
@@ -140,13 +204,15 @@ Map::Map(string dateiname) {
 					current_tileset.load(s);
 				} else if(s == "Size") {
 					levelfile >> tilesx >> s >> tilesy;
-					tilemap = new int*[tilesx];
+
+					tilemap = new (int*[tilesx]);
 					for(int i = 0; i < tilesx; i++)
 						tilemap[i] = new int[tilesy];
 
-					walkable = new int*[tilesx];
+					walkable = new (int*[tilesx]);
 					for(int i = 0; i < tilesx; i++)
 						walkable[i] = new int[tilesy];
+
 					cury = 0;
 					curx = 0;
 				} else {
@@ -161,7 +227,7 @@ Map::Map(string dateiname) {
 			break;
 
 			case 1: //Objekte einlesen
-				if(s == "bobj") { //BaseDbject
+				if(s == "bobj") { //BaseObject
 					levelfile >> curx >> cury;
 					objects.push_back(new BaseObject(curx, cury, this));
 				}
@@ -174,26 +240,6 @@ Map::Map(string dateiname) {
 	}
 	levelfile.close();
 	cout << "map geladen" << endl;
-}
-
-Map::~Map() {
-		for(int i = 0; i < tilesx; i++)
-			delete tilemap[i];
-		delete tilemap;
-
-		for(int i = 0; i < tilesx; i++)
-			delete walkable[i];
-		delete walkable;
-
-		for(int i = 0; i < objects.size(); i++)
-			delete objects[i];
-
-		destroy_bitmap(buffer);
-}
-
-bool Map::is_walkable(int x, int y) {
-	x/=current_tileset.get_tilesize();
-	y/=current_tileset.get_tilesize();
 }
 
 void Map::centre(int index) {
