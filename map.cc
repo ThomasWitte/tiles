@@ -95,9 +95,11 @@ void Tileset::load(string name) {
 		}
 	}
 	loadTS.close();
-	if(!tiles[0])
+	if(!tiles[0]) {
 		tiles[0] = create_bitmap(16, 16);
-	cout << "tileset geladen" << endl;
+		cout << "konnte Tileset nicht laden" << endl;
+	} else
+		cout << "tileset geladen" << endl;
 }
 
 int Tileset::is_walkable(int index) {
@@ -117,7 +119,13 @@ Map::Map() : tilesx(0), tilesy(0) {
 	walkable = NULL;
 
 	buffer = NULL;
+
+	#ifdef GP2X
 	buffer = create_bitmap(SCREEN_W, SCREEN_H);
+	#else
+	buffer = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	#endif
+
 	if(!buffer)
 		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
 
@@ -132,7 +140,13 @@ Map::Map(string dateiname) : tilesx(0), tilesy(0) {
 	walkable = NULL;
 
 	buffer = NULL;
+
+	#ifdef GP2X
 	buffer = create_bitmap(SCREEN_W, SCREEN_H);
+	#else
+	buffer = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	#endif
+
 	if(!buffer)
 		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
 
@@ -257,12 +271,13 @@ void Map::update() {
 
 void Map::draw() {
 	int camx, camy, xmin, ymin, xmax, ymax, ts, ox, oy, tileindex;
+	
 	ts = current_tileset.get_tilesize();
 	objects[focus]->get_position(camx, camy);
-	xmin = (camx - SCREEN_W/2) / ts;
-	ymin = (camy - SCREEN_H/2) / ts;
-	xmax = (camx + SCREEN_W/2) / ts + 1;
-	ymax = (camy + SCREEN_H/2) / ts + 1;
+	xmin = (camx - buffer->w/2) / ts - 1;
+	ymin = (camy - buffer->h/2) / ts - 1;
+	xmax = (camx + buffer->w/2) / ts + 1;
+	ymax = (camy + buffer->h/2) / ts + 1;
 
 	for(int x = xmin; x <= xmax; x++)
 		for(int y = ymin; y <= ymax; y++) {
@@ -270,18 +285,22 @@ void Map::draw() {
 			if(x > -1 && x < tilesx && y > -1 && y < tilesy)
 				tileindex = tilemap[x][y];
 			blit(current_tileset.get_tile(tileindex), buffer, 0, 0,
-				(x*ts)-(camx-SCREEN_W/2), (y*ts)-(camy-SCREEN_H/2), ts, ts);
+				(x*ts)-(camx-buffer->w/2), (y*ts)-(camy-buffer->h/2), ts, ts);
 		}
 
 	for(int i = 0; i < objects.size(); i++) {
 		objects[i]->get_position(ox, oy);
-		ox -= (camx-SCREEN_W/2);
-		oy -= (camy-SCREEN_H/2);
-		if(ox > -(ts+5) && ox < SCREEN_W+5 &&
-			oy > -(ts+5) && oy < SCREEN_H+5)
+		ox -= (camx-buffer->w/2);
+		oy -= (camy-buffer->h/2);
+		if(ox > -(ts+5) && ox < buffer->w+5 &&
+			oy > -(ts+5) && oy < buffer->h+5)
 			objects[i]->draw(ox, oy, buffer);
 	}
+	#ifdef GP2X
 	blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+	#else
+	stretch_blit(buffer, screen, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, 0, 0, SCREEN_W, SCREEN_H);
+	#endif
 }
 
 string Map::get_level_name() {

@@ -14,15 +14,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef MENU_H
+#define MENU_H
 
-#define MAX_TILES_PER_TILESET 256
-#define GAME_TIMER_BPS 60
-#define MAX_FRAMESKIP 4
-//#define GP2X
-#define PC_RESOLUTION_X 320
-#define PC_RESOLUTION_Y 240
-#define PC_STRETCH_FACTOR 3
+#include <allegro.h>
+#include <string>
+
+using namespace std;
+
+class Menu {
+	private:
+
+	static char* filelist_getter(int, int*);
+	static void resize_menu(int, int, DIALOG*);
+
+	public:
+	
+	enum {GAME, ENDE, EXIT, SAVE};
+
+	static int main_menu();
+	static string load_menu();
+	static string save_menu();
+	static int pause_menu();
+};
 
 #endif

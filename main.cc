@@ -17,11 +17,10 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define GP2X
-
 #include <allegro.h>
 #include <string>
 #include "game.h"
+#include "menu.h"
 #include "config.h"
 #include <iostream>
 
@@ -119,7 +118,7 @@ int main()
 	#ifdef GP2X
 		set_gfx_mode(GFX_AUTODETECT, 320, 240, 0, 0);
 	#else
-		set_gfx_mode(GFX_AUTODETECT_WINDOWED, 320, 240, 0, 0);
+		set_gfx_mode(GFX_AUTODETECT_WINDOWED, PC_RESOLUTION_X*PC_STRETCH_FACTOR, PC_RESOLUTION_Y*PC_STRETCH_FACTOR, 0, 0);
 	#endif
 	install_joystick(JOY_TYPE_AUTODETECT);
 	install_keyboard();
@@ -132,25 +131,54 @@ int main()
 
 	//spiel
 	bool needs_redraw = true;
+	bool ende = false;
+	bool exit = false;
 
-	Game game("defaultSave");
+	Game game;
 	timecounter = 0;
-
-	while(!key[KEY_ESC]) {
-		while(timecounter) {
-			timecounter--;
-			needs_redraw = true;
-			if(timecounter > MAX_FRAMESKIP) {
-				timecounter = 0;	
-				break;
+	
+	while(!exit) {
+		switch(Menu::main_menu()) {
+		case Menu::GAME:
+		game.laden(Menu::load_menu());
+		ende = false;
+	
+		while(!ende) {
+			while(timecounter) {
+				timecounter--;
+				needs_redraw = true;
+				if(timecounter > MAX_FRAMESKIP) {
+					timecounter = 0;	
+					break;
+				}
+	
+				game.update();
 			}
-
-			game.update();
+	
+			if(needs_redraw) {
+				needs_redraw = false;
+				game.draw();
+			}
+	
+			if(key[KEY_ESC]) {
+				switch(Menu::pause_menu()) {
+					case Menu::SAVE:
+						game.speichern(Menu::save_menu());
+					break;
+					case Menu::ENDE:
+						ende = true;
+					break;
+					case Menu::EXIT:
+						exit = true;
+						ende = true;
+					break;
+				}
+			}
 		}
-
-		if(needs_redraw) {
-			needs_redraw = false;
-			game.draw();
+		break;
+		case Menu::EXIT:
+			exit = true;
+		break;
 		}
 	}
 
