@@ -21,21 +21,9 @@
 #include <vector>
 #include <string>
 #include "config.h"
+#include "object.h"
 
 using namespace std;
-
-class BaseObject {
-	protected:
-		int x;
-		int y;
-		class Map *parent;
-	public:
-		BaseObject(int x, int y, Map *parent = NULL);
-		virtual void get_position(int &x, int &y);
-		virtual void set_position(int x, int y);
-		virtual void draw(int xpos, int ypos, BITMAP *buffer);
-		virtual void update();
-};
 
 class Tileset {
 		BITMAP *tiles[MAX_TILES_PER_TILESET];
@@ -51,7 +39,8 @@ class Tileset {
 
 class Map {
 	private:
-		vector<BaseObject*> objects;
+		vector<class BaseObject*> objects;
+		vector<class SpriteSet*> sprites;
 		string map_name;
 		int **tilemap;
 		int **walkable;
@@ -69,6 +58,7 @@ class Map {
 		void centre(int index = 0);
 		void update();
 		void draw();
+		int get_tilesize();
 		string get_level_name();
 };
 

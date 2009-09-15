@@ -14,27 +14,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#include "object.h"
 
-#define MAX_TILES_PER_TILESET 256
+BaseObject::BaseObject(int x, int y, Map *parent) {
+	this->x = x;
+	this->y = y;
+	this->parent = parent;
+}
 
-//Logische Framerate
-#define GAME_TIMER_BPS 60
-#define MAX_FRAMESKIP 4
+void BaseObject::get_position(int &x, int &y) {
+	x = this->x;
+	y = this->y;
+}
 
-//Plattform
-//#define GP2X
-//#define WINDOWS
+void BaseObject::set_position(int x, int y) {
+	this->x = x;
+	this->y = y;
+}
 
-//interne Auflösung
-#define PC_RESOLUTION_X 320
-#define PC_RESOLUTION_Y 240
+void BaseObject::draw(int xpos, int ypos, BITMAP *buffer) {
+}
 
-//Faktor, um den die Fensterausgabe gestreckt wird
-#define PC_STRETCH_FACTOR 2
-
-//Anzahl der Frames bis sich die Spriteanimation ändert
-#define SPRITE_ANIMATION_SPEED 3
-
-#endif
+void BaseObject::update() {
+}

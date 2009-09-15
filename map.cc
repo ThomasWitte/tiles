@@ -18,28 +18,6 @@
 #include <fstream>
 #include <iostream>
 
-BaseObject::BaseObject(int x, int y, Map *parent) {
-	this->x = x;
-	this->y = y;
-	this->parent = parent;
-}
-
-void BaseObject::get_position(int &x, int &y) {
-	x = this->x;
-	y = this->y;
-}
-
-void BaseObject::set_position(int x, int y) {
-	this->x = x;
-	this->y = y;
-}
-
-void BaseObject::draw(int xpos, int ypos, BITMAP *buffer) {
-}
-
-void BaseObject::update() {
-}
-
 Tileset::Tileset() {
 	for(int i = 0; i < MAX_TILES_PER_TILESET; i++) {
 		tiles[i] = NULL;
@@ -170,6 +148,9 @@ Map::~Map() {
 	for(int i = 0; i < objects.size(); i++)
 		delete objects[i];
 
+	for(int i = 0; i < sprites.size(); i++)
+		delete sprites[i];
+
 	if(buffer)
 		destroy_bitmap(buffer);
 }
@@ -177,6 +158,13 @@ Map::~Map() {
 bool Map::is_walkable(int x, int y) {
 	x/=current_tileset.get_tilesize();
 	y/=current_tileset.get_tilesize();
+	
+	if(x < 0 || y < 0 || x >= tilesx || y >= tilesy) return false;
+
+	if(walkable[x][y] == 0)
+		return false;
+	if(walkable[x][y] == 1)
+		return true;
 }
 
 void Map::laden(string dateiname) {
@@ -197,11 +185,16 @@ void Map::laden(string dateiname) {
 	for(int i = 1; i < objects.size(); i++) //alle außer dem ersten objekt löschen
 		delete objects[i];
 	objects.resize(1);
+	centre(0);
+
+	for(int i = 0; i < sprites.size(); i++)
+		delete sprites[i];
+	sprites.resize(0);
 
 	ifstream levelfile;
 	dateiname.insert(0, "Levels/");
 	levelfile.open(dateiname.c_str(), ios_base::in);
-	string s;
+	string s, s2, s3;
 	int curx = 0;
 	int cury = 0;
 	int state = 3;
@@ -243,7 +236,30 @@ void Map::laden(string dateiname) {
 			case 1: //Objekte einlesen
 				if(s == "bobj") { //BaseObject
 					levelfile >> curx >> cury;
+					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
+					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
 					objects.push_back(new BaseObject(curx, cury, this));
+				}
+
+				if(s == "sprite") { //BaseObject
+					levelfile >> curx >> cury >> s3 >> s2;
+					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
+					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
+					int index = -1;
+					for(int i = 0; i < sprites.size(); i++) {
+						if(sprites[i]->get_name() == s3) index = i;
+					}
+					if(index == -1) {
+						sprites.push_back(new SpriteSet(s3));
+						index = sprites.size()-1;
+					}
+
+					if(s2 == "player") {
+						objects.push_back(new Sprite(curx, cury, Sprite::PLAYER, sprites[index], this));
+						centre(objects.size()-1);
+					} else {
+						objects.push_back(new Sprite(curx, cury, Sprite::NONE, sprites[index], this));
+					}
 				}
 			break;
 
@@ -254,6 +270,10 @@ void Map::laden(string dateiname) {
 	}
 	levelfile.close();
 	cout << "map geladen" << endl;
+}
+
+int Map::get_tilesize() {
+	return current_tileset.get_tilesize();
 }
 
 void Map::centre(int index) {

@@ -15,6 +15,6 @@ Size 10 x 10
 
 [Object]
 
-bobj 80 80
+sprite 79 81 Mario player
 
 [eof]

@@ -14,27 +14,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef OBJECT_H
+#define OBJECT_H
 
-#define MAX_TILES_PER_TILESET 256
+#include <allegro.h>
+#include "config.h"
+#include "map.h"
 
-//Logische Framerate
-#define GAME_TIMER_BPS 60
-#define MAX_FRAMESKIP 4
+class BaseObject {
+	protected:
+		int x;
+		int y;
+		class Map *parent;
+	public:
+		BaseObject(int x, int y, class Map *parent = NULL);
+		virtual void get_position(int &x, int &y);
+		virtual void set_position(int x, int y);
+		virtual void draw(int xpos, int ypos, BITMAP *buffer);
+		virtual void update();
+};
 
-//Plattform
-//#define GP2X
-//#define WINDOWS
-
-//interne Auflösung
-#define PC_RESOLUTION_X 320
-#define PC_RESOLUTION_Y 240
-
-//Faktor, um den die Fensterausgabe gestreckt wird
-#define PC_STRETCH_FACTOR 2
-
-//Anzahl der Frames bis sich die Spriteanimation ändert
-#define SPRITE_ANIMATION_SPEED 3
+#include "sprite.h"
 
 #endif

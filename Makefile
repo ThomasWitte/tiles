@@ -1,7 +1,7 @@
 CC =      g++
 LDFLAGS	= `allegro-config --libs`
 
-OBJ =     main.o game.o map.o menu.o
+OBJ =     main.o game.o map.o menu.o object.o sprite.o
 BIN =     tiles
 
 all: $(OBJ)
