@@ -110,12 +110,13 @@ Map::Map() : tilesx(0), tilesy(0) {
 	objects.push_back(new BaseObject(0, 0, false, this));
 	centre(0);
 
-	laden("defaultLevel");
+	laden("defaultLevel", NULL);
 }
 
-Map::Map(string dateiname) : tilesx(0), tilesy(0) {
+Map::Map(string dateiname, Game *parent) : tilesx(0), tilesy(0) {
 	tilemap = NULL;
 	walkable = NULL;
+	this->parent = parent;
 
 	buffer = NULL;
 
@@ -131,7 +132,7 @@ Map::Map(string dateiname) : tilesx(0), tilesy(0) {
 	objects.push_back(new BaseObject(0, 0, false, this));
 	centre(0);
 
-	laden(dateiname);
+	laden(dateiname, parent);
 }
 
 Map::~Map() {
@@ -182,8 +183,9 @@ bool Map::is_walkable(int x, int y) {
 		return true;
 }
 
-void Map::laden(string dateiname) {
+void Map::laden(string dateiname, Game *parent) {
 	map_name = dateiname;
+	this->parent = parent;
 
 	if(tilemap) {
 		for(int i = 0; i < tilesx; i++)
@@ -214,6 +216,7 @@ void Map::laden(string dateiname) {
 	dateiname.insert(0, "Levels/");
 	levelfile.open(dateiname.c_str(), ios_base::in);
 	string s, s2, s3;
+	vector<string> parameter;
 	int curx = 0;
 	int cury = 0;
 	int state = 3;
@@ -276,6 +279,7 @@ void Map::laden(string dateiname) {
 					if(s2 == "player") {
 						objects.push_back(new Sprite(curx, cury, Sprite::PLAYER, sprites[index], true, this));
 						centre(objects.size()-1);
+						parent->set_player((Sprite*)objects[objects.size()-1]);
 					} else {
 						objects.push_back(new Sprite(curx, cury, Sprite::NONE, sprites[index], true, this));
 					}
@@ -298,6 +302,12 @@ void Map::laden(string dateiname) {
 			break;
 
 			case 2: //Events einlesen
+				parameter.resize(0);
+				while(s != ";") {
+					parameter.push_back(s);
+					levelfile >> s;
+				}
+				parent->register_event(parameter);
 			break;
 		}
 		levelfile >> s;

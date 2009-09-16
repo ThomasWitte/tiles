@@ -18,7 +18,15 @@
 #define GAME_H
 
 #include <map>
+#include <vector>
+#include <string>
 #include "map.h"
+
+struct Event {
+	vector<string> arg;
+	void (Game::*func) (Event*);
+	int x, y;
+};
 
 class Game {
 	public:
@@ -28,11 +36,20 @@ class Game {
 
 		void speichern(string spielstand);
 		void laden(string spielstand);
+		void register_event(vector<string> ev);
 		void update();
 		void draw();
+		void set_player(class Sprite *s) {me = s;}
 	protected:
+		enum EVENT {ON_LOAD, ON_EXIT, ALWAYS, PLAYER_AT, ON_ACTION, EXTENDED_EVENTS};
+		vector<Event> events[6]; //Anzahl siehe ^
+
+		Sprite *me;
 		Map m;
 		map<string, string> vars;
+
+		void set_var(Event *e);
+		void change_map(Event *e);
 };
 
 #endif

@@ -19,13 +19,15 @@
 #include <string>
 #include "game.h"
 
-Game::Game() : m("defaultLevel") {
+Game::Game() : m("defaultLevel", this) {
+	me = NULL;
 }
 
 Game::~Game() {
 }
 
 Game::Game(string spielstand) {
+	me = NULL;
 	laden(spielstand);
 }
 
@@ -47,6 +49,9 @@ void Game::speichern(string spielstand) {
 }
 
 void Game::laden(string spielstand) {
+	for(int i = 0; i < 6; i++)
+		events[i].resize(0);
+
 	ifstream savefile;
 	spielstand.insert(0, "Saves/");
 	savefile.open(spielstand.c_str(), ios_base::in);
@@ -63,7 +68,7 @@ void Game::laden(string spielstand) {
 
 		switch(state) {
 			case 1:
-				m.laden(input);
+				m.laden(input, this);
 				state = 0;
 			break;
 
@@ -78,10 +83,112 @@ void Game::laden(string spielstand) {
 		savefile >> input;
 	}
 	
-	savefile.close();	
+	savefile.close();
+
+	for(int i = 0; i < events[ON_LOAD].size(); i++) {
+		void (Game::*ptr) (Event*);
+		ptr = events[ON_LOAD][i].func;
+		(this->*ptr)(&events[ON_LOAD][i]);
+	}
+}
+
+void Game::register_event(vector<string> ev) {
+	Event e;
+	EVENT typ;
+	int index = 1;
+
+	if(ev[0] == "on_load") {
+		typ = ON_LOAD;
+	} else if(ev[0] == "on_exit") {
+		typ = ON_EXIT;
+	} else if(ev[0] == "always") {
+		typ = ALWAYS;
+	} else if(ev[0] == "player_at") {
+		typ = PLAYER_AT;
+		e.x = atoi(ev[1].c_str());
+		e.y = atoi(ev[2].c_str());
+		index = 3;
+	} else if(ev[0] == "on_action") {
+		typ = ON_ACTION;
+		e.x = atoi(ev[1].c_str());
+		e.y = atoi(ev[2].c_str());
+		index = 3;
+	}
+
+	if(ev[index] == "set_var") {
+		e.func = &Game::set_var;
+		e.arg.push_back(ev[index+1]);
+		e.arg.push_back(ev[index+2]);
+	} else if(ev[index] == "change_map") {
+		e.func = &Game::change_map;
+		e.arg.push_back(ev[index+1]);
+	}
+
+	events[typ].push_back(e);
+}
+
+void Game::set_var(Event *e) {
+	vars[e->arg[0]] = e->arg[1];
+}
+
+void Game::change_map(Event *e) {
+	for(int i = 0; i < events[ON_EXIT].size(); i++) {
+		void (Game::*ptr) (Event*);
+		ptr = events[ON_EXIT][i].func;
+		(this->*ptr)(&events[ON_EXIT][i]);
+	}
+	vars["last_map"] = m.get_level_name();
+
+	m.laden(e->arg[0], this);
 }
 
 void Game::update() {
+	if(me) {
+		int x, y;
+		me->get_position(x, y);
+		x /= m.get_tilesize();
+		y /= m.get_tilesize();
+
+		for(int i = 0; i < events[PLAYER_AT].size(); i++) 
+			if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
+				void (Game::*ptr) (Event*);
+				ptr = events[PLAYER_AT][i].func;
+				(this->*ptr)(&events[PLAYER_AT][i]);
+			}
+
+		switch(me->get_direction()) {
+			case Sprite::UP:
+				y--;
+			break;
+			case Sprite::DOWN:
+				y++;
+			break;
+			case Sprite::LEFT:
+				x--;
+			break;
+			case Sprite::RIGHT:
+				x++;
+			break;
+		}
+
+		if(me->action) {
+			me->action = false;
+			for(int i = 0; i < events[ON_ACTION].size(); i++) 
+				if(x == events[ON_ACTION][i].x && y == events[ON_ACTION][i].y) {
+					void (Game::*ptr) (Event*);
+					ptr = events[ON_ACTION][i].func;
+					(this->*ptr)(&events[ON_ACTION][i]);
+			}
+		}
+
+	}
+
+	for(int i = 0; i < events[ALWAYS].size(); i++) {
+		void (Game::*ptr) (Event*);
+		ptr = events[ALWAYS][i].func;
+		(this->*ptr)(&events[ALWAYS][i]);
+	}
+
 	m.update();
 }
 

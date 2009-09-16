@@ -60,9 +60,12 @@ class Sprite : public BaseObject {
 	public:
 		enum STRG {NONE, PLAYER};
 		enum {UP, DOWN, LEFT, RIGHT};
+		bool action;
+	
 		Sprite(int x, int y, STRG s = NONE, SpriteSet *ss = NULL, bool solid = true, class Map *parent = NULL);
 		~Sprite();
 		virtual void draw(int xpos, int ypos, BITMAP *buffer);
+		virtual int get_direction();
 		virtual void update();
 };
 

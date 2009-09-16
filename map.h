@@ -50,17 +50,20 @@ class Map {
 		int focus;
 		BITMAP *buffer;
 		Tileset current_tileset;
+		class Game *parent;
 	public:
 		Map();
-		Map(string dateiname);
+		Map(string dateiname, Game *parent);
 		~Map();
 		bool is_walkable(int x, int y);
-		void laden(string dateiname);
+		void laden(string dateiname, Game *parent);
 		void centre(int index = 0);
 		void update();
 		void draw();
 		int get_tilesize();
 		string get_level_name();
 };
+
+#include "game.h"
 
 #endif /* MAP_H */

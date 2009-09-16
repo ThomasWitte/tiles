@@ -21,4 +21,11 @@ object 64 48 TV_eingeschaltet
 object 80 48 TV_eingeschaltet
 object 32 48 TV_eingeschaltet
 
+[Event]
+
+on_load set_var eventtest1 erfolgreich ;
+on_exit set_var eventtest2 erfolgreich ;
+player_at 17 7 change_map defaultLevel ;
+on_action 2 3 change_map kefkas_palast ;
+
 [eof]

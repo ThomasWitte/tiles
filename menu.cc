@@ -144,7 +144,7 @@ string Menu::save_menu() {
 	sort(files.begin(), files.end());
 	files.erase(files.begin(), files.begin()+2);
 
-	char text[101];
+	char text[101] = "";
 
 	DIALOG menu[] =
 	{

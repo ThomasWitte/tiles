@@ -130,6 +130,7 @@ Sprite::Sprite(int x, int y, STRG s, SpriteSet *ss, bool solid, Map *parent) : B
 	}
 	spriteset = ss;
 	walking = false;
+	action = false;
 	current_direction = UP;
 	frame = 0;
 }
@@ -141,6 +142,10 @@ Sprite::~Sprite() {
 void Sprite::draw(int xpos, int ypos, BITMAP *buffer) {
 	BITMAP *sprite = spriteset->get_sprite(current_direction, walking, frame);
 	draw_sprite(buffer, sprite, xpos-sprite->w/2, ypos-sprite->h/2);
+}
+
+int Sprite::get_direction() {
+	return current_direction;
 }
 
 void Sprite::update() {
@@ -167,6 +172,9 @@ void Sprite::update() {
 				current_direction = RIGHT;
 				if(parent->is_walkable(x+parent->get_tilesize(), y))
 					walking = true;
+			break;
+			case BaseSteuerung::ACTION:
+				action = true;
 			break;
 		}
 	}
