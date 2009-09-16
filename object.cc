@@ -15,11 +15,13 @@
 */
 
 #include "object.h"
+#include <fstream>
 
-BaseObject::BaseObject(int x, int y, Map *parent) {
+BaseObject::BaseObject(int x, int y, bool s, Map *parent) {
 	this->x = x;
 	this->y = y;
 	this->parent = parent;
+	solid = s;
 }
 
 void BaseObject::get_position(int &x, int &y) {
@@ -36,4 +38,45 @@ void BaseObject::draw(int xpos, int ypos, BITMAP *buffer) {
 }
 
 void BaseObject::update() {
+}
+
+Animation::~Animation() {
+	for(int i = 0; i < frames.size(); i++)
+		destroy_bitmap(frames[i]);
+}
+
+void Animation::load(string dateiname) {
+	name = dateiname;
+	for(int i = 0; i < frames.size(); i++)
+		destroy_bitmap(frames[i]);
+	frames.resize(0);
+
+	ifstream anifile;
+	string prefix = string("Objects/").append(dateiname).append("/");
+	string s = prefix;
+	s.append(dateiname);
+	anifile.open(s.c_str(), ios_base::in);
+	
+	anifile >> s;
+	if(s == "[Animation]") {
+		anifile >> s;
+		while(s != "[eof]") {
+			dateiname = prefix;
+			dateiname.append(s);
+			frames.push_back(load_bitmap(dateiname.c_str(), NULL));
+			anifile >> s;
+		}
+	}
+
+	anifile.close();
+}
+
+BITMAP* Animation::get_frame(int frame) {
+	frame = frame%frames.size();
+	return frames[frame];
+}
+
+void Object::draw(int xpos, int ypos, BITMAP *buffer) {
+	BITMAP *sprite = ani->get_frame(frame);
+	draw_sprite(buffer, sprite, xpos-sprite->w/2, ypos-sprite->h/2);
 }

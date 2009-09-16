@@ -203,6 +203,7 @@ int Menu::pause_menu() {
 	if(ret == 4) ret = SAVE;
 	else if(ret == 5) ret = ENDE;
 	else if(ret == 6) ret = EXIT;
+	else if(ret == 3) ret = CANCEL;
 
 	return ret;
 }

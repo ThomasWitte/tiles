@@ -107,7 +107,7 @@ Map::Map() : tilesx(0), tilesy(0) {
 	if(!buffer)
 		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
 
-	objects.push_back(new BaseObject(0, 0, this));
+	objects.push_back(new BaseObject(0, 0, false, this));
 	centre(0);
 
 	laden("defaultLevel");
@@ -128,7 +128,7 @@ Map::Map(string dateiname) : tilesx(0), tilesy(0) {
 	if(!buffer)
 		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
 
-	objects.push_back(new BaseObject(0, 0, this));
+	objects.push_back(new BaseObject(0, 0, false, this));
 	centre(0);
 
 	laden(dateiname);
@@ -151,6 +151,9 @@ Map::~Map() {
 	for(int i = 0; i < sprites.size(); i++)
 		delete sprites[i];
 
+	for(int i = 0; i < animations.size(); i++)
+		delete animations[i];
+
 	if(buffer)
 		destroy_bitmap(buffer);
 }
@@ -158,6 +161,18 @@ Map::~Map() {
 bool Map::is_walkable(int x, int y) {
 	x/=current_tileset.get_tilesize();
 	y/=current_tileset.get_tilesize();
+
+	for(int i = 0; i < objects.size(); i++) {
+		if(objects[i]->is_solid()) {
+			int xp, yp;
+			objects[i]->get_position(xp, yp);
+			xp/=current_tileset.get_tilesize();
+			yp/=current_tileset.get_tilesize();
+			if(x == xp && y == yp) {
+				return false;
+			}
+		}
+	}
 	
 	if(x < 0 || y < 0 || x >= tilesx || y >= tilesy) return false;
 
@@ -190,6 +205,10 @@ void Map::laden(string dateiname) {
 	for(int i = 0; i < sprites.size(); i++)
 		delete sprites[i];
 	sprites.resize(0);
+
+	for(int i = 0; i < animations.size(); i++)
+		delete animations[i];
+	animations.resize(0);
 
 	ifstream levelfile;
 	dateiname.insert(0, "Levels/");
@@ -238,10 +257,10 @@ void Map::laden(string dateiname) {
 					levelfile >> curx >> cury;
 					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
 					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
-					objects.push_back(new BaseObject(curx, cury, this));
+					objects.push_back(new BaseObject(curx, cury, false, this));
 				}
 
-				if(s == "sprite") { //BaseObject
+				if(s == "sprite") { //Sprite
 					levelfile >> curx >> cury >> s3 >> s2;
 					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
 					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
@@ -255,11 +274,26 @@ void Map::laden(string dateiname) {
 					}
 
 					if(s2 == "player") {
-						objects.push_back(new Sprite(curx, cury, Sprite::PLAYER, sprites[index], this));
+						objects.push_back(new Sprite(curx, cury, Sprite::PLAYER, sprites[index], true, this));
 						centre(objects.size()-1);
 					} else {
-						objects.push_back(new Sprite(curx, cury, Sprite::NONE, sprites[index], this));
+						objects.push_back(new Sprite(curx, cury, Sprite::NONE, sprites[index], true, this));
 					}
+				}
+
+				if(s == "object") { //Object
+					levelfile >> curx >> cury >> s2;
+					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
+					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
+					int index = -1;
+					for(int i = 0; i < animations.size(); i++) {
+						if(animations[i]->get_name() == s2) index = i;
+					}
+					if(index == -1) {
+						animations.push_back(new Animation(s2));
+						index = animations.size()-1;
+					}
+					objects.push_back(new Object(curx, cury, animations[index], true, this));
 				}
 			break;
 

@@ -30,7 +30,7 @@ class Menu {
 
 	public:
 	
-	enum {GAME, ENDE, EXIT, SAVE};
+	enum {GAME, ENDE, EXIT, SAVE, CANCEL};
 
 	static int main_menu();
 	static string load_menu();

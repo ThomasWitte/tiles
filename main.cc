@@ -101,9 +101,15 @@ void gp2x_exit() {
 #endif
 
 volatile int timecounter;
+#ifdef ENABLE_FRAME_COUNTER
+volatile int framecounter;
+#endif
 
 void timerupdate() {
 	timecounter++;
+#ifdef ENABLE_FRAME_COUNTER
+	framecounter++;
+#endif
 }
 
 END_OF_FUNCTION(timerupdate)
@@ -126,6 +132,10 @@ int main()
 	install_timer();
 	
 	LOCK_VARIABLE(timecounter);
+#ifdef ENABLE_FRAME_COUNTER
+	LOCK_VARIABLE(framecounter);
+	int drawn_frames = 0;
+#endif
 	LOCK_FUNCTION(timerupdate);
 	install_int_ex(timerupdate, BPS_TO_TIMER(GAME_TIMER_BPS));
 
@@ -154,10 +164,21 @@ int main()
 	
 				game.update();
 			}
+
+#ifdef ENABLE_FRAME_COUNTER
+			if(framecounter >= GAME_TIMER_BPS) {//1 Sekunde vergangen
+				framecounter = 0;
+				cout << drawn_frames << " fps" << endl;
+				drawn_frames = 0;
+			}
+#endif
 	
 			if(needs_redraw) {
 				needs_redraw = false;
 				game.draw();
+#ifdef ENABLE_FRAME_COUNTER
+				drawn_frames++;
+#endif
 			}
 	
 			if(key[KEY_ESC]) {

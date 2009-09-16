@@ -119,7 +119,7 @@ Sprite::BaseSteuerung::CMD Sprite::PlayerSteuerung::command() {
 	return ret;
 }
 
-Sprite::Sprite(int x, int y, STRG s, SpriteSet *ss, Map *parent) : BaseObject(x, y, parent) {
+Sprite::Sprite(int x, int y, STRG s, SpriteSet *ss, bool solid, Map *parent) : BaseObject(x, y, solid, parent) {
 	switch(s) {
 		case NONE:
 			strg = new BaseSteuerung();

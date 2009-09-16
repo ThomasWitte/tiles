@@ -37,4 +37,7 @@
 //Anzahl der Frames bis sich die Spriteanimation ändert
 #define SPRITE_ANIMATION_SPEED 3
 
+//fps anzeigen?
+//#define ENABLE_FRAME_COUNTER
+
 #endif

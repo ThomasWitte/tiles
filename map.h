@@ -41,6 +41,7 @@ class Map {
 	private:
 		vector<class BaseObject*> objects;
 		vector<class SpriteSet*> sprites;
+		vector<class Animation*> animations;
 		string map_name;
 		int **tilemap;
 		int **walkable;
