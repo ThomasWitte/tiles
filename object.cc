@@ -22,6 +22,7 @@ BaseObject::BaseObject(int x, int y, bool s, Map *parent) {
 	this->y = y;
 	this->parent = parent;
 	solid = s;
+	action = false;
 }
 
 void BaseObject::get_position(int &x, int &y) {

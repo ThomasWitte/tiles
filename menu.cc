@@ -198,12 +198,19 @@ int Menu::pause_menu() {
 
 	resize_menu(SCREEN_W, SCREEN_H, menu);
 
-	int ret = do_dialog(menu, 3);
+	int time, ret;
 
-	if(ret == 4) ret = SAVE;
-	else if(ret == 5) ret = ENDE;
-	else if(ret == 6) ret = EXIT;
-	else if(ret == 3) ret = CANCEL;
+	do {
+		time  = timecounter;
+		ret = do_dialog(menu, 3);
+	} while(time + GAME_TIMER_BPS/4 > timecounter); //der Dialog sollte länger als 0.25s geöffnet bleiben
 
-	return ret;
+	int ret2 = CANCEL;
+
+	if(ret == 4) ret2 = SAVE;
+	else if(ret == 5) ret2 = ENDE;
+	else if(ret == 6) ret2 = EXIT;
+	else if(ret == 3) ret2 = CANCEL;
+
+	return ret2;
 }

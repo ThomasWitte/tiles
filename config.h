@@ -40,4 +40,8 @@
 //fps anzeigen?
 //#define ENABLE_FRAME_COUNTER
 
+#define ACTION_KEY KEY_SPACE
+
+extern volatile int timecounter;
+
 #endif

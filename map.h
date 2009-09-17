@@ -19,6 +19,7 @@
 
 #include <allegro.h>
 #include <vector>
+#include <deque>
 #include <string>
 #include "config.h"
 #include "object.h"
@@ -37,11 +38,18 @@ class Tileset {
 		BITMAP* get_tile(int index);
 };
 
+struct Dlg {
+	BITMAP *dlg;
+	int min_frames, max_frames;
+};
+
 class Map {
 	private:
 		vector<class BaseObject*> objects;
 		vector<class SpriteSet*> sprites;
 		vector<class Animation*> animations;
+		deque<Dlg> dialoge;
+
 		string map_name;
 		int **tilemap;
 		int **walkable;
@@ -62,6 +70,7 @@ class Map {
 		void draw();
 		int get_tilesize();
 		string get_level_name();
+		void show_dialog(Dlg d);
 };
 
 #include "game.h"

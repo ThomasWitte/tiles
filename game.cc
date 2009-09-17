@@ -21,6 +21,7 @@
 
 Game::Game() : m("defaultLevel", this) {
 	me = NULL;
+	last_action = 0;
 }
 
 Game::~Game() {
@@ -28,6 +29,7 @@ Game::~Game() {
 
 Game::Game(string spielstand) {
 	me = NULL;
+	last_action = 0;
 	laden(spielstand);
 }
 
@@ -49,6 +51,7 @@ void Game::speichern(string spielstand) {
 }
 
 void Game::laden(string spielstand) {
+	last_action = 0;
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
 
@@ -115,6 +118,31 @@ void Game::register_event(vector<string> ev) {
 		index = 3;
 	}
 
+	if(ev[index] == "if") {
+		Event f;
+		f.func = &Game::if_function;
+		f.arg.push_back(ev[index+1]);
+		f.arg.push_back(ev[index+2]);
+		f.arg.push_back(ev[index+3]);
+		f.x = e.x;
+		f.y = e.y;
+
+		if(ev[index+1] == "var") {
+			f.arg.push_back(ev[index+4]);
+			index++;
+		} if(ev[index+1] == "var") {
+			f.arg.push_back(ev[index+4]);
+			index++;
+		}
+
+		char ind[5];
+		sprintf(ind, "%i", (int)events[EXTENDED_EVENTS].size());
+		f.arg.push_back(ind);
+		index += 4;
+		events[typ].push_back(f);
+		typ = EXTENDED_EVENTS;
+	}
+
 	if(ev[index] == "set_var") {
 		e.func = &Game::set_var;
 		e.arg.push_back(ev[index+1]);
@@ -122,6 +150,10 @@ void Game::register_event(vector<string> ev) {
 	} else if(ev[index] == "change_map") {
 		e.func = &Game::change_map;
 		e.arg.push_back(ev[index+1]);
+	} else if(ev[index] == "dialog") {
+		e.func = &Game::dialog;
+		for(int i = index+1; i < ev.size(); i++)
+			e.arg.push_back(ev[i]);
 	}
 
 	events[typ].push_back(e);
@@ -142,19 +174,76 @@ void Game::change_map(Event *e) {
 	m.laden(e->arg[0], this);
 }
 
+void Game::dialog(Event *e) {
+	Dlg d;
+	d.dlg = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
+	for(int i = 0; i < d.dlg->h; i++) {
+		line(d.dlg, 0, i, d.dlg->w, i, makecol(i, i, 255-i));
+	}
+	rect(d.dlg, 3, 3, d.dlg->w-4, d.dlg->h-4, makecol(255, 255, 255));
+	d.min_frames = GAME_TIMER_BPS*0.25; //15 frames = 0.25s
+	d.max_frames = GAME_TIMER_BPS*10;
+
+	int zeile = 15;
+	int spalte = 15;
+	for(int i = 0; i < e->arg.size(); i++) {
+		if(spalte + text_length(font, e->arg[i].c_str()) > d.dlg->w - 15) {
+			spalte = 15;
+			zeile = zeile + text_height(font) + 3;
+		}
+		textout_ex(d.dlg, font, e->arg[i].c_str(), spalte, zeile, makecol(255, 255, 255), -1);
+		spalte = spalte + text_length(font, e->arg[i].c_str()) + 5;
+	}
+
+	m.show_dialog(d);
+}
+
+void Game::if_function(Event *e2) {
+	Event e = *e2;
+	bool do_it = false;
+
+	for(int i = 0; i < e.arg.size(); i++)
+		if(e.arg[i] == "var") {
+			e.arg[i] = vars[e.arg[i+1]];
+			if(e.arg[i] == "") e.arg[i] = "nil";
+			e.arg.erase(e.arg.begin()+i+1);
+		}
+
+	if(e.arg[1] == "=" && e.arg[0] == e.arg[2]) do_it = true;
+	else if(e.arg[1] == "!=" && e.arg[0] != e.arg[2]) do_it = true;
+	else if(e.arg[1] == ">" && atof(e.arg[0].c_str()) > atof(e.arg[2].c_str())) do_it = true;
+	else if(e.arg[1] == "<" && atof(e.arg[0].c_str()) < atof(e.arg[2].c_str())) do_it = true;
+
+	if(do_it) {
+		void (Game::*ptr) (Event*);
+		ptr = events[EXTENDED_EVENTS][atoi(e.arg[3].c_str())].func;
+		(this->*ptr)(&events[EXTENDED_EVENTS][atoi(e.arg[3].c_str())]);
+		action();
+	}
+}
+
 void Game::update() {
+	m.update();
+
+	if(last_action)
+		key[ACTION_KEY] = 0;
+
 	if(me) {
 		int x, y;
 		me->get_position(x, y);
 		x /= m.get_tilesize();
 		y /= m.get_tilesize();
 
-		for(int i = 0; i < events[PLAYER_AT].size(); i++) 
-			if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
-				void (Game::*ptr) (Event*);
-				ptr = events[PLAYER_AT][i].func;
-				(this->*ptr)(&events[PLAYER_AT][i]);
-			}
+		if(x!=lastx || y!=lasty) {
+			for(int i = 0; i < events[PLAYER_AT].size(); i++) 
+				if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
+					void (Game::*ptr) (Event*);
+					ptr = events[PLAYER_AT][i].func;
+					(this->*ptr)(&events[PLAYER_AT][i]);
+				}
+			lastx = x;
+			lasty = y;
+		}
 
 		switch(me->get_direction()) {
 			case Sprite::UP:
@@ -179,8 +268,8 @@ void Game::update() {
 					ptr = events[ON_ACTION][i].func;
 					(this->*ptr)(&events[ON_ACTION][i]);
 			}
+			action();
 		}
-
 	}
 
 	for(int i = 0; i < events[ALWAYS].size(); i++) {
@@ -189,7 +278,7 @@ void Game::update() {
 		(this->*ptr)(&events[ALWAYS][i]);
 	}
 
-	m.update();
+	last_action--;
 }
 
 void Game::draw() {

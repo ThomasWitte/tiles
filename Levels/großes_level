@@ -26,6 +26,20 @@ object 32 48 TV_eingeschaltet
 on_load set_var eventtest1 erfolgreich ;
 on_exit set_var eventtest2 erfolgreich ;
 player_at 17 7 change_map defaultLevel ;
+player_at 17 6 dialog Achtung! ;
+player_at 16 7 dialog Achtung! ;
 on_action 2 3 change_map kefkas_palast ;
+
+on_action 3 3
+	if var dialog_gelesen = true
+		dialog hast du schon gelesen, nächstes mal vielleicht wieder. ;
+on_action 3 3
+	if var dialog_gelesen != true
+		dialog testdialog: dies soll die fähigkeiten des dialogsystems anhand eines langen dialoges testen. ;
+on_action 3 3
+	if var dialog_gelesen != true
+		dialog Wenn der Dialog jedoch zu lang wird, so empfiehlt es sich auf eine zweite Seite auszuweichen... ;
+
+on_action 3 3 set_var dialog_gelesen true ;
 
 [eof]

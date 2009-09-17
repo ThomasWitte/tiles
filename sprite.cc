@@ -114,7 +114,7 @@ Sprite::BaseSteuerung::CMD Sprite::PlayerSteuerung::command() {
 	else if (key[KEY_DOWN]) ret = DOWN;
 	else if (key[KEY_LEFT]) ret = LEFT;
 	else if (key[KEY_RIGHT]) ret = RIGHT;
-	else if (key[KEY_SPACE]) ret = ACTION;
+	else if (key[ACTION_KEY]) ret = ACTION;
 
 	return ret;
 }

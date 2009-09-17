@@ -38,6 +38,7 @@ class BaseObject {
 		virtual bool is_solid() { return solid; }
 		virtual void draw(int xpos, int ypos, BITMAP *buffer);
 		virtual void update();
+		bool action;
 };
 
 class Animation {

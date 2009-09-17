@@ -40,16 +40,20 @@ class Game {
 		void update();
 		void draw();
 		void set_player(class Sprite *s) {me = s;}
+		void action() {last_action = GAME_TIMER_BPS/4;}
 	protected:
 		enum EVENT {ON_LOAD, ON_EXIT, ALWAYS, PLAYER_AT, ON_ACTION, EXTENDED_EVENTS};
 		vector<Event> events[6]; //Anzahl siehe ^
 
 		Sprite *me;
+		int last_action, lastx, lasty;
 		Map m;
 		map<string, string> vars;
 
 		void set_var(Event *e);
 		void change_map(Event *e);
+		void dialog(Event *e);
+		void if_function(Event *e);
 };
 
 #endif

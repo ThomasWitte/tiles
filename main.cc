@@ -180,8 +180,8 @@ int main()
 				drawn_frames++;
 #endif
 			}
-	
-			if(key[KEY_ESC]) {
+
+			if(key[KEY_F12]) {
 				switch(Menu::pause_menu()) {
 					case Menu::SAVE:
 						game.speichern(Menu::save_menu());

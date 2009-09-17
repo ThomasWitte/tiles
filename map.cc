@@ -155,6 +155,9 @@ Map::~Map() {
 	for(int i = 0; i < animations.size(); i++)
 		delete animations[i];
 
+	for(int i = 0; i < dialoge.size(); i++)
+		destroy_bitmap(dialoge[i].dlg);
+
 	if(buffer)
 		destroy_bitmap(buffer);
 }
@@ -211,6 +214,10 @@ void Map::laden(string dateiname, Game *parent) {
 	for(int i = 0; i < animations.size(); i++)
 		delete animations[i];
 	animations.resize(0);
+
+	for(int i = 0; i < dialoge.size(); i++)
+		destroy_bitmap(dialoge[i].dlg);
+	dialoge.resize(0);
 
 	ifstream levelfile;
 	dateiname.insert(0, "Levels/");
@@ -331,6 +338,31 @@ void Map::update() {
 	for(int i = 0; i < objects.size(); i++) {
 		objects[i]->update();
 	}
+
+	if(dialoge.size() > 0) {
+		dialoge[0].min_frames--;
+		dialoge[0].max_frames--;
+
+		bool action = false;
+		for(int i = 0; i < objects.size(); i++) {
+			if(objects[i]->action) {
+				action = true;
+			}
+			objects[i]->action = false;
+		}
+
+		if(dialoge[0].min_frames < 0) {
+			if(action) {
+				destroy_bitmap(dialoge[0].dlg);
+				dialoge.pop_front();
+				parent->action();
+			}
+		}
+		if(dialoge[0].max_frames < 0) {
+			destroy_bitmap(dialoge[0].dlg);
+			dialoge.pop_front();
+		}
+	}
 }
 
 void Map::draw() {
@@ -360,6 +392,11 @@ void Map::draw() {
 			oy > -(ts+5) && oy < buffer->h+5)
 			objects[i]->draw(ox, oy, buffer);
 	}
+
+	if(dialoge.size() > 0) {
+		blit(dialoge[0].dlg, buffer, 0, 0, 0, buffer->h - dialoge[0].dlg->h, dialoge[0].dlg->w, dialoge[0].dlg->h);
+	}
+
 	#ifdef GP2X
 	blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 	#else
@@ -369,4 +406,8 @@ void Map::draw() {
 
 string Map::get_level_name() {
 	return map_name;
+}
+
+void Map::show_dialog(Dlg d) {
+	dialoge.push_back(d);
 }
