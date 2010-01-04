@@ -18,6 +18,7 @@
 
 Fight::Fight(string dateiname) {
 	bg = NULL;
+	time = 0;
 }
 
 Fight::~Fight() {
@@ -30,4 +31,10 @@ void Fight::draw(BITMAP *buffer) {
 }
 
 void Fight::update() {
+	time++;
+	if(comqueue.size())
+		if(comqueue[0].get_time() <= time) {
+			comqueue[0].execute();
+			comqueue.pop_front();
+		}
 };

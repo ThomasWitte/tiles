@@ -25,10 +25,14 @@
 using namespace std;
 
 class Command {
+	public:
+		long get_time();
+		void execute();
 };
 
 class Fight {
 	private:
+		long time;
 		BITMAP *bg;
 		deque<Command> comqueue;
 	public:
