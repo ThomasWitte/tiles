@@ -3,4 +3,6 @@ defaultLevel
 [userdata]
 var name default
 var test 8.6
+var position_x 5
+var position_y 5
 [eof]

@@ -56,7 +56,6 @@ class Map {
 		int tilesx;
 		int tilesy;
 		int focus;
-		BITMAP *buffer;
 		Tileset current_tileset;
 		class Game *parent;
 	public:
@@ -67,7 +66,7 @@ class Map {
 		void laden(string dateiname, Game *parent);
 		void centre(int index = 0);
 		void update();
-		void draw();
+		void draw(BITMAP *buffer);
 		int get_tilesize();
 		string get_level_name();
 		void show_dialog(Dlg d);

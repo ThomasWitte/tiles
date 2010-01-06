@@ -21,10 +21,24 @@
 
 Game::Game() : m("defaultLevel", this) {
 	me = NULL;
+	f = NULL;
 	last_action = 0;
+
+	buffer = NULL;
+
+	#ifdef GP2X
+	buffer = create_bitmap(SCREEN_W, SCREEN_H);
+	#else
+	buffer = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	#endif
+
+	if(!buffer)
+		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
 }
 
 Game::~Game() {
+	if(buffer)
+		destroy_bitmap(buffer);
 }
 
 Game::Game(string spielstand) {
@@ -34,6 +48,17 @@ Game::Game(string spielstand) {
 }
 
 void Game::speichern(string spielstand) {
+	if(me) {
+		int x, y;
+		me->get_position(x, y);
+		char p[5];
+
+		sprintf(p, "%i", x/m.get_tilesize());
+		vars["position_x"] = p;
+		sprintf(p, "%i", y/m.get_tilesize());
+		vars["position_y"] = p;
+	}
+
 	ofstream file;
 	spielstand.insert(0, "Saves/");
 	file.open(spielstand.c_str(), ios_base::out);
@@ -88,11 +113,19 @@ void Game::laden(string spielstand) {
 	
 	savefile.close();
 
+	Event e;
+	e.func = &Game::set_player_position;
+	e.arg.push_back(vars["position_x"]);
+	e.arg.push_back(vars["position_y"]);
+	events[ON_LOAD].push_back(e);
+
 	for(int i = 0; i < events[ON_LOAD].size(); i++) {
 		void (Game::*ptr) (Event*);
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
 	}
+
+	mode = MAP;
 }
 
 void Game::register_event(vector<string> ev) {
@@ -150,6 +183,13 @@ void Game::register_event(vector<string> ev) {
 	} else if(ev[index] == "change_map") {
 		e.func = &Game::change_map;
 		e.arg.push_back(ev[index+1]);
+	} else if(ev[index] == "start_fight") {
+		e.func = &Game::start_fight;
+		e.arg.push_back(ev[index+1]);
+	} else if(ev[index] == "set_player_position") {
+		e.func = &Game::set_player_position;
+		e.arg.push_back(ev[index+1]);
+		e.arg.push_back(ev[index+2]);
 	} else if(ev[index] == "dialog") {
 		e.func = &Game::dialog;
 		for(int i = index+1; i < ev.size(); i++)
@@ -171,7 +211,23 @@ void Game::change_map(Event *e) {
 	}
 	vars["last_map"] = m.get_level_name();
 
-	m.laden(e->arg[0], this);
+	string map_to_load = e->arg[0];
+
+	for(int i = 0; i < 6; i++)
+		events[i].resize(0);
+
+	m.laden(map_to_load, this);
+
+	for(int i = 0; i < events[ON_LOAD].size(); i++) {
+		void (Game::*ptr) (Event*);
+		ptr = events[ON_LOAD][i].func;
+		(this->*ptr)(&events[ON_LOAD][i]);
+	}
+}
+
+void Game::start_fight(Event *e) {
+	f = new Fight(e->arg[0]);
+	mode = FIGHT;
 }
 
 void Game::dialog(Event *e) {
@@ -222,66 +278,96 @@ void Game::if_function(Event *e2) {
 	}
 }
 
+void Game::set_player_position(Event *e) {
+	if(me)
+		me->set_position(atoi(e->arg[0].c_str())*m.get_tilesize()+m.get_tilesize()/2,
+						 atoi(e->arg[1].c_str())*m.get_tilesize()+m.get_tilesize()/2);
+}
+
 void Game::update() {
-	m.update();
+	switch(mode) {
+		case MAP:
+			m.update();
 
-	if(last_action)
-		key[ACTION_KEY] = 0;
+			if(last_action)
+				key[ACTION_KEY] = 0;
 
-	if(me) {
-		int x, y;
-		me->get_position(x, y);
-		x /= m.get_tilesize();
-		y /= m.get_tilesize();
+			if(me) {
+				int x, y;
+				me->get_position(x, y);
+				x /= m.get_tilesize();
+				y /= m.get_tilesize();
 
-		if(x!=lastx || y!=lasty) {
-			for(int i = 0; i < events[PLAYER_AT].size(); i++) 
-				if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
-					void (Game::*ptr) (Event*);
-					ptr = events[PLAYER_AT][i].func;
-					(this->*ptr)(&events[PLAYER_AT][i]);
+				if(x!=lastx || y!=lasty) {
+					for(int i = 0; i < events[PLAYER_AT].size(); i++) 
+						if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
+							void (Game::*ptr) (Event*);
+							ptr = events[PLAYER_AT][i].func;
+							(this->*ptr)(&events[PLAYER_AT][i]);
+						}
+					lastx = x;
+					lasty = y;
 				}
-			lastx = x;
-			lasty = y;
-		}
 
-		switch(me->get_direction()) {
-			case Sprite::UP:
-				y--;
-			break;
-			case Sprite::DOWN:
-				y++;
-			break;
-			case Sprite::LEFT:
-				x--;
-			break;
-			case Sprite::RIGHT:
-				x++;
-			break;
-		}
+				switch(me->get_direction()) {
+					case Sprite::UP:
+						y--;
+					break;
+					case Sprite::DOWN:
+						y++;
+					break;
+					case Sprite::LEFT:
+						x--;
+					break;
+					case Sprite::RIGHT:
+						x++;
+					break;
+				}
 
-		if(me->action) {
-			me->action = false;
-			for(int i = 0; i < events[ON_ACTION].size(); i++) 
-				if(x == events[ON_ACTION][i].x && y == events[ON_ACTION][i].y) {
-					void (Game::*ptr) (Event*);
-					ptr = events[ON_ACTION][i].func;
-					(this->*ptr)(&events[ON_ACTION][i]);
+				if(me->action) {
+					me->action = false;
+					for(int i = 0; i < events[ON_ACTION].size(); i++) 
+						if(x == events[ON_ACTION][i].x && y == events[ON_ACTION][i].y) {
+							void (Game::*ptr) (Event*);
+							ptr = events[ON_ACTION][i].func;
+							(this->*ptr)(&events[ON_ACTION][i]);
+					}
+					action();
+				}
 			}
-			action();
-		}
-	}
 
-	for(int i = 0; i < events[ALWAYS].size(); i++) {
-		void (Game::*ptr) (Event*);
-		ptr = events[ALWAYS][i].func;
-		(this->*ptr)(&events[ALWAYS][i]);
-	}
+			for(int i = 0; i < events[ALWAYS].size(); i++) {
+				void (Game::*ptr) (Event*);
+				ptr = events[ALWAYS][i].func;
+				(this->*ptr)(&events[ALWAYS][i]);
+			}
 
-	last_action--;
+			last_action--;
+		break; //case MAP
+		case FIGHT:
+			if(f->update() == 0) {//Kampfende
+				mode = MAP;
+				delete f;
+				f = NULL;
+			}
+		break;
+	}
 }
 
 void Game::draw() {
-	m.draw();
+	switch(mode) {
+		case MAP:
+			m.draw(buffer);
+		break;
+		case FIGHT:
+			f->draw(buffer);
+		break;
+	}
+
+	#ifdef GP2X
+	blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+	#else
+	stretch_blit(buffer, screen, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, 0, 0, SCREEN_W, SCREEN_H);
+	#endif
 }
 

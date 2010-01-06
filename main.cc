@@ -181,7 +181,7 @@ int main()
 #endif
 			}
 
-			if(key[KEY_F12]) {
+			if(key[MENU_KEY]) {
 				switch(Menu::pause_menu()) {
 					case Menu::SAVE:
 						game.speichern(Menu::save_menu());

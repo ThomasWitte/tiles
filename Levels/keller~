@@ -16,6 +16,6 @@ sprite 136 40 Luigi none
 [Event]
 
 player_at 0 2 change_map großes_level ;
-on_action 8 2 start_fight defaultFight ;
+on_action 8 2 start_fight default_fight ;
 
 [eof]

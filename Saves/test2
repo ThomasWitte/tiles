@@ -1,9 +1,8 @@
 [level]
 großes_level
 [userdata]
-var eventtest1 erfolgreich
-var eventtest2 erfolgreich
-var last_map großes_level
-var name default
+var last_map keller
+var position_x 16
+var position_y 6
 var test 8.6
 [eof]

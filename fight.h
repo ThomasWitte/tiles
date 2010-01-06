@@ -26,20 +26,36 @@ using namespace std;
 
 class Command {
 	public:
+		Command(long time);
 		long get_time();
-		void execute();
+		virtual void execute();
+	protected:
+		long exec_time;
+};
+
+class Fighter {
+	public:
+		Fighter(class Fight *f);
+		~Fighter();
+		virtual void update();
+		virtual void draw(BITMAP *buffer, int x, int y);
+	protected:
+		Fight *parent;
 };
 
 class Fight {
+	public:
+		Fight(string dateiname = "defaultFight");
+		~Fight();
+		int update();
+		void draw(BITMAP *buffer);
+		enum PlayerSide {LEFT, MIDDLE, RIGHT};
 	private:
 		long time;
 		BITMAP *bg;
 		deque<Command> comqueue;
-	public:
-		Fight(string dateiname = "defaultFight");
-		~Fight();
-		void update();
-		void draw(BITMAP *buffer);
+		deque<Fighter*> fighters[3]; //PlayerSide
+		PlayerSide side;
 };
 
 #endif

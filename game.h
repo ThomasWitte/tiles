@@ -21,6 +21,7 @@
 #include <vector>
 #include <string>
 #include "map.h"
+#include "fight.h"
 
 struct Event {
 	vector<string> arg;
@@ -43,16 +44,22 @@ class Game {
 		void action() {last_action = GAME_TIMER_BPS/4;}
 	protected:
 		enum EVENT {ON_LOAD, ON_EXIT, ALWAYS, PLAYER_AT, ON_ACTION, EXTENDED_EVENTS};
+		enum GAME_MODE {FIGHT, MAP};
 		vector<Event> events[6]; //Anzahl siehe ^
 
+		BITMAP *buffer;
 		Sprite *me;
 		int last_action, lastx, lasty;
 		Map m;
+		Fight *f;
 		map<string, string> vars;
+		GAME_MODE mode;
 
 		void set_var(Event *e);
 		void change_map(Event *e);
+		void start_fight(Event *e);
 		void dialog(Event *e);
+		void set_player_position(Event *e);
 		void if_function(Event *e);
 };
 

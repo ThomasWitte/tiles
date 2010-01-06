@@ -15,10 +15,62 @@
 */
 
 #include "fight.h"
+#include <fstream>
+
+Command::Command(long time) {
+	exec_time = time;
+}
+
+long Command::get_time() {
+	return exec_time;
+}
+
+void Command::execute() {
+}
+
+Fighter::Fighter(Fight *f) {
+	parent = f;
+}
+
+Fighter::~Fighter() {
+}
+
+void Fighter::update() {
+}
+
+void Fighter::draw(BITMAP *buffer, int x, int y) {
+	rectfill(buffer, x-10, y-10, x+10, y+10, makecol(255,0,0));
+}
 
 Fight::Fight(string dateiname) {
 	bg = NULL;
+	ifstream datei;
+	string input;
+
+	dateiname = ((string)("Fights/")).append(dateiname);
+	datei.open(dateiname.c_str(), ios_base::in);
+
+	datei >> input;
+	while(input != "[eof]") {
+		if(input == "Background") {
+			datei >> input;
+			input = ((string)("Fights/Images/")).append(input);
+			bg = load_bitmap(input.c_str(), NULL);
+		}
+		datei >> input;
+	}
+
+	datei.close();
 	time = 0;
+
+	//Positionstest
+	for(int i = 0; i < 3; i++)
+		fighters[LEFT].push_back(new Fighter(this));
+	for(int i = 0; i < 2; i++)
+		fighters[MIDDLE].push_back(new Fighter(this));
+	for(int i = 0; i < 4; i++)
+		fighters[RIGHT].push_back(new Fighter(this));
+
 }
 
 Fight::~Fight() {
@@ -27,14 +79,22 @@ Fight::~Fight() {
 }
 
 void Fight::draw(BITMAP *buffer) {
+	int x, y;
 	stretch_blit(bg, buffer, 0, 0, bg->w, bg->h, 0, 0, buffer->w, buffer->h);
+	for(int i = 0; i < 3; i++)
+		for(int j = 0; j < fighters[i].size(); j++) {
+			x = PC_RESOLUTION_X/8 + PC_RESOLUTION_X/8 * 3 * i; // + (i-1) * j-fighters[i].size()/2 * PC_RESOLUTION_X/16;
+			y = (2*PC_RESOLUTION_Y/3) / (fighters[i].size()+1) * (j+1);
+			fighters[i][j]->draw(buffer, x, y);
+		}
 }
 
-void Fight::update() {
+int Fight::update() {
 	time++;
 	if(comqueue.size())
 		if(comqueue[0].get_time() <= time) {
 			comqueue[0].execute();
 			comqueue.pop_front();
 		}
+	return 1; //0 = Kampfende
 };

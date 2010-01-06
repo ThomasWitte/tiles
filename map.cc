@@ -96,17 +96,6 @@ Map::Map() : tilesx(0), tilesy(0) {
 	tilemap = NULL;
 	walkable = NULL;
 
-	buffer = NULL;
-
-	#ifdef GP2X
-	buffer = create_bitmap(SCREEN_W, SCREEN_H);
-	#else
-	buffer = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-	#endif
-
-	if(!buffer)
-		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
-
 	objects.push_back(new BaseObject(0, 0, false, this));
 	centre(0);
 
@@ -117,17 +106,6 @@ Map::Map(string dateiname, Game *parent) : tilesx(0), tilesy(0) {
 	tilemap = NULL;
 	walkable = NULL;
 	this->parent = parent;
-
-	buffer = NULL;
-
-	#ifdef GP2X
-	buffer = create_bitmap(SCREEN_W, SCREEN_H);
-	#else
-	buffer = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-	#endif
-
-	if(!buffer)
-		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
 
 	objects.push_back(new BaseObject(0, 0, false, this));
 	centre(0);
@@ -157,9 +135,6 @@ Map::~Map() {
 
 	for(int i = 0; i < dialoge.size(); i++)
 		destroy_bitmap(dialoge[i].dlg);
-
-	if(buffer)
-		destroy_bitmap(buffer);
 }
 
 bool Map::is_walkable(int x, int y) {
@@ -365,7 +340,7 @@ void Map::update() {
 	}
 }
 
-void Map::draw() {
+void Map::draw(BITMAP *buffer) {
 	int camx, camy, xmin, ymin, xmax, ymax, ts, ox, oy, tileindex;
 	
 	ts = current_tileset.get_tilesize();
@@ -397,11 +372,6 @@ void Map::draw() {
 		blit(dialoge[0].dlg, buffer, 0, 0, 0, buffer->h - dialoge[0].dlg->h, dialoge[0].dlg->w, dialoge[0].dlg->h);
 	}
 
-	#ifdef GP2X
-	blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
-	#else
-	stretch_blit(buffer, screen, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, 0, 0, SCREEN_W, SCREEN_H);
-	#endif
 }
 
 string Map::get_level_name() {
