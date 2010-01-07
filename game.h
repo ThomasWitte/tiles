@@ -44,13 +44,31 @@ class Game {
 		void action() {last_action = GAME_TIMER_BPS/4;}
 	protected:
 		enum EVENT {ON_LOAD, ON_EXIT, ALWAYS, PLAYER_AT, ON_ACTION, EXTENDED_EVENTS};
-		enum GAME_MODE {FIGHT, MAP};
-		vector<Event> events[6]; //Anzahl siehe ^
+		enum GAME_MODE {FIGHT, MAP, BLENDE};
+
+		class Blende {
+			public:
+				enum BLEND_TYPE {SCHIEBEN, ZOOM};
+				Blende();
+				~Blende();
+
+				void init(BITMAP* s, BITMAP *z, BLEND_TYPE t, Game::GAME_MODE m, int frames);
+				void draw(BITMAP *buffer);
+				Game::GAME_MODE update();
+			protected:
+				BITMAP *start, *ziel, *dest;
+				BLEND_TYPE type;
+				Game::GAME_MODE mode;
+				int delta, versatz;
+		};
+
+		vector<Event> events[6]; //Anzahl siehe bei enum EVENT
 
 		BITMAP *buffer;
 		Sprite *me;
 		int last_action, lastx, lasty;
 		Map m;
+		Blende b;
 		Fight *f;
 		map<string, string> vars;
 		GAME_MODE mode;

@@ -28,4 +28,4 @@ all: $(OBJ)
 	$(CC) $(CXXFLAGS) -c $<
 
 clean:
-	rm -rf $(BIN) $(OBJ)
+	rm -rf $(BIN) $(OBJ) *~

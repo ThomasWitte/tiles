@@ -216,6 +216,10 @@ void Game::change_map(Event *e) {
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
 
+	BITMAP *start = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+
+	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	m.laden(map_to_load, this);
 
 	for(int i = 0; i < events[ON_LOAD].size(); i++) {
@@ -223,11 +227,22 @@ void Game::change_map(Event *e) {
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
 	}
+	m.draw(ziel);
+	mode = BLENDE;
+	b.init(start, ziel, Blende::SCHIEBEN, MAP, GAME_TIMER_BPS/3);
 }
 
 void Game::start_fight(Event *e) {
 	f = new Fight(e->arg[0]);
-	mode = FIGHT;
+	
+	BITMAP *start = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+
+	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+
+	f->draw(ziel);
+	mode = BLENDE;
+	b.init(start, ziel, Blende::ZOOM, FIGHT, GAME_TIMER_BPS/3);
 }
 
 void Game::dialog(Event *e) {
@@ -351,6 +366,9 @@ void Game::update() {
 				f = NULL;
 			}
 		break;
+		case BLENDE:
+			mode = b.update();
+		break;
 	}
 }
 
@@ -362,6 +380,9 @@ void Game::draw() {
 		case FIGHT:
 			f->draw(buffer);
 		break;
+		case BLENDE:
+			b.draw(buffer);
+		break;
 	}
 
 	#ifdef GP2X
@@ -371,3 +392,65 @@ void Game::draw() {
 	#endif
 }
 
+Game::Blende::Blende() {
+	start = ziel = dest = NULL;
+	type = SCHIEBEN;
+	mode = Game::MAP;
+	versatz = 0;
+}
+
+Game::Blende::~Blende() {
+}
+
+void Game::Blende::init(BITMAP* s, BITMAP *z, BLEND_TYPE t, Game::GAME_MODE m, int frames) {
+	start = s;
+	ziel = z;
+	type = t;
+	mode = m;
+
+	switch(type) {
+		case SCHIEBEN:
+			delta = PC_RESOLUTION_Y/frames;
+			versatz = PC_RESOLUTION_Y;
+		break;
+		case ZOOM:
+			delta = PC_RESOLUTION_Y/frames;
+			versatz = 0;
+		break;
+	}
+}
+
+Game::GAME_MODE Game::Blende::update() {
+	switch(type) {
+		case SCHIEBEN:
+			versatz -= delta;
+			if(versatz <= 0) {
+				destroy_bitmap(start);
+				destroy_bitmap(ziel);
+				return mode;
+			}
+		break;
+		case ZOOM:
+			versatz += delta;
+			if(versatz >= PC_RESOLUTION_Y) {
+				destroy_bitmap(start);
+				destroy_bitmap(ziel);
+				return mode;
+			}
+		break;
+	}
+	return Game::BLENDE;
+}
+
+void Game::Blende::draw(BITMAP *buffer) {
+	switch(type) {
+		case SCHIEBEN:
+			blit(start, buffer, 0, 0, 0, PC_RESOLUTION_Y - versatz, PC_RESOLUTION_X, versatz);
+			blit(ziel, buffer, 0, versatz, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y - versatz);
+		break;
+		case ZOOM:
+			blit(start, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+			stretch_blit(ziel, buffer, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, (PC_RESOLUTION_X-(versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y)/2, (PC_RESOLUTION_Y-versatz)/2, (versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y, versatz);
+		break;
+	}
+}
