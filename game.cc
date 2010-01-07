@@ -229,7 +229,7 @@ void Game::change_map(Event *e) {
 	}
 	m.draw(ziel);
 	mode = BLENDE;
-	b.init(start, ziel, Blende::SCHIEBEN, MAP, GAME_TIMER_BPS/3);
+	b.init(start, ziel, Blende::STREIFEN, MAP, GAME_TIMER_BPS/3);
 }
 
 void Game::start_fight(Event *e) {
@@ -242,7 +242,7 @@ void Game::start_fight(Event *e) {
 
 	f->draw(ziel);
 	mode = BLENDE;
-	b.init(start, ziel, Blende::ZOOM, FIGHT, GAME_TIMER_BPS/3);
+	b.init(start, ziel, Blende::ZOOM, FIGHT, GAME_TIMER_BPS/2);
 }
 
 void Game::dialog(Event *e) {
@@ -417,6 +417,10 @@ void Game::Blende::init(BITMAP* s, BITMAP *z, BLEND_TYPE t, Game::GAME_MODE m, i
 			delta = PC_RESOLUTION_Y/frames;
 			versatz = 0;
 		break;
+		case STREIFEN:
+			delta = PC_RESOLUTION_Y/frames;
+			versatz = 0;
+		break;
 	}
 }
 
@@ -438,6 +442,18 @@ Game::GAME_MODE Game::Blende::update() {
 				return mode;
 			}
 		break;
+		case STREIFEN:
+			for(int i = 0; i < 8; i++) {
+				rectfill(start, i*PC_RESOLUTION_X/8, versatz, (2*i+1)*PC_RESOLUTION_X/16-1, versatz+delta, makecol(255, 0, 255));
+				rectfill(start, (2*i+1)*PC_RESOLUTION_X/16, PC_RESOLUTION_Y-versatz-delta, (i+1)*PC_RESOLUTION_X/8-1, PC_RESOLUTION_Y-versatz, makecol(255,0,255));
+			}
+			versatz += delta;
+			if(versatz >= PC_RESOLUTION_Y) {
+				destroy_bitmap(start);
+				destroy_bitmap(ziel);
+				return mode;
+			}
+		break;
 	}
 	return Game::BLENDE;
 }
@@ -451,6 +467,10 @@ void Game::Blende::draw(BITMAP *buffer) {
 		case ZOOM:
 			blit(start, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 			stretch_blit(ziel, buffer, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, (PC_RESOLUTION_X-(versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y)/2, (PC_RESOLUTION_Y-versatz)/2, (versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y, versatz);
+		break;
+		case STREIFEN:
+			blit(ziel, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+			masked_blit(start, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 		break;
 	}
 }

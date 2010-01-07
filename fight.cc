@@ -63,6 +63,13 @@ Fight::Fight(string dateiname) {
 	datei.close();
 	time = 0;
 
+	menu_bg = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
+	for(int i = 0; i < menu_bg->h; i++) {
+		line(menu_bg, 0, i, menu_bg->w, i, makecol(i, i, 255-i));
+	}
+	vline(menu_bg, menu_bg->w/3, 3, menu_bg->h-4, makecol(255, 255, 255));
+	rect(menu_bg, 3, 3, menu_bg->w-4, menu_bg->h-4, makecol(255, 255, 255));
+
 	//Positionstest
 	for(int i = 0; i < 3; i++)
 		fighters[LEFT].push_back(new Fighter(this));
@@ -76,6 +83,7 @@ Fight::Fight(string dateiname) {
 Fight::~Fight() {
 	if(bg)
 		destroy_bitmap(bg);
+	destroy_bitmap(menu_bg);
 }
 
 void Fight::draw(BITMAP *buffer) {
@@ -87,6 +95,7 @@ void Fight::draw(BITMAP *buffer) {
 			y = (2*PC_RESOLUTION_Y/3) / (fighters[i].size()+1) * (j+1);
 			fighters[i][j]->draw(buffer, x, y);
 		}
+	blit(menu_bg, buffer, 0, 0, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 }
 
 int Fight::update() {

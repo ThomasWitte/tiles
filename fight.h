@@ -52,7 +52,7 @@ class Fight {
 		enum PlayerSide {LEFT, MIDDLE, RIGHT};
 	private:
 		long time;
-		BITMAP *bg;
+		BITMAP *bg, *menu_bg;
 		deque<Command> comqueue;
 		deque<Fighter*> fighters[3]; //PlayerSide
 		PlayerSide side;

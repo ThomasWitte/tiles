@@ -48,7 +48,7 @@ class Game {
 
 		class Blende {
 			public:
-				enum BLEND_TYPE {SCHIEBEN, ZOOM};
+				enum BLEND_TYPE {SCHIEBEN, ZOOM, STREIFEN};
 				Blende();
 				~Blende();
 
