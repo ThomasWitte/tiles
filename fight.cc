@@ -28,18 +28,38 @@ long Command::get_time() {
 void Command::execute() {
 }
 
-Fighter::Fighter(Fight *f) {
+Fighter::Fighter(Fight *f, Character c) {
 	parent = f;
+	this->c = c;
+	atb = 0;
 }
 
 Fighter::~Fighter() {
 }
 
 void Fighter::update() {
+	atb += 3*c.speed+20;
+	if(atb > 65536) atb = 65536;
 }
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
 	rectfill(buffer, x-10, y-10, x+10, y+10, makecol(255,0,0));
+}
+
+void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
+	textout_ex(buffer, font, c.name.c_str(), x, y+h/2-text_height(font)/2, makecol(255,255,255), -1);
+	char text[10];
+	sprintf(text, "%i", c.hp);
+	textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, makecol(255,255,255), -1);
+	rect(buffer, x+w*2/3+2, y+h/2-4, x+w-3, y+h/2+3, makecol(255,255,255));
+
+	int color;
+	if(atb < 65536)
+		color = makecol(255,255,255);
+	else
+		color = makecol(255, 255, 0);
+
+	rectfill(buffer, x+w*2/3+4, y+h/2-2, x+w*2/3+4+(atb*(w/3-8))/65536, y+h/2+1, color);
 }
 
 Fight::Fight(string dateiname) {
@@ -71,13 +91,23 @@ Fight::Fight(string dateiname) {
 	rect(menu_bg, 3, 3, menu_bg->w-4, menu_bg->h-4, makecol(255, 255, 255));
 
 	//Positionstest
-	for(int i = 0; i < 3; i++)
-		fighters[LEFT].push_back(new Fighter(this));
-	for(int i = 0; i < 2; i++)
-		fighters[MIDDLE].push_back(new Fighter(this));
-	for(int i = 0; i < 4; i++)
-		fighters[RIGHT].push_back(new Fighter(this));
+	Character c;
+	c.hp = 9876;
+	c.name = "test";
+	c.speed = 57;
+	side = LEFT;
 
+	for(int i = 0; i < 3; i++) {
+		c.hp = 987*(i+1);
+		c.name = "test";
+		c.speed = 25*(i+1);
+		fighters[LEFT].push_back(new Fighter(this, c));
+	}
+	for(int i = 0; i < 2; i++)
+		fighters[MIDDLE].push_back(new Fighter(this, c));
+	for(int i = 0; i < 4; i++) {
+		fighters[RIGHT].push_back(new Fighter(this, c));
+	}
 }
 
 Fight::~Fight() {
@@ -96,6 +126,9 @@ void Fight::draw(BITMAP *buffer) {
 			fighters[i][j]->draw(buffer, x, y);
 		}
 	blit(menu_bg, buffer, 0, 0, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	for(int i = 0; i < fighters[side].size(); i++) {
+		fighters[side][i]->draw_status(buffer, PC_RESOLUTION_X/3+2, 2*PC_RESOLUTION_Y/3+i*((PC_RESOLUTION_Y/3)/fighters[side].size()), 2*PC_RESOLUTION_X/3-4, (PC_RESOLUTION_Y/3)/fighters[side].size());
+	}
 }
 
 int Fight::update() {
@@ -104,6 +137,10 @@ int Fight::update() {
 		if(comqueue[0].get_time() <= time) {
 			comqueue[0].execute();
 			comqueue.pop_front();
+		}
+	for(int i = 0; i < 3; i++)
+		for(int j = 0; j < fighters[i].size(); j++) {
+			fighters[i][j]->update();
 		}
 	return 1; //0 = Kampfende
 };

@@ -24,6 +24,12 @@
 
 using namespace std;
 
+struct Character {
+	string name;
+	int hp;
+	int speed;
+};
+
 class Command {
 	public:
 		Command(long time);
@@ -35,12 +41,15 @@ class Command {
 
 class Fighter {
 	public:
-		Fighter(class Fight *f);
+		Fighter(class Fight *f, Character c);
 		~Fighter();
 		virtual void update();
 		virtual void draw(BITMAP *buffer, int x, int y);
+		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
 	protected:
 		Fight *parent;
+		Character c;
+		int atb;
 };
 
 class Fight {
