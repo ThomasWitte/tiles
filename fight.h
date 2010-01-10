@@ -41,15 +41,37 @@ class Command {
 
 class Fighter {
 	public:
-		Fighter(class Fight *f, Character c);
+		Fighter(class Fight *f, Character c, string name);
 		~Fighter();
+		virtual void laden(string name);
 		virtual void update();
+		inline virtual int update_menu();
 		virtual void draw(BITMAP *buffer, int x, int y);
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
+		inline virtual void draw_menu(BITMAP *buffer, int x, int y, int w, int h);
 	protected:
 		Fight *parent;
 		Character c;
 		int atb;
+		struct FighterTileset {
+			BITMAP *normal;
+		} ts;
+
+		class FighterMenu {
+			public:
+				FighterMenu();
+				~FighterMenu();
+				void set_items(string items[4]);
+				void draw(BITMAP *buffer, int x, int y, int w, int h);
+				int update();
+			protected:
+				BITMAP *pointer;
+				int auswahl;
+				int pointer_position;
+				int pointer_delta;
+				int pause;
+				string menu_items[4];
+		} menu;
 };
 
 class Fight {
@@ -58,12 +80,14 @@ class Fight {
 		~Fight();
 		int update();
 		void draw(BITMAP *buffer);
+		void enqueue_ready_fighter(Fighter *f);
 		enum PlayerSide {LEFT, MIDDLE, RIGHT};
 	private:
 		long time;
 		BITMAP *bg, *menu_bg;
 		deque<Command> comqueue;
 		deque<Fighter*> fighters[3]; //PlayerSide
+		deque<Fighter*> ready_fighters;
 		PlayerSide side;
 };
 

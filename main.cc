@@ -23,6 +23,7 @@
 #include "menu.h"
 #include "config.h"
 #include <iostream>
+#include <ctime>
 
 #ifdef GP2X
 	#include <sys/mman.h>
@@ -143,6 +144,8 @@ int main()
 	bool needs_redraw = true;
 	bool ende = false;
 	bool exit = false;
+
+	srand((unsigned)time(NULL));
 
 	Game game;
 	timecounter = 0;
