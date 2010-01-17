@@ -1,7 +1,8 @@
+< tiles 1.0 Level >
 [Map]
-Tileset defaultTileset
-Size 10 x 10
-
+Tileset defaultTileset ;;
+Size 10 x 10 ;;
+Data
 0 0 0 0 0 0 0 0 0 0
 0 3 3 3 3 3 3 3 3 0
 0 3 2 1 2 1 2 1 3 0
@@ -12,11 +13,9 @@ Size 10 x 10
 0 3 1 2 1 2 1 2 3 0
 0 3 3 3 3 3 3 3 3 0
 0 0 0 0 0 0 0 0 0 0
-
+;;
 [Object]
 
-sprite 79 81 Mario player
+sprite 5 5 Mario player ;;
 
-[eof]
-
-Dieses Level darf auf keinen Fall Events enthalten!!!!!
+# Dieses Level darf auf keinen Fall Events enthalten!!!!! ;;

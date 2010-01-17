@@ -14,39 +14,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef IOHELPER_H
+#define IOHELPER_H
 
-#define MAX_TILES_PER_TILESET 256
+#include <deque>
+#include <iostream>
+#include <fstream>
+#include <string>
 
-//Spielname
-#define TILES_NAME "tiles"
-#define TILES_VERSION 1.0
+using namespace std;
 
-//Logische Framerate
-#define GAME_TIMER_BPS 60
-#define MAX_FRAMESKIP 4
-
-//Plattform
-//#define GP2X
-//#define WINDOWS
-
-//interne Auflösung
-#define PC_RESOLUTION_X 320
-#define PC_RESOLUTION_Y 240
-
-//Faktor, um den die Fensterausgabe gestreckt wird
-#define PC_STRETCH_FACTOR 2
-
-//Anzahl der Frames bis sich die Spriteanimation ändert
-#define SPRITE_ANIMATION_SPEED 3
-
-//fps anzeigen?
-//#define ENABLE_FRAME_COUNTER
-
-#define MENU_KEY KEY_F12
-#define ACTION_KEY KEY_SPACE
-
-extern volatile int timecounter;
+class FileParser {
+	public:
+		FileParser();
+		FileParser(string dateiname, string type);
+		void laden(string dateiname, string type);
+		void dump();
+		~FileParser();
+		string getstring(string section, string element);
+		double getvalue(string section, string element);
+		deque<string> get(string section, string element);
+		deque<deque<string> > getall(string section, string element);
+		deque<deque<string> > getsection(string section);
+	protected:
+		deque<deque<string> > daten;
+};
 
 #endif

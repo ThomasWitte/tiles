@@ -1,8 +1,10 @@
-[level]
-großes_level
-[userdata]
-var last_map keller
-var position_x 16
-var position_y 6
-var test 8.6
+< tiles 1.0 Savefile >
+[Level]
+Level großes_level ;;
+[Userdata]
+last_map  ;;
+name default ;;
+position_x 13 ;;
+position_y 4 ;;
+test 8.6 ;;
 [eof]

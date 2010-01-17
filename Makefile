@@ -14,11 +14,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-CC =      g++
+CC = g++
 CXXFLAGS = -O2 -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
 
-OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o
+OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o
 BIN =     tiles
 
 all: $(OBJ)

@@ -15,6 +15,7 @@
 */
 
 #include "map.h"
+#include "iohelper.h"
 #include <fstream>
 #include <iostream>
 
@@ -194,108 +195,88 @@ void Map::laden(string dateiname, Game *parent) {
 		destroy_bitmap(dialoge[i].dlg);
 	dialoge.resize(0);
 
-	ifstream levelfile;
 	dateiname.insert(0, "Levels/");
-	levelfile.open(dateiname.c_str(), ios_base::in);
-	string s, s2, s3;
-	vector<string> parameter;
-	int curx = 0;
-	int cury = 0;
-	int state = 3;
 
-	levelfile >> s;
-	while(s != "[eof]") {
-		if(s == "[Map]") {state = 0; levelfile >> s; }
-		if(s == "[Object]") {state = 1; levelfile >> s; }
-		if(s == "[Event]") {state = 2; levelfile >> s; }
-		switch(state) {
-			case 0: //Map einlesen
-				if(s == "Tileset") {
-					levelfile >> s;
-					current_tileset.load(s);
-				} else if(s == "Size") {
-					levelfile >> tilesx >> s >> tilesy;
+	FileParser parser(dateiname, "Level");
+	deque<string> ret;
+	deque<deque<string> > retall;
 
-					tilemap = new (int*[tilesx]);
-					for(int i = 0; i < tilesx; i++)
-						tilemap[i] = new int[tilesy];
+	//Map-Abschnitt
+	current_tileset.load(parser.getstring("Map", "Tileset"));
 
-					walkable = new (int*[tilesx]);
-					for(int i = 0; i < tilesx; i++)
-						walkable[i] = new int[tilesy];
+	ret = parser.get("Map", "Size");
+	tilesx = atoi(ret[0].c_str());
+	tilesy = atoi(ret[2].c_str());
 
-					cury = 0;
-					curx = 0;
-				} else {
-					if(curx >= tilesx) {
-						curx = 0;
-						cury++;
-					}
-					tilemap[curx][cury] = atoi(s.c_str());
-					walkable[curx][cury] = current_tileset.is_walkable(tilemap[curx][cury]);
-					curx++;
-				}
-			break;
+	tilemap = new (int*[tilesx]);
+	for(int i = 0; i < tilesx; i++)
+		tilemap[i] = new int[tilesy];
 
-			case 1: //Objekte einlesen
-				if(s == "bobj") { //BaseObject
-					levelfile >> curx >> cury;
-					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
-					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
-					objects.push_back(new BaseObject(curx, cury, false, this));
-				}
+	walkable = new (int*[tilesx]);
+	for(int i = 0; i < tilesx; i++)
+		walkable[i] = new int[tilesy];
 
-				if(s == "sprite") { //Sprite
-					levelfile >> curx >> cury >> s3 >> s2;
-					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
-					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
-					int index = -1;
-					for(int i = 0; i < sprites.size(); i++) {
-						if(sprites[i]->get_name() == s3) index = i;
-					}
-					if(index == -1) {
-						sprites.push_back(new SpriteSet(s3));
-						index = sprites.size()-1;
-					}
+	ret = parser.get("Map", "Data");
+	int index = 0;
 
-					if(s2 == "player") {
-						objects.push_back(new Sprite(curx, cury, Sprite::PLAYER, sprites[index], true, this));
-						centre(objects.size()-1);
-						parent->set_player((Sprite*)objects[objects.size()-1]);
-					} else {
-						objects.push_back(new Sprite(curx, cury, Sprite::NONE, sprites[index], true, this));
-					}
-				}
-
-				if(s == "object") { //Object
-					levelfile >> curx >> cury >> s2;
-					curx = curx - curx%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
-					cury = cury - cury%current_tileset.get_tilesize() + current_tileset.get_tilesize()/2;
-					int index = -1;
-					for(int i = 0; i < animations.size(); i++) {
-						if(animations[i]->get_name() == s2) index = i;
-					}
-					if(index == -1) {
-						animations.push_back(new Animation(s2));
-						index = animations.size()-1;
-					}
-					objects.push_back(new Object(curx, cury, animations[index], true, this));
-				}
-			break;
-
-			case 2: //Events einlesen
-				parameter.resize(0);
-				while(s != ";") {
-					parameter.push_back(s);
-					levelfile >> s;
-				}
-				parent->register_event(parameter);
-			break;
+	for(int cury = 0; cury < tilesy; cury++) {
+		for(int curx = 0; curx < tilesx; curx++) {
+			tilemap[curx][cury] = atoi(ret[index].c_str());
+			walkable[curx][cury] = current_tileset.is_walkable(tilemap[curx][cury]);
+			index++;
 		}
-		levelfile >> s;
 	}
-	levelfile.close();
-	cout << "map geladen" << endl;
+
+	retall = parser.getall("Object", "bobj");
+	for(int i = 0; i < retall.size(); i++)
+		objects.push_back(new BaseObject(
+			(atoi(retall[i][0].c_str())+0.5)*current_tileset.get_tilesize(),
+			(atoi(retall[i][1].c_str())+0.5)*current_tileset.get_tilesize(), false, this));
+
+	retall = parser.getall("Object", "sprite");
+	for(int n = 0; n < retall.size(); n++) {
+		int index = -1;
+		for(int i = 0; i < sprites.size(); i++) {
+			if(sprites[i]->get_name() == retall[n][3]) index = i;
+		}
+		if(index == -1) {
+			sprites.push_back(new SpriteSet(retall[n][2]));
+			index = sprites.size()-1;
+		}
+
+		if(retall[n][3] == "player") {
+			objects.push_back(new Sprite(
+				(atoi(retall[n][0].c_str())+0.5)*current_tileset.get_tilesize(),
+				(atoi(retall[n][1].c_str())+0.5)*current_tileset.get_tilesize(), Sprite::PLAYER, sprites[index], true, this));
+			centre(objects.size()-1);
+			parent->set_player((Sprite*)objects[objects.size()-1]);
+		} else {
+			objects.push_back(new Sprite(
+				(atoi(retall[n][0].c_str())+0.5)*current_tileset.get_tilesize(),
+				(atoi(retall[n][1].c_str())+0.5)*current_tileset.get_tilesize(), Sprite::NONE, sprites[index], true, this));
+		}
+	}
+
+	retall = parser.getall("Object", "object");
+	for(int n = 0; n < retall.size(); n++) {
+		int index = -1;
+		for(int i = 0; i < animations.size(); i++) {
+			if(animations[i]->get_name() == retall[n][2]) index = i;
+		}
+		if(index == -1) {
+			animations.push_back(new Animation(retall[n][2]));
+			index = animations.size()-1;
+		}
+		objects.push_back(new Object(
+			(atoi(retall[n][0].c_str())+0.5)*current_tileset.get_tilesize(),
+			(atoi(retall[n][1].c_str())+0.5)*current_tileset.get_tilesize(), animations[index], true, this));
+	}
+
+	retall = parser.getsection("Event");
+	for(int i = 0; i < retall.size(); i++)
+		parent->register_event(retall[i]);
+
+	cout << dateiname << ": [Information] Map geladen" << endl;
 }
 
 int Map::get_tilesize() {

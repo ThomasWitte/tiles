@@ -18,13 +18,13 @@
 #define GAME_H
 
 #include <map>
-#include <vector>
+#include <deque>
 #include <string>
 #include "map.h"
 #include "fight.h"
 
 struct Event {
-	vector<string> arg;
+	deque<string> arg;
 	void (Game::*func) (Event*);
 	int x, y;
 };
@@ -37,7 +37,7 @@ class Game {
 
 		void speichern(string spielstand);
 		void laden(string spielstand);
-		void register_event(vector<string> ev);
+		void register_event(deque<string> ev);
 		void update();
 		void draw();
 		void set_player(class Sprite *s) {me = s;}
@@ -62,7 +62,7 @@ class Game {
 				int delta, versatz;
 		};
 
-		vector<Event> events[6]; //Anzahl siehe bei enum EVENT
+		deque<Event> events[6]; //Anzahl siehe bei enum EVENT
 
 		BITMAP *buffer;
 		Sprite *me;

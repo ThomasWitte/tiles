@@ -90,7 +90,7 @@ int Fighter::update_menu() {
 }
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
-	rectfill(buffer, x-10, y-10, x+10, y+10, makecol(255,0,0));
+	masked_blit(ts.normal, buffer, 0, 0, x-ts.normal->w/2, y-ts.normal->h/2, ts.normal->w, ts.normal->h);
 }
 
 void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {

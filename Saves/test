@@ -1,9 +1,9 @@
-[level]
-großes_level
-[userdata]
-var last_map 
-var name default
-var position_x 5
-var position_y 5
-var test 8.6
+< tiles 1.0 Savefile >
+[Level]
+Level großes_level ;;
+[Userdata]
+name default ;;
+position_x 5 ;;
+position_y 5 ;;
+test 8.6 ;;
 [eof]

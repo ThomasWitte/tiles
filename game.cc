@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include "game.h"
+#include "iohelper.h"
 
 Game::Game() : m("defaultLevel", this) {
 	me = NULL;
@@ -63,11 +64,12 @@ void Game::speichern(string spielstand) {
 	spielstand.insert(0, "Saves/");
 	file.open(spielstand.c_str(), ios_base::out);
 
-	file << "[level]" << endl << m.get_level_name() << endl;
-	file << "[userdata]" << endl;
+	file << "< tiles 1.0 Savefile >" << endl;
+	file << "[Level]" << endl << "Level " << m.get_level_name() << " ;;" << endl;
+	file << "[Userdata]" << endl;
 
 	for(map<string, string>::iterator i = vars.begin(); i != vars.end(); i++) {
-		file << "var " << i->first << " " << i->second << endl; 
+		file << i->first << " " << i->second << " ;;" << endl; 
 	}
 
 	file << "[eof]" << endl;
@@ -80,38 +82,15 @@ void Game::laden(string spielstand) {
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
 
-	ifstream savefile;
 	spielstand.insert(0, "Saves/");
-	savefile.open(spielstand.c_str(), ios_base::in);
+	FileParser parser(spielstand, "Savefile");
 
 	vars.clear();
-
-	string input, input2;
-	int state = 0;
-	savefile >> input;
-
-	while(input != "[eof]") {
-		if(input == "[level]") {state = 1; savefile >> input; }
-		if(input == "[userdata]") {state = 2; savefile >> input; }
-
-		switch(state) {
-			case 1:
-				m.laden(input, this);
-				state = 0;
-			break;
-
-			case 2:
-				if(input == "var") {
-					savefile >> input >> input2;
-					vars[input] = input2;
-				}
-			break;
-		}
-
-		savefile >> input;
-	}
-	
-	savefile.close();
+	m.laden(parser.getstring("Level", "Level"), this);
+	deque<deque<string> > ret = parser.getsection("Userdata");
+	for(int i = 0; i < ret.size(); i++)
+		if(ret[i].size() > 1)
+			vars[ret[i][0]] = ret[i][1];
 
 	Event e;
 	e.func = &Game::set_player_position;
@@ -124,11 +103,10 @@ void Game::laden(string spielstand) {
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
 	}
-
 	mode = MAP;
 }
 
-void Game::register_event(vector<string> ev) {
+void Game::register_event(deque<string> ev) {
 	Event e;
 	EVENT typ;
 	int index = 1;
@@ -303,7 +281,6 @@ void Game::update() {
 	switch(mode) {
 		case MAP:
 			m.update();
-
 			if(last_action)
 				key[ACTION_KEY] = 0;
 
