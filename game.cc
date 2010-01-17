@@ -18,13 +18,28 @@
 #include <iostream>
 #include <string>
 #include "game.h"
+#include "iohelper.h"
 
 Game::Game() : m("defaultLevel", this) {
 	me = NULL;
+	f = NULL;
 	last_action = 0;
+
+	buffer = NULL;
+
+	#ifdef GP2X
+	buffer = create_bitmap(SCREEN_W, SCREEN_H);
+	#else
+	buffer = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	#endif
+
+	if(!buffer)
+		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
 }
 
 Game::~Game() {
+	if(buffer)
+		destroy_bitmap(buffer);
 }
 
 Game::Game(string spielstand) {
@@ -34,15 +49,27 @@ Game::Game(string spielstand) {
 }
 
 void Game::speichern(string spielstand) {
+	if(me) {
+		int x, y;
+		me->get_position(x, y);
+		char p[5];
+
+		sprintf(p, "%i", x/m.get_tilesize());
+		vars["position_x"] = p;
+		sprintf(p, "%i", y/m.get_tilesize());
+		vars["position_y"] = p;
+	}
+
 	ofstream file;
 	spielstand.insert(0, "Saves/");
 	file.open(spielstand.c_str(), ios_base::out);
 
-	file << "[level]" << endl << m.get_level_name() << endl;
-	file << "[userdata]" << endl;
+	file << "< tiles 1.0 Savefile >" << endl;
+	file << "[Level]" << endl << "Level " << m.get_level_name() << " ;;" << endl;
+	file << "[Userdata]" << endl;
 
 	for(map<string, string>::iterator i = vars.begin(); i != vars.end(); i++) {
-		file << "var " << i->first << " " << i->second << endl; 
+		file << i->first << " " << i->second << " ;;" << endl; 
 	}
 
 	file << "[eof]" << endl;
@@ -55,47 +82,31 @@ void Game::laden(string spielstand) {
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
 
-	ifstream savefile;
 	spielstand.insert(0, "Saves/");
-	savefile.open(spielstand.c_str(), ios_base::in);
+	FileParser parser(spielstand, "Savefile");
 
 	vars.clear();
+	m.laden(parser.getstring("Level", "Level"), this);
+	deque<deque<string> > ret = parser.getsection("Userdata");
+	for(int i = 0; i < ret.size(); i++)
+		if(ret[i].size() > 1)
+			vars[ret[i][0]] = ret[i][1];
 
-	string input, input2;
-	int state = 0;
-	savefile >> input;
-
-	while(input != "[eof]") {
-		if(input == "[level]") {state = 1; savefile >> input; }
-		if(input == "[userdata]") {state = 2; savefile >> input; }
-
-		switch(state) {
-			case 1:
-				m.laden(input, this);
-				state = 0;
-			break;
-
-			case 2:
-				if(input == "var") {
-					savefile >> input >> input2;
-					vars[input] = input2;
-				}
-			break;
-		}
-
-		savefile >> input;
-	}
-	
-	savefile.close();
+	Event e;
+	e.func = &Game::set_player_position;
+	e.arg.push_back(vars["position_x"]);
+	e.arg.push_back(vars["position_y"]);
+	events[ON_LOAD].push_back(e);
 
 	for(int i = 0; i < events[ON_LOAD].size(); i++) {
 		void (Game::*ptr) (Event*);
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
 	}
+	mode = MAP;
 }
 
-void Game::register_event(vector<string> ev) {
+void Game::register_event(deque<string> ev) {
 	Event e;
 	EVENT typ;
 	int index = 1;
@@ -150,6 +161,13 @@ void Game::register_event(vector<string> ev) {
 	} else if(ev[index] == "change_map") {
 		e.func = &Game::change_map;
 		e.arg.push_back(ev[index+1]);
+	} else if(ev[index] == "start_fight") {
+		e.func = &Game::start_fight;
+		e.arg.push_back(ev[index+1]);
+	} else if(ev[index] == "set_player_position") {
+		e.func = &Game::set_player_position;
+		e.arg.push_back(ev[index+1]);
+		e.arg.push_back(ev[index+2]);
 	} else if(ev[index] == "dialog") {
 		e.func = &Game::dialog;
 		for(int i = index+1; i < ev.size(); i++)
@@ -171,7 +189,38 @@ void Game::change_map(Event *e) {
 	}
 	vars["last_map"] = m.get_level_name();
 
-	m.laden(e->arg[0], this);
+	string map_to_load = e->arg[0];
+
+	for(int i = 0; i < 6; i++)
+		events[i].resize(0);
+
+	BITMAP *start = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+
+	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	m.laden(map_to_load, this);
+
+	for(int i = 0; i < events[ON_LOAD].size(); i++) {
+		void (Game::*ptr) (Event*);
+		ptr = events[ON_LOAD][i].func;
+		(this->*ptr)(&events[ON_LOAD][i]);
+	}
+	m.draw(ziel);
+	mode = BLENDE;
+	b.init(start, ziel, Blende::STREIFEN, MAP, GAME_TIMER_BPS/3);
+}
+
+void Game::start_fight(Event *e) {
+	f = new Fight(e->arg[0]);
+	
+	BITMAP *start = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+
+	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+
+	f->draw(ziel);
+	mode = BLENDE;
+	b.init(start, ziel, Blende::ZOOM, FIGHT, GAME_TIMER_BPS/2);
 }
 
 void Game::dialog(Event *e) {
@@ -222,66 +271,183 @@ void Game::if_function(Event *e2) {
 	}
 }
 
+void Game::set_player_position(Event *e) {
+	if(me)
+		me->set_position(atoi(e->arg[0].c_str())*m.get_tilesize()+m.get_tilesize()/2,
+						 atoi(e->arg[1].c_str())*m.get_tilesize()+m.get_tilesize()/2);
+}
+
 void Game::update() {
-	m.update();
+	switch(mode) {
+		case MAP:
+			m.update();
+			if(last_action)
+				key[ACTION_KEY] = 0;
 
-	if(last_action)
-		key[ACTION_KEY] = 0;
+			if(me) {
+				int x, y;
+				me->get_position(x, y);
+				x /= m.get_tilesize();
+				y /= m.get_tilesize();
 
-	if(me) {
-		int x, y;
-		me->get_position(x, y);
-		x /= m.get_tilesize();
-		y /= m.get_tilesize();
-
-		if(x!=lastx || y!=lasty) {
-			for(int i = 0; i < events[PLAYER_AT].size(); i++) 
-				if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
-					void (Game::*ptr) (Event*);
-					ptr = events[PLAYER_AT][i].func;
-					(this->*ptr)(&events[PLAYER_AT][i]);
+				if(x!=lastx || y!=lasty) {
+					for(int i = 0; i < events[PLAYER_AT].size(); i++) 
+						if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
+							void (Game::*ptr) (Event*);
+							ptr = events[PLAYER_AT][i].func;
+							(this->*ptr)(&events[PLAYER_AT][i]);
+						}
+					lastx = x;
+					lasty = y;
 				}
-			lastx = x;
-			lasty = y;
-		}
 
-		switch(me->get_direction()) {
-			case Sprite::UP:
-				y--;
-			break;
-			case Sprite::DOWN:
-				y++;
-			break;
-			case Sprite::LEFT:
-				x--;
-			break;
-			case Sprite::RIGHT:
-				x++;
-			break;
-		}
+				switch(me->get_direction()) {
+					case Sprite::UP:
+						y--;
+					break;
+					case Sprite::DOWN:
+						y++;
+					break;
+					case Sprite::LEFT:
+						x--;
+					break;
+					case Sprite::RIGHT:
+						x++;
+					break;
+				}
 
-		if(me->action) {
-			me->action = false;
-			for(int i = 0; i < events[ON_ACTION].size(); i++) 
-				if(x == events[ON_ACTION][i].x && y == events[ON_ACTION][i].y) {
-					void (Game::*ptr) (Event*);
-					ptr = events[ON_ACTION][i].func;
-					(this->*ptr)(&events[ON_ACTION][i]);
+				if(me->action) {
+					me->action = false;
+					for(int i = 0; i < events[ON_ACTION].size(); i++) 
+						if(x == events[ON_ACTION][i].x && y == events[ON_ACTION][i].y) {
+							void (Game::*ptr) (Event*);
+							ptr = events[ON_ACTION][i].func;
+							(this->*ptr)(&events[ON_ACTION][i]);
+					}
+					action();
+				}
 			}
-			action();
-		}
-	}
 
-	for(int i = 0; i < events[ALWAYS].size(); i++) {
-		void (Game::*ptr) (Event*);
-		ptr = events[ALWAYS][i].func;
-		(this->*ptr)(&events[ALWAYS][i]);
-	}
+			for(int i = 0; i < events[ALWAYS].size(); i++) {
+				void (Game::*ptr) (Event*);
+				ptr = events[ALWAYS][i].func;
+				(this->*ptr)(&events[ALWAYS][i]);
+			}
 
-	last_action--;
+			last_action--;
+		break; //case MAP
+		case FIGHT:
+			if(f->update() == 0) {//Kampfende
+				mode = MAP;
+				delete f;
+				f = NULL;
+			}
+		break;
+		case BLENDE:
+			mode = b.update();
+		break;
+	}
 }
 
 void Game::draw() {
-	m.draw();
+	switch(mode) {
+		case MAP:
+			m.draw(buffer);
+		break;
+		case FIGHT:
+			f->draw(buffer);
+		break;
+		case BLENDE:
+			b.draw(buffer);
+		break;
+	}
+
+	#ifdef GP2X
+	blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+	#else
+	stretch_blit(buffer, screen, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, 0, 0, SCREEN_W, SCREEN_H);
+	#endif
 }
 
+Game::Blende::Blende() {
+	start = ziel = dest = NULL;
+	type = SCHIEBEN;
+	mode = Game::MAP;
+	versatz = 0;
+}
+
+Game::Blende::~Blende() {
+}
+
+void Game::Blende::init(BITMAP* s, BITMAP *z, BLEND_TYPE t, Game::GAME_MODE m, int frames) {
+	start = s;
+	ziel = z;
+	type = t;
+	mode = m;
+
+	switch(type) {
+		case SCHIEBEN:
+			delta = PC_RESOLUTION_Y/frames;
+			versatz = PC_RESOLUTION_Y;
+		break;
+		case ZOOM:
+			delta = PC_RESOLUTION_Y/frames;
+			versatz = 0;
+		break;
+		case STREIFEN:
+			delta = PC_RESOLUTION_Y/frames;
+			versatz = 0;
+		break;
+	}
+}
+
+Game::GAME_MODE Game::Blende::update() {
+	switch(type) {
+		case SCHIEBEN:
+			versatz -= delta;
+			if(versatz <= 0) {
+				destroy_bitmap(start);
+				destroy_bitmap(ziel);
+				return mode;
+			}
+		break;
+		case ZOOM:
+			versatz += delta;
+			if(versatz >= PC_RESOLUTION_Y) {
+				destroy_bitmap(start);
+				destroy_bitmap(ziel);
+				return mode;
+			}
+		break;
+		case STREIFEN:
+			for(int i = 0; i < 8; i++) {
+				rectfill(start, i*PC_RESOLUTION_X/8, versatz, (2*i+1)*PC_RESOLUTION_X/16-1, versatz+delta, makecol(255, 0, 255));
+				rectfill(start, (2*i+1)*PC_RESOLUTION_X/16, PC_RESOLUTION_Y-versatz-delta, (i+1)*PC_RESOLUTION_X/8-1, PC_RESOLUTION_Y-versatz, makecol(255,0,255));
+			}
+			versatz += delta;
+			if(versatz >= PC_RESOLUTION_Y) {
+				destroy_bitmap(start);
+				destroy_bitmap(ziel);
+				return mode;
+			}
+		break;
+	}
+	return Game::BLENDE;
+}
+
+void Game::Blende::draw(BITMAP *buffer) {
+	switch(type) {
+		case SCHIEBEN:
+			blit(start, buffer, 0, 0, 0, PC_RESOLUTION_Y - versatz, PC_RESOLUTION_X, versatz);
+			blit(ziel, buffer, 0, versatz, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y - versatz);
+		break;
+		case ZOOM:
+			blit(start, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+			stretch_blit(ziel, buffer, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, (PC_RESOLUTION_X-(versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y)/2, (PC_RESOLUTION_Y-versatz)/2, (versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y, versatz);
+		break;
+		case STREIFEN:
+			blit(ziel, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+			masked_blit(start, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+		break;
+	}
+}

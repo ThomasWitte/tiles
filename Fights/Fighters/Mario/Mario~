@@ -1,0 +1,7 @@
+[Fighter]
+[Images]
+	size 64 x 64
+	normal_image Mario.tga
+[eof]
+
+Werte unter Fighter überschreiben Charakterwerte sowie bei monstern zufallswerte.

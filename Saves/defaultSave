@@ -1,6 +1,9 @@
-[level]
-defaultLevel
-[userdata]
-var name default
-var test 8.6
+< tiles 1.0 Savefile >
+[Level]
+Level defaultLevel ;;
+[Userdata]
+name default ;;
+test 8.6 ;;
+position_x 5 ;;
+position_y 5 ;;
 [eof]

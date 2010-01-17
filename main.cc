@@ -23,6 +23,7 @@
 #include "menu.h"
 #include "config.h"
 #include <iostream>
+#include <ctime>
 
 #ifdef GP2X
 	#include <sys/mman.h>
@@ -144,6 +145,8 @@ int main()
 	bool ende = false;
 	bool exit = false;
 
+	srand((unsigned)time(NULL));
+
 	Game game;
 	timecounter = 0;
 	
@@ -181,7 +184,7 @@ int main()
 #endif
 			}
 
-			if(key[KEY_F12]) {
+			if(key[MENU_KEY]) {
 				switch(Menu::pause_menu()) {
 					case Menu::SAVE:
 						game.speichern(Menu::save_menu());

@@ -20,6 +20,18 @@
 #include <algorithm>
 #include <vector>
 
+int menu_bg_proc(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_DRAW:
+			for(int i = d->y, x = 0; i < d->h+d->y; i+=d->h/80, x++) {
+				rectfill(screen, d->x, i, d->x+d->w, i+d->h/80, makecol(x, x, 255-x));
+			}
+			rect(screen, d->x+3, d->y+3, d->x+d->w-4, d->y+d->h-4, makecol(255, 255, 255));
+		break;
+	}
+	return D_O_K;
+}
+
 void Menu::resize_menu(int x, int y, DIALOG *menu) {
 	int wmax = 0;
 	int hmax = 0;
@@ -46,7 +58,7 @@ int Menu::main_menu() {
 	DIALOG menu[] =
 	{
 	   /* (proc)        (x) (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                    (dp2) (dp3) */
-	   { d_box_proc,    0,  0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL },
+	   { menu_bg_proc,  0,  0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL },
 	   { d_button_proc, 56, 132, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Spiel starten", NULL, NULL },
 	   { d_button_proc, 56, 176, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",       NULL, NULL },
 	   { d_bitmap_proc, 56, 36,  212, 80,  0,   0,   0,    0,      0,   0,   NULL,				     NULL, NULL },
@@ -54,8 +66,8 @@ int Menu::main_menu() {
 	};
 
 	for(int i = 0; menu[i].proc; i++) {
-		menu[i].fg = makecol(0,0,0);
-		menu[i].bg = makecol(255,255,255);
+		menu[i].fg = makecol(255,255,255);
+		menu[i].bg = makecol(0,0,255);
 	} 
 
 	resize_menu(SCREEN_W, SCREEN_H, menu);
@@ -108,7 +120,7 @@ string Menu::load_menu() {
 	DIALOG menu[] =
 	{
 	   /* (proc)        (x)  (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                      (dp2) (dp3) */
-	   { d_box_proc,    0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
+	   { menu_bg_proc,    0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
 	   { d_list_proc,   32,  44,  256, 148, 0,   0,   0,    D_EXIT, 0,   0,   (void*)filelist_getter,   NULL, NULL },
 	   { d_button_proc, 192, 200, 96,  20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Laden",           NULL, NULL },
 	   { d_ctext_proc,  32,  16,  256, 12,  0,   0,   0,    0,      0,   0,   (void*)"Spiel auswählen", NULL, NULL },
@@ -116,8 +128,8 @@ string Menu::load_menu() {
 	};
 
 	for(int i = 0; menu[i].proc; i++) {
-		menu[i].fg = makecol(0,0,0);
-		menu[i].bg = makecol(255,255,255);
+		menu[i].fg = makecol(255,255,255);
+		menu[i].bg = makecol(0,0,255);
 	}
 
 	resize_menu(SCREEN_W, SCREEN_H, menu);
@@ -149,7 +161,7 @@ string Menu::save_menu() {
 	DIALOG menu[] =
 	{
 	   /* (proc)        (x)  (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                      (dp2) (dp3) */
-	   { d_box_proc,    0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
+	   { menu_bg_proc,    0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
 	   { d_box_proc,    32,  200, 140, 20, 	0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
 	   { d_list_proc,   32,  44,  256, 148, 0,   0,   0,    D_EXIT, 0,   0,   (void*)filelist_getter,   NULL, NULL },
 	   { d_edit_proc,   34,  202, 136, 16,  0,   0,   0,    0,      100, 0,   (void*)text,				NULL, NULL },
@@ -159,8 +171,8 @@ string Menu::save_menu() {
 	};
 
 	for(int i = 0; menu[i].proc; i++) {
-		menu[i].fg = makecol(0,0,0);
-		menu[i].bg = makecol(255,255,255);
+		menu[i].fg = makecol(255,255,255);
+		menu[i].bg = makecol(0,0,255);
 	}
 
 	resize_menu(SCREEN_W, SCREEN_H, menu);
@@ -181,7 +193,7 @@ int Menu::pause_menu() {
 	{
 	   /* (proc)        (x)  (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                     (dp2) (dp3) */
 	   { d_text_proc,   0,   0,   320, 240, -1, -1,   0,    0,      0,   0,   (void*)"",               NULL, NULL },
-	   { d_box_proc,    32,  44,  252, 152, 0,   0,   0,    0,      0,   0,   NULL,                    NULL, NULL },
+	   { menu_bg_proc,    32,  44,  252, 152, 0,   0,   0,    0,      0,   0,   NULL,                    NULL, NULL },
 	   { d_ctext_proc,  44,  52,  228, 12,  0,   0,   0,    0,      0,   0,   (void*)"PAUSE",          NULL, NULL },
 	   { d_button_proc, 48,  76,  132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"zurück", 		   NULL, NULL },
 	   { d_button_proc, 48,  101, 132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Speichern",      NULL, NULL },
@@ -191,9 +203,9 @@ int Menu::pause_menu() {
 	   { NULL,          0,   0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                    NULL, NULL }
 	};
 
-	for(int i = 1; menu[i].proc; i++) {
-		menu[i].fg = makecol(0,0,0);
-		menu[i].bg = makecol(255,255,255);
+	for(int i = 2; menu[i].proc; i++) {
+		menu[i].fg = makecol(255,255,255);
+		menu[i].bg = makecol(0,0,255);
 	}
 
 	resize_menu(SCREEN_W, SCREEN_H, menu);

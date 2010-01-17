@@ -1,9 +1,10 @@
-[level]
-großes_level
-[userdata]
-var eventtest1 erfolgreich
-var eventtest2 erfolgreich
-var last_map großes_level
-var name default
-var test 8.6
+< tiles 1.0 Savefile >
+[Level]
+Level großes_level ;;
+[Userdata]
+last_map  ;;
+name default ;;
+position_x 13 ;;
+position_y 4 ;;
+test 8.6 ;;
 [eof]

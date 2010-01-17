@@ -1,0 +1,10 @@
+[Fight]
+	Background defaultBackground.tga
+	Type 15
+[Fighter]
+	Enemy Luigi
+	Enemy Luigi
+	Enemy Luigi
+[eof]
+
+Type: normal=1, back=2, pincer=4, side=8

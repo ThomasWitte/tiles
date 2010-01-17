@@ -1,45 +1,57 @@
-[Map]
-Tileset defaultTileset
-Size 20 x 10
+< tiles 1.0 Level >
 
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 0
+[Map]
+Tileset defaultTileset ;;
+Size 20 x 10 ;;
+
+Data
+0 0 0 0 0 0 0 0 0 0 0 3 5 3 0 0 0 0 0 0
+0 3 3 3 3 3 3 3 3 3 3 3 1 3 3 3 3 3 3 0
 0 3 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 3 0
 0 3 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 3 0
 0 3 2 1 2 1 2 1 3 3 3 1 2 1 2 1 2 1 3 0
 0 3 1 2 1 2 1 2 3 3 3 2 1 2 1 2 1 2 3 0
 0 3 2 1 2 1 2 1 3 3 3 3 2 1 2 1 2 1 3 0
-0 3 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 3 0
+0 3 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 4 3 0
 0 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+;;
 
 [Object]
 
-sprite 80 80 Mario player
-object 48 48 TV_eingeschaltet
-object 64 48 TV_eingeschaltet
-object 80 48 TV_eingeschaltet
-object 32 48 TV_eingeschaltet
+sprite 5 5 Mario player ;;
+object 3 3 TV_eingeschaltet ;;
+object 4 3 TV_eingeschaltet ;;
+object 5 3 TV_eingeschaltet ;;
+object 2 3 TV_eingeschaltet ;;
+
+# hier mal ein Kommentar, um zu testen, ob alles funktioniert ;;
 
 [Event]
 
-on_load set_var eventtest1 erfolgreich ;
-on_exit set_var eventtest2 erfolgreich ;
-player_at 17 7 change_map defaultLevel ;
-player_at 17 6 dialog Achtung! ;
-player_at 16 7 dialog Achtung! ;
-on_action 2 3 change_map kefkas_palast ;
+on_load
+	if var last_map = keller
+		set_player_position 12 1 ;;
+
+player_at 17 7 change_map defaultLevel ;;
+player_at 17 6 dialog Achtung! ;;
+player_at 16 7 dialog Achtung! ;;
+on_action 2 3 change_map kefkas_palast ;;
+
+player_at 12 0 change_map keller ;;
+on_action 11 1 dialog zum Keller -> ;;
+on_action 13 1 dialog <- zum Keller ;;
 
 on_action 3 3
 	if var dialog_gelesen = true
-		dialog hast du schon gelesen, nächstes mal vielleicht wieder. ;
+		dialog hast du schon gelesen, nächstes mal vielleicht wieder. ;;
 on_action 3 3
 	if var dialog_gelesen != true
-		dialog testdialog: dies soll die fähigkeiten des dialogsystems anhand eines langen dialoges testen. ;
+		dialog testdialog: dies soll die fähigkeiten des dialogsystems anhand eines langen dialoges testen. ;;
 on_action 3 3
 	if var dialog_gelesen != true
-		dialog Wenn der Dialog jedoch zu lang wird, so empfiehlt es sich auf eine zweite Seite auszuweichen... ;
+		dialog Wenn der Dialog jedoch zu lang wird, so empfiehlt es sich auf eine zweite Seite auszuweichen... ;;
 
-on_action 3 3 set_var dialog_gelesen true ;
+on_action 3 3 set_var dialog_gelesen true ;;
 
 [eof]
