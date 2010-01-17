@@ -16,7 +16,6 @@
 
 #include "map.h"
 #include "iohelper.h"
-#include <fstream>
 #include <iostream>
 
 Tileset::Tileset() {
@@ -41,44 +40,26 @@ void Tileset::load(string name) {
 		walk[i] = 0;
 	}
 
-	string prefix = "Tilesets/";
-	prefix.append(name);
-	prefix.append("/");
+	string prefix = string("Tilesets/") + name + string("/");
 
-	string dateiname = prefix;
-	dateiname.append(name);
+	FileParser parser(prefix + name, "Tileset");
 
-	ifstream loadTS;
-	loadTS.open(dateiname.c_str(), ios_base::in);
-	string s, bild;
-	int index, walkable;
-	int state = -1;
-	loadTS >> s;
-	while(s != "[eof]") {
-		if(s == "[Tileset]") {
-			state = 0;
-			loadTS >> s;
-		}
-		switch(state) {
-			case 0: //Tileset
-				loadTS >> bild >> walkable;
-				index = atoi(s.c_str());
-				if(index < MAX_TILES_PER_TILESET && index > -1) {
-					dateiname = prefix;
-					dateiname.append(bild);
-					tiles[index] = load_bitmap(dateiname.c_str(), NULL);
-					walk[index] = walkable;
-				}
-				loadTS >> s;
-			break;
+	deque<deque<string> > ret = parser.getsection("Tileset");
+	
+	int index;
+	for(int i = 0; i < ret.size(); i++) {
+		index = atoi(ret[i][0].c_str());
+		if(index < MAX_TILES_PER_TILESET && index > -1) {
+			tiles[index] = load_bitmap((prefix + ret[i][1]).c_str(), NULL);
+			walk[index] = atoi(ret[i][2].c_str());
 		}
 	}
-	loadTS.close();
+
 	if(!tiles[0]) {
 		tiles[0] = create_bitmap(16, 16);
-		cout << "konnte Tileset nicht laden" << endl;
+		cout << name << ": [Fehler] Tileset konnte nicht geladen werden." << endl;
 	} else
-		cout << "tileset geladen" << endl;
+		cout << name << ": [Information] Tileset geladen" << endl;
 }
 
 int Tileset::is_walkable(int index) {

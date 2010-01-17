@@ -15,7 +15,7 @@
 */
 
 #include "sprite.h"
-#include <fstream>
+#include "iohelper.h"
 #include <iostream>
 
 SpriteSet::SpriteSet() {
@@ -56,47 +56,18 @@ void SpriteSet::load(string name) {
 	string dateiname = prefix;
 	dateiname.append(name);
 
-	ifstream loadSS;
-	loadSS.open(dateiname.c_str(), ios_base::in);
-	string s;
-	int state = -1;
-	int dir = -1;
-	int waitmode = -1;
+	FileParser parser(dateiname, "Sprite");
+	string directions[] = {"up", "down", "left", "right"};
+	deque< deque<string> > ret;
 
-	loadSS >> s;
-	while(s != "[eof]") {
-		if(s == "[Sprite]") {
-			state = 0;
-			loadSS >> s;
-		}
-		switch(state) {
-			case 0: //Sprite
-				if(s == "[up]") {dir = UP; loadSS >> s; continue;}
-				else if(s == "[down]") {dir = DOWN; loadSS >> s; continue;}
-				else if(s == "[left]") {dir = LEFT; loadSS >> s; continue;}
-				else if(s == "[right]") {dir = RIGHT; loadSS >> s; continue;}
-				
-				if(s == "[wait]") {waitmode = 1; loadSS >> s; continue;}
-				else if(s == "[walk]") {waitmode = 0; loadSS >> s; continue;}
-
-				switch(waitmode) {
-					case 1:
-						dateiname = prefix;
-						dateiname.append(s);
-						wait[dir].push_back(load_bitmap(dateiname.c_str(), NULL));
-						loadSS >> s;
-					break;
-					case 0:
-						dateiname = prefix;
-						dateiname.append(s);
-						walk[dir].push_back(load_bitmap(dateiname.c_str(), NULL));
-						loadSS >> s;
-					break;
-				}
-			break;
-		}
+	for(int i = 0; i < 4; i++) {
+		ret = parser.getsection(string("walk_") + directions[i]);
+		for(int j = 0; j < ret.size(); j++)
+			walk[i].push_back(load_bitmap((prefix + ret[j][0]).c_str(), NULL));
+		ret = parser.getsection(string("wait_") + directions[i]);
+		for(int j = 0; j < ret.size(); j++)
+			wait[i].push_back(load_bitmap((prefix + ret[j][0]).c_str(), NULL));
 	}
-	loadSS.close();
 }
 
 BITMAP* SpriteSet::get_sprite(int direction, bool walking, int frame) {

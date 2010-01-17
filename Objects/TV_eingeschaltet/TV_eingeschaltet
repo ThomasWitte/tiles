@@ -1,6 +1,7 @@
+< tiles 1.0 Object >
 [Animation]
-1.tga
-4.tga
-2.tga
-3.tga
+1.tga ;;
+4.tga ;;
+2.tga ;;
+3.tga ;;
 [eof]

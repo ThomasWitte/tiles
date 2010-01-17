@@ -15,7 +15,7 @@
 */
 
 #include "object.h"
-#include <fstream>
+#include "iohelper.h"
 
 BaseObject::BaseObject(int x, int y, bool s, Map *parent) {
 	this->x = x;
@@ -52,24 +52,16 @@ void Animation::load(string dateiname) {
 		destroy_bitmap(frames[i]);
 	frames.resize(0);
 
-	ifstream anifile;
-	string prefix = string("Objects/").append(dateiname).append("/");
-	string s = prefix;
-	s.append(dateiname);
-	anifile.open(s.c_str(), ios_base::in);
+	string prefix = string("Objects/") + dateiname + string("/");
+	string s = prefix + dateiname;
 	
-	anifile >> s;
-	if(s == "[Animation]") {
-		anifile >> s;
-		while(s != "[eof]") {
-			dateiname = prefix;
-			dateiname.append(s);
-			frames.push_back(load_bitmap(dateiname.c_str(), NULL));
-			anifile >> s;
-		}
-	}
+	FileParser parser(s, "Object");
+	deque< deque<string> > ret = parser.getsection("Animation");
 
-	anifile.close();
+	for(int i = 0; i< ret.size(); i++) {
+		dateiname = prefix + ret[i][0];
+		frames.push_back(load_bitmap(dateiname.c_str(), NULL));
+	}
 }
 
 BITMAP* Animation::get_frame(int frame) {
