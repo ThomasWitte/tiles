@@ -1,0 +1,441 @@
+al-unix INFO: Assumed libc encoding is UTF8.
+al-main INFO: Allegro initialised (instance 1)
+al-gfx INFO: Called set_gfx_mode(2, 640, 480, 0, 0).
+al-gfx INFO: First call, remembering console state.
+al-gfx INFO: Autodetecting graphic driver.
+al-xwin INFO: Using generic color conversion blitter (16, 32).
+al-gfx INFO: The driver will wait for vsync.
+al-gfx INFO: set_gfx_card success for 640x480x16.
+al-xkey INFO: 248 keys, 7 symbols per key.
+al-xkey INFO: key [8: NULL NULL] not assigned.
+al-xkey INFO: key [9: Escape NULL] assigned to 59.
+al-xkey INFO: key [10: 1 exclam] assigned to 28.
+al-xkey INFO: key [11: 2 quotedbl] assigned to 29.
+al-xkey INFO: key [12: 3 section] assigned to 30.
+al-xkey INFO: key [13: 4 dollar] assigned to 31.
+al-xkey INFO: key [14: 5 percent] assigned to 32.
+al-xkey INFO: key [15: 6 ampersand] assigned to 33.
+al-xkey INFO: key [16: 7 slash] assigned to 34.
+al-xkey INFO: key [17: 8 parenleft] assigned to 35.
+al-xkey INFO: key [18: 9 parenright] assigned to 36.
+al-xkey INFO: key [19: 0 equal] assigned to 27.
+al-xkey INFO: key [20: ssharp question] defering.
+al-xkey INFO: key [21: dead_acute dead_grave] defering.
+al-xkey INFO: key [22: BackSpace NULL] assigned to 63.
+al-xkey INFO: key [23: Tab ISO_Left_Tab] assigned to 64.
+al-xkey INFO: key [24: q Q] assigned to 17.
+al-xkey INFO: key [25: w W] assigned to 23.
+al-xkey INFO: key [26: e E] assigned to 5.
+al-xkey INFO: key [27: r R] assigned to 18.
+al-xkey INFO: key [28: t T] assigned to 20.
+al-xkey INFO: key [29: z Z] assigned to 26.
+al-xkey INFO: key [30: u U] assigned to 21.
+al-xkey INFO: key [31: i I] assigned to 9.
+al-xkey INFO: key [32: o O] assigned to 15.
+al-xkey INFO: key [33: p P] assigned to 16.
+al-xkey INFO: key [34: udiaeresis Udiaeresis] defering.
+al-xkey INFO: key [35: plus asterisk] defering.
+al-xkey INFO: key [36: Return NULL] assigned to 67.
+al-xkey INFO: key [37: Control_L NULL] assigned to 117.
+al-xkey INFO: key [38: a A] assigned to 1.
+al-xkey INFO: key [39: s S] assigned to 19.
+al-xkey INFO: key [40: d D] assigned to 4.
+al-xkey INFO: key [41: f F] assigned to 6.
+al-xkey INFO: key [42: g G] assigned to 7.
+al-xkey INFO: key [43: h H] assigned to 8.
+al-xkey INFO: key [44: j J] assigned to 10.
+al-xkey INFO: key [45: k K] assigned to 11.
+al-xkey INFO: key [46: l L] assigned to 12.
+al-xkey INFO: key [47: odiaeresis Odiaeresis] defering.
+al-xkey INFO: key [48: adiaeresis Adiaeresis] defering.
+al-xkey INFO: key [49: dead_circumflex degree] defering.
+al-xkey INFO: key [50: Shift_L NULL] assigned to 115.
+al-xkey INFO: key [51: numbersign apostrophe] defering.
+al-xkey INFO: key [52: y Y] assigned to 25.
+al-xkey INFO: key [53: x X] assigned to 24.
+al-xkey INFO: key [54: c C] assigned to 3.
+al-xkey INFO: key [55: v V] assigned to 22.
+al-xkey INFO: key [56: b B] assigned to 2.
+al-xkey INFO: key [57: n N] assigned to 14.
+al-xkey INFO: key [58: m M] assigned to 13.
+al-xkey INFO: key [59: comma semicolon] assigned to 72.
+al-xkey INFO: key [60: period colon] assigned to 73.
+al-xkey INFO: key [61: minus underscore] assigned to 61.
+al-xkey INFO: key [62: Shift_R NULL] assigned to 116.
+al-xkey INFO: key [63: KP_Multiply XF86_ClearGrab] assigned to 87.
+al-xkey INFO: key [64: Alt_L Meta_L] assigned to 119.
+al-xkey INFO: key [65: space NULL] assigned to 75.
+al-xkey INFO: key [66: Caps_Lock NULL] assigned to 126.
+al-xkey INFO: key [67: F1 XF86_Switch_VT_1] assigned to 47.
+al-xkey INFO: key [68: F2 XF86_Switch_VT_2] assigned to 48.
+al-xkey INFO: key [69: F3 XF86_Switch_VT_3] assigned to 49.
+al-xkey INFO: key [70: F4 XF86_Switch_VT_4] assigned to 50.
+al-xkey INFO: key [71: F5 XF86_Switch_VT_5] assigned to 51.
+al-xkey INFO: key [72: F6 XF86_Switch_VT_6] assigned to 52.
+al-xkey INFO: key [73: F7 XF86_Switch_VT_7] assigned to 53.
+al-xkey INFO: key [74: F8 XF86_Switch_VT_8] assigned to 54.
+al-xkey INFO: key [75: F9 XF86_Switch_VT_9] assigned to 55.
+al-xkey INFO: key [76: F10 XF86_Switch_VT_10] assigned to 56.
+al-xkey INFO: key [77: Num_Lock Pointer_EnableKeys] assigned to 125.
+al-xkey INFO: key [78: Scroll_Lock NULL] assigned to 124.
+al-xkey INFO: key [79: KP_Home KP_7] assigned to 44.
+al-xkey INFO: key [80: KP_Up KP_8] assigned to 45.
+al-xkey INFO: key [81: KP_Prior KP_9] assigned to 46.
+al-xkey INFO: key [82: KP_Subtract XF86_Prev_VMode] assigned to 88.
+al-xkey INFO: key [83: KP_Left KP_4] assigned to 41.
+al-xkey INFO: key [84: KP_Begin KP_5] assigned to 42.
+al-xkey INFO: key [85: KP_Right KP_6] assigned to 43.
+al-xkey INFO: key [86: KP_Add XF86_Next_VMode] assigned to 89.
+al-xkey INFO: key [87: KP_End KP_1] assigned to 38.
+al-xkey INFO: key [88: KP_Down KP_2] assigned to 39.
+al-xkey INFO: key [89: KP_Next KP_3] assigned to 40.
+al-xkey INFO: key [90: KP_Insert KP_0] assigned to 37.
+al-xkey INFO: key [91: KP_Delete KP_Separator] assigned to 90.
+al-xkey INFO: key [92: ISO_Level3_Shift NULL] assigned to 120.
+al-xkey INFO: key [93: NULL NULL] not assigned.
+al-xkey INFO: key [94: less greater] assigned to 71.
+al-xkey INFO: key [95: F11 XF86_Switch_VT_11] assigned to 57.
+al-xkey INFO: key [96: F12 XF86_Switch_VT_12] assigned to 58.
+al-xkey INFO: key [97: NULL NULL] not assigned.
+al-xkey INFO: key [98: Katakana NULL] defering.
+al-xkey INFO: key [99: Hiragana NULL] defering.
+al-xkey INFO: key [100: Henkan_Mode NULL] defering.
+al-xkey INFO: key [101: Hiragana_Katakana NULL] defering.
+al-xkey INFO: key [102: Muhenkan NULL] defering.
+al-xkey INFO: key [103: NULL NULL] not assigned.
+al-xkey INFO: key [104: KP_Enter NULL] assigned to 91.
+al-xkey INFO: key [105: Control_R NULL] assigned to 118.
+al-xkey INFO: key [106: KP_Divide XF86_Ungrab] assigned to 86.
+al-xkey INFO: key [107: Print Sys_Req] assigned to 92.
+al-xkey INFO: key [108: ISO_Level3_Shift NULL] *double* assigned to 120.
+al-xkey INFO: key [109: Linefeed NULL] defering.
+al-xkey INFO: key [110: Home NULL] assigned to 78.
+al-xkey INFO: key [111: Up NULL] assigned to 84.
+al-xkey INFO: key [112: Prior NULL] assigned to 80.
+al-xkey INFO: key [113: Left NULL] assigned to 82.
+al-xkey INFO: key [114: Right NULL] assigned to 83.
+al-xkey INFO: key [115: End NULL] assigned to 79.
+al-xkey INFO: key [116: Down NULL] assigned to 85.
+al-xkey INFO: key [117: Next NULL] assigned to 81.
+al-xkey INFO: key [118: Insert NULL] assigned to 76.
+al-xkey INFO: key [119: Delete NULL] assigned to 77.
+al-xkey INFO: key [120: NULL NULL] not assigned.
+al-xkey INFO: key [121: XF86AudioMute NULL] defering.
+al-xkey INFO: key [122: XF86AudioLowerVolume NULL] defering.
+al-xkey INFO: key [123: XF86AudioRaiseVolume NULL] defering.
+al-xkey INFO: key [124: XF86PowerOff NULL] defering.
+al-xkey INFO: key [125: KP_Equal NULL] assigned to 103.
+al-xkey INFO: key [126: plusminus NULL] defering.
+al-xkey INFO: key [127: Pause Break] assigned to 93.
+al-xkey INFO: key [128: NULL NULL] not assigned.
+al-xkey INFO: key [129: KP_Decimal NULL] *double* assigned to 90.
+al-xkey INFO: key [130: Hangul NULL] defering.
+al-xkey INFO: key [131: Hangul_Hanja NULL] defering.
+al-xkey INFO: key [132: NULL NULL] not assigned.
+al-xkey INFO: key [133: Super_L NULL] assigned to 121.
+al-xkey INFO: key [134: Super_R NULL] assigned to 122.
+al-xkey INFO: key [135: Menu NULL] assigned to 123.
+al-xkey INFO: key [136: Cancel NULL] defering.
+al-xkey INFO: key [137: Redo NULL] defering.
+al-xkey INFO: key [138: SunProps NULL] defering.
+al-xkey INFO: key [139: Undo NULL] defering.
+al-xkey INFO: key [140: SunFront NULL] defering.
+al-xkey INFO: key [141: XF86Copy NULL] defering.
+al-xkey INFO: key [142: SunOpen NULL] defering.
+al-xkey INFO: key [143: XF86Paste NULL] defering.
+al-xkey INFO: key [144: Find NULL] defering.
+al-xkey INFO: key [145: XF86Cut NULL] defering.
+al-xkey INFO: key [146: Help NULL] defering.
+al-xkey INFO: key [147: XF86MenuKB NULL] defering.
+al-xkey INFO: key [148: XF86Calculator NULL] defering.
+al-xkey INFO: key [149: NULL NULL] not assigned.
+al-xkey INFO: key [150: XF86Sleep NULL] defering.
+al-xkey INFO: key [151: XF86WakeUp NULL] defering.
+al-xkey INFO: key [152: XF86Explorer NULL] defering.
+al-xkey INFO: key [153: XF86Send NULL] defering.
+al-xkey INFO: key [154: NULL NULL] not assigned.
+al-xkey INFO: key [155: XF86Xfer NULL] defering.
+al-xkey INFO: key [156: XF86Launch1 NULL] defering.
+al-xkey INFO: key [157: XF86Launch2 NULL] defering.
+al-xkey INFO: key [158: XF86WWW NULL] defering.
+al-xkey INFO: key [159: XF86DOS NULL] defering.
+al-xkey INFO: key [160: XF86ScreenSaver NULL] defering.
+al-xkey INFO: key [161: NULL NULL] not assigned.
+al-xkey INFO: key [162: XF86RotateWindows NULL] defering.
+al-xkey INFO: key [163: XF86Mail NULL] defering.
+al-xkey INFO: key [164: XF86Favorites NULL] defering.
+al-xkey INFO: key [165: XF86MyComputer NULL] defering.
+al-xkey INFO: key [166: XF86Back NULL] defering.
+al-xkey INFO: key [167: XF86Forward NULL] defering.
+al-xkey INFO: key [168: NULL NULL] not assigned.
+al-xkey INFO: key [169: XF86Eject NULL] defering.
+al-xkey INFO: key [170: XF86Eject XF86Eject] defering.
+al-xkey INFO: key [171: XF86AudioNext NULL] defering.
+al-xkey INFO: key [172: XF86AudioPlay XF86AudioPause] defering.
+al-xkey INFO: key [173: XF86AudioPrev NULL] defering.
+al-xkey INFO: key [174: XF86AudioStop XF86Eject] defering.
+al-xkey INFO: key [175: XF86AudioRecord NULL] defering.
+al-xkey INFO: key [176: XF86AudioRewind NULL] defering.
+al-xkey INFO: key [177: XF86Phone NULL] defering.
+al-xkey INFO: key [178: NULL NULL] not assigned.
+al-xkey INFO: key [179: XF86Tools NULL] defering.
+al-xkey INFO: key [180: XF86HomePage NULL] defering.
+al-xkey INFO: key [181: XF86Reload NULL] defering.
+al-xkey INFO: key [182: XF86Close NULL] defering.
+al-xkey INFO: key [183: NULL NULL] not assigned.
+al-xkey INFO: key [184: NULL NULL] not assigned.
+al-xkey INFO: key [185: XF86ScrollUp NULL] defering.
+al-xkey INFO: key [186: XF86ScrollDown NULL] defering.
+al-xkey INFO: key [187: parenleft NULL] defering.
+al-xkey INFO: key [188: parenright NULL] defering.
+al-xkey INFO: key [189: XF86New NULL] defering.
+al-xkey INFO: key [190: Redo NULL] defering.
+al-xkey INFO: key [191: NULL NULL] not assigned.
+al-xkey INFO: key [192: NULL NULL] not assigned.
+al-xkey INFO: key [193: NULL NULL] not assigned.
+al-xkey INFO: key [194: NULL NULL] not assigned.
+al-xkey INFO: key [195: NULL NULL] not assigned.
+al-xkey INFO: key [196: NULL NULL] not assigned.
+al-xkey INFO: key [197: NULL NULL] not assigned.
+al-xkey INFO: key [198: NULL NULL] not assigned.
+al-xkey INFO: key [199: NULL NULL] not assigned.
+al-xkey INFO: key [200: XF86TouchpadToggle NULL] defering.
+al-xkey INFO: key [201: NULL NULL] not assigned.
+al-xkey INFO: key [202: NULL NULL] not assigned.
+al-xkey INFO: key [203: Mode_switch NULL] defering.
+al-xkey INFO: key [204: NULL Alt_L] not assigned.
+al-xkey INFO: key [205: NULL Meta_L] not assigned.
+al-xkey INFO: key [206: NULL Super_L] not assigned.
+al-xkey INFO: key [207: NULL Hyper_L] not assigned.
+al-xkey INFO: key [208: XF86AudioPlay NULL] defering.
+al-xkey INFO: key [209: XF86AudioPause NULL] defering.
+al-xkey INFO: key [210: XF86Launch3 NULL] defering.
+al-xkey INFO: key [211: XF86Launch4 NULL] defering.
+al-xkey INFO: key [212: NULL NULL] not assigned.
+al-xkey INFO: key [213: XF86Suspend NULL] defering.
+al-xkey INFO: key [214: XF86Close NULL] defering.
+al-xkey INFO: key [215: XF86AudioPlay NULL] defering.
+al-xkey INFO: key [216: XF86AudioForward NULL] defering.
+al-xkey INFO: key [217: NULL NULL] not assigned.
+al-xkey INFO: key [218: Print NULL] *double* assigned to 92.
+al-xkey INFO: key [219: NULL NULL] not assigned.
+al-xkey INFO: key [220: XF86WebCam NULL] defering.
+al-xkey INFO: key [221: NULL NULL] not assigned.
+al-xkey INFO: key [222: NULL NULL] not assigned.
+al-xkey INFO: key [223: XF86Mail NULL] defering.
+al-xkey INFO: key [224: NULL NULL] not assigned.
+al-xkey INFO: key [225: XF86Search NULL] defering.
+al-xkey INFO: key [226: NULL NULL] not assigned.
+al-xkey INFO: key [227: XF86Finance NULL] defering.
+al-xkey INFO: key [228: NULL NULL] not assigned.
+al-xkey INFO: key [229: XF86Shop NULL] defering.
+al-xkey INFO: key [230: NULL NULL] not assigned.
+al-xkey INFO: key [231: Cancel NULL] defering.
+al-xkey INFO: key [232: XF86MonBrightnessDown NULL] defering.
+al-xkey INFO: key [233: XF86MonBrightnessUp NULL] defering.
+al-xkey INFO: key [234: XF86AudioMedia NULL] defering.
+al-xkey INFO: key [235: XF86Display NULL] defering.
+al-xkey INFO: key [236: XF86KbdLightOnOff NULL] defering.
+al-xkey INFO: key [237: XF86KbdBrightnessDown NULL] defering.
+al-xkey INFO: key [238: XF86KbdBrightnessUp NULL] defering.
+al-xkey INFO: key [239: XF86Send NULL] defering.
+al-xkey INFO: key [240: XF86Reply NULL] defering.
+al-xkey INFO: key [241: XF86MailForward NULL] defering.
+al-xkey INFO: key [242: XF86Save NULL] defering.
+al-xkey INFO: key [243: XF86Documents NULL] defering.
+al-xkey INFO: key [244: XF86Battery NULL] defering.
+al-xkey INFO: key [245: XF86Bluetooth NULL] defering.
+al-xkey INFO: key [246: XF86WLAN NULL] defering.
+al-xkey INFO: key [247: NULL NULL] not assigned.
+al-xkey INFO: key [248: NULL NULL] not assigned.
+al-xkey INFO: key [249: NULL NULL] not assigned.
+al-xkey INFO: key [250: NULL NULL] not assigned.
+al-xkey INFO: key [251: NULL NULL] not assigned.
+al-xkey INFO: key [252: NULL NULL] not assigned.
+al-xkey INFO: key [253: NULL NULL] not assigned.
+al-xkey INFO: key [254: NULL NULL] not assigned.
+al-xkey INFO: key [255: NULL NULL] not assigned.
+al-xkey INFO: Key 20 missing: ssharp question ssharp question backslash questiondown U1E9E - assigned to 60.
+al-xkey INFO: Key 21 missing: dead_acute dead_grave dead_acute dead_grave dead_cedilla dead_ogonek dead_cedilla - assigned to 62.
+al-xkey INFO: Key 34 missing: udiaeresis Udiaeresis udiaeresis Udiaeresis dead_diaeresis dead_abovering dead_diaeresis - assigned to 65.
+al-xkey INFO: Key 35 missing: plus asterisk plus asterisk dead_tilde dead_macron dead_tilde - assigned to 66.
+al-xkey INFO: Key 47 missing: odiaeresis Odiaeresis odiaeresis Odiaeresis dead_doubleacute dead_belowdot dead_doubleacute - assigned to 68.
+al-xkey INFO: Key 48 missing: adiaeresis Adiaeresis adiaeresis Adiaeresis dead_circumflex dead_caron dead_circumflex - assigned to 69.
+al-xkey INFO: Key 49 missing: dead_circumflex degree dead_circumflex degree U2032 U2033 U2032 - assigned to 70.
+al-xkey INFO: Key 51 missing: numbersign apostrophe numbersign apostrophe rightsinglequotemark dead_breve rightsinglequotemark - assigned to 74.
+al-xkey INFO: Key 98 missing: Katakana NULL Katakana NULL NULL NULL NULL - assigned to 94.
+al-xkey INFO: Key 99 missing: Hiragana NULL Hiragana NULL NULL NULL NULL - assigned to 95.
+al-xkey INFO: Key 100 missing: Henkan_Mode NULL Henkan_Mode NULL NULL NULL NULL - assigned to 96.
+al-xkey INFO: Key 101 missing: Hiragana_Katakana NULL Hiragana_Katakana NULL NULL NULL NULL - assigned to 97.
+al-xkey INFO: Key 102 missing: Muhenkan NULL Muhenkan NULL NULL NULL NULL - assigned to 98.
+al-xkey INFO: Key 109 missing: Linefeed NULL Linefeed NULL NULL NULL NULL - assigned to 99.
+al-xkey INFO: Key 121 missing: XF86AudioMute NULL XF86AudioMute NULL NULL NULL NULL - assigned to 100.
+al-xkey INFO: Key 122 missing: XF86AudioLowerVolume NULL XF86AudioLowerVolume NULL NULL NULL NULL - assigned to 101.
+al-xkey INFO: Key 123 missing: XF86AudioRaiseVolume NULL XF86AudioRaiseVolume NULL NULL NULL NULL - assigned to 102.
+al-xkey INFO: Key 124 missing: XF86PowerOff NULL XF86PowerOff NULL NULL NULL NULL - assigned to 104.
+al-xkey INFO: Key 126 missing: plusminus NULL plusminus NULL NULL NULL NULL - assigned to 105.
+al-xkey INFO: Key 130 missing: Hangul NULL Hangul NULL NULL NULL NULL - assigned to 106.
+al-xkey INFO: Key 131 missing: Hangul_Hanja NULL Hangul_Hanja NULL NULL NULL NULL - assigned to 107.
+al-xkey INFO: Key 136 missing: Cancel NULL Cancel NULL NULL NULL NULL - assigned to 108.
+al-xkey INFO: Key 137 missing: Redo NULL Redo NULL NULL NULL NULL - assigned to 109.
+al-xkey INFO: Key 138 missing: SunProps NULL SunProps NULL NULL NULL NULL - assigned to 110.
+al-xkey INFO: Key 139 missing: Undo NULL Undo NULL NULL NULL NULL - assigned to 111.
+al-xkey INFO: Key 140 missing: SunFront NULL SunFront NULL NULL NULL NULL - assigned to 112.
+al-xkey INFO: Key 141 missing: XF86Copy NULL XF86Copy NULL NULL NULL NULL - assigned to 113.
+al-xkey INFO: Key 142 missing: SunOpen NULL SunOpen NULL NULL NULL NULL - assigned to 114.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 143 missing: XF86Paste NULL XF86Paste NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 144 missing: Find NULL Find NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 145 missing: XF86Cut NULL XF86Cut NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 146 missing: Help NULL Help NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 147 missing: XF86MenuKB NULL XF86MenuKB NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 148 missing: XF86Calculator NULL XF86Calculator NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 150 missing: XF86Sleep NULL XF86Sleep NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 151 missing: XF86WakeUp NULL XF86WakeUp NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 152 missing: XF86Explorer NULL XF86Explorer NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 153 missing: XF86Send NULL XF86Send NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 155 missing: XF86Xfer NULL XF86Xfer NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 156 missing: XF86Launch1 NULL XF86Launch1 NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 157 missing: XF86Launch2 NULL XF86Launch2 NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 158 missing: XF86WWW NULL XF86WWW NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 159 missing: XF86DOS NULL XF86DOS NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 160 missing: XF86ScreenSaver NULL XF86ScreenSaver NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 162 missing: XF86RotateWindows NULL XF86RotateWindows NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 163 missing: XF86Mail NULL XF86Mail NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 164 missing: XF86Favorites NULL XF86Favorites NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 165 missing: XF86MyComputer NULL XF86MyComputer NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 166 missing: XF86Back NULL XF86Back NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 167 missing: XF86Forward NULL XF86Forward NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 169 missing: XF86Eject NULL XF86Eject NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 170 missing: XF86Eject XF86Eject XF86Eject XF86Eject NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 171 missing: XF86AudioNext NULL XF86AudioNext NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 172 missing: XF86AudioPlay XF86AudioPause XF86AudioPlay XF86AudioPause NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 173 missing: XF86AudioPrev NULL XF86AudioPrev NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 174 missing: XF86AudioStop XF86Eject XF86AudioStop XF86Eject NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 175 missing: XF86AudioRecord NULL XF86AudioRecord NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 176 missing: XF86AudioRewind NULL XF86AudioRewind NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 177 missing: XF86Phone NULL XF86Phone NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 179 missing: XF86Tools NULL XF86Tools NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 180 missing: XF86HomePage NULL XF86HomePage NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 181 missing: XF86Reload NULL XF86Reload NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 182 missing: XF86Close NULL XF86Close NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 185 missing: XF86ScrollUp NULL XF86ScrollUp NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 186 missing: XF86ScrollDown NULL XF86ScrollDown NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 187 missing: parenleft NULL parenleft NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 188 missing: parenright NULL parenright NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 189 missing: XF86New NULL XF86New NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 190 missing: Redo NULL Redo NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 200 missing: XF86TouchpadToggle NULL XF86TouchpadToggle NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 203 missing: Mode_switch NULL Mode_switch NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 208 missing: XF86AudioPlay NULL XF86AudioPlay NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 209 missing: XF86AudioPause NULL XF86AudioPause NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 210 missing: XF86Launch3 NULL XF86Launch3 NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 211 missing: XF86Launch4 NULL XF86Launch4 NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 213 missing: XF86Suspend NULL XF86Suspend NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 214 missing: XF86Close NULL XF86Close NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 215 missing: XF86AudioPlay NULL XF86AudioPlay NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 216 missing: XF86AudioForward NULL XF86AudioForward NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 220 missing: XF86WebCam NULL XF86WebCam NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 223 missing: XF86Mail NULL XF86Mail NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 225 missing: XF86Search NULL XF86Search NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 227 missing: XF86Finance NULL XF86Finance NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 229 missing: XF86Shop NULL XF86Shop NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 231 missing: Cancel NULL Cancel NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 232 missing: XF86MonBrightnessDown NULL XF86MonBrightnessDown NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 233 missing: XF86MonBrightnessUp NULL XF86MonBrightnessUp NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 234 missing: XF86AudioMedia NULL XF86AudioMedia NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 235 missing: XF86Display NULL XF86Display NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 236 missing: XF86KbdLightOnOff NULL XF86KbdLightOnOff NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 237 missing: XF86KbdBrightnessDown NULL XF86KbdBrightnessDown NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 238 missing: XF86KbdBrightnessUp NULL XF86KbdBrightnessUp NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 239 missing: XF86Send NULL XF86Send NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 240 missing: XF86Reply NULL XF86Reply NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 241 missing: XF86MailForward NULL XF86MailForward NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 242 missing: XF86Save NULL XF86Save NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 243 missing: XF86Documents NULL XF86Documents NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 244 missing: XF86Battery NULL XF86Battery NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 245 missing: XF86Bluetooth NULL XF86Bluetooth NULL NULL NULL NULL - assigned to 0.
+al-xkey ERROR: You have more keys reported by X than Allegro's maximum of 127 keys. Please send a bug report.
+al-xkey INFO: Key 246 missing: XF86WLAN NULL XF86WLAN NULL NULL NULL NULL - assigned to 0.
+al-xkey INFO: Modifier 1: Shift_L Shift_R NULL NULL
+al-xkey INFO: Modifier 2: Caps_Lock NULL NULL NULL
+al-xkey INFO: Modifier 3: Control_L Control_R NULL NULL
+al-xkey INFO: Modifier 4: Alt_L NULL NULL NULL
+al-xkey INFO: Modifier 5: Num_Lock NULL NULL NULL
+al-xkey INFO: Modifier 6: NULL NULL NULL NULL
+al-xkey INFO: Modifier 7: Super_L Super_R NULL NULL
+al-xkey INFO: Modifier 8: ISO_Level3_Shift Mode_switch NULL NULL
+al-gfx INFO: Called set_gfx_mode(-1, 0, 0, 0, 0).
+al-gfx INFO: Closing graphics driver (0x7f51283a4900) X11 window.
+al-gfx INFO: Closing, restoring original console state.
+al-gfx INFO: Graphic mode closed.

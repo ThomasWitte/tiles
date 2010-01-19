@@ -53,8 +53,10 @@ class Fighter {
 		Fight *parent;
 		Character c;
 		int atb;
+		int step;
+
 		struct FighterTileset {
-			BITMAP *normal;
+			deque<BITMAP*> normal;
 		} ts;
 
 		class FighterMenu {

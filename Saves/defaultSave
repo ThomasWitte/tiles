@@ -1,9 +1,10 @@
 < tiles 1.0 Savefile >
 [Level]
-Level defaultLevel ;;
+Level keller ;;
 [Userdata]
+last_map großes_level ;;
 name default ;;
+position_x 7 ;;
+position_y 2 ;;
 test 8.6 ;;
-position_x 5 ;;
-position_y 5 ;;
 [eof]

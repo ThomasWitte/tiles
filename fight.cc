@@ -14,7 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "fight.h"
-#include <fstream>
+#include "iohelper.h"
 #include <iostream>
 
 Command::Command(long time) {
@@ -32,6 +32,7 @@ Fighter::Fighter(Fight *f, Character c, string name) {
 	parent = f;
 	this->c = c;
 	atb = 0;
+	step = 0;
 
 	laden(name);
 	//Items in Character oder durch abgeleitete Klassen?
@@ -40,40 +41,25 @@ Fighter::Fighter(Fight *f, Character c, string name) {
 }
 
 Fighter::~Fighter() {
-	if(ts.normal)
-		destroy_bitmap(ts.normal);
+	for(int i = 0; i < ts.normal.size(); i++)
+		destroy_bitmap(ts.normal[i]);
 }
 
 void Fighter::laden(string name) {
-	string path, dateiname;
-	path = "Fights/Fighters/";
-	path.append(name).append("/");
-	dateiname = path;
-	dateiname.append(name);
-	ifstream datei;
-	string data;
-	datei.open(dateiname.c_str(), ios_base::in);
-	datei >> data;
-	while(data != "[eof]") {
-		if(data == "normal_image") {
-			datei >> data;
-			dateiname = path;
-			dateiname.append(data);
-			ts.normal = load_bitmap(dateiname.c_str(), NULL);
-			//alle anderen bilder auch mit normal belegen
-		} else if(data == "hp") {
-			datei >> data;
-			c.hp = atoi(data.c_str());
-		} else if(data == "speed") {
-			datei >> data;
-			c.speed = atoi(data.c_str());
-		} else if(data == "name") {
-			datei >> data;
-			c.name = data;
-		}
-		datei >> data;
-	}
-	datei.close();
+	string path;
+	path = string("Fights/Fighters/") + name + string("/");
+
+	FileParser parser(path + name, "Fighter");
+
+	deque< deque<string> > ret = parser.getsection("normal");
+	for(int i = 0; i < ret.size(); i++)
+		ts.normal.push_back(load_bitmap((path + ret[i][0]).c_str(), NULL));
+
+	//alle anderen bilder auch mit normal belegen
+
+	c.hp = parser.getvalue("Fighter", "hp", c.hp);
+	c.speed = parser.getvalue("Fighter", "speed", c.speed);
+	c.name = parser.getstring("Fighter", "name", c.name);
 }
 
 void Fighter::update() {
@@ -83,6 +69,7 @@ void Fighter::update() {
 		atb = 65536;
 		parent->enqueue_ready_fighter(this);
 	}
+	step++;
 }
 
 int Fighter::update_menu() {
@@ -90,7 +77,8 @@ int Fighter::update_menu() {
 }
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
-	masked_blit(ts.normal, buffer, 0, 0, x-ts.normal->w/2, y-ts.normal->h/2, ts.normal->w, ts.normal->h);
+	int index = (step/SPRITE_ANIMATION_SPEED)%ts.normal.size();
+	masked_blit(ts.normal[index], buffer, 0, 0, x-ts.normal[index]->w/2, y-ts.normal[index]->h/2, ts.normal[index]->w, ts.normal[index]->h);
 }
 
 void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
@@ -176,86 +164,74 @@ Fight::Fight(string dateiname) {
 	string input;
 	side = RIGHT;
 
-	dateiname = ((string)("Fights/")).append(dateiname);
-	datei.open(dateiname.c_str(), ios_base::in);
+	FileParser parser(string("Fights/") + dateiname, "Fight");
 
-	datei >> input;
-	while(input != "[eof]") {
-		if(input == "Background") {
-			datei >> input;
-			input = ((string)("Fights/Images/")).append(input);
-			bg = load_bitmap(input.c_str(), NULL);
-		} else if(input == "Type") {
-			bool types_enabled[4];
-			for(int i = 0; i < 4; i++) {
-				types_enabled[i] = false;
-			}
+	bg = load_bitmap((string("Fights/Images/") + parser.getstring("Fight", "Background")).c_str(), NULL);
 
-			datei >> input;
-			
-			int type = atoi(input.c_str());
-
-			if(type >= 8) {
-				types_enabled[4] = true;
-				type -= 8;
-			}
-			if(type >= 4) {
-				types_enabled[3] = true;
-				type -= 4;
-			}
-			if(type >= 2) {
-				types_enabled[2] = true;
-				type -= 2;
-			}
-			if(type >= 1) {
-				types_enabled[1] = true;
-			}
-		
-			int i;
-
-			while(1) {
-				i = random()%255;
-
-				if(i<208 && types_enabled[1]) {
-					side = RIGHT; // typ normal
-					break;
-				} else if(i<216 && i>=208 && types_enabled[2]) {
-					side = LEFT; // typ back
-					break;
-				} else if(i<224 && i>=216 && types_enabled[3]) {
-					side = MIDDLE; //typ pincer
-					break;
-				} else if(i>=224 && types_enabled[4]) {
-					side = LEFT; // typ side
-					break;
-				}
-			}
-		} else if(input == "Enemy") {
-			Character c = {"Enemy", 0, 0};
-			datei >> input;
-			switch(side) {
-				case LEFT:
-					fighters[RIGHT].push_back(new Fighter(this, c, input));
-				break;
-				case RIGHT:
-					fighters[LEFT].push_back(new Fighter(this, c, input));
-				break;
-				case MIDDLE:
-					switch(random()%2) {
-						case 0:
-							fighters[RIGHT].push_back(new Fighter(this, c, input));
-						break;
-						case 1:
-							fighters[LEFT].push_back(new Fighter(this, c, input));
-						break;
-					}
-				break;
-			}
-		}
-		datei >> input;
+	bool types_enabled[4];
+	for(int i = 0; i < 4; i++) {
+		types_enabled[i] = false;
 	}
 
-	datei.close();
+	int type = parser.getvalue("Fight", "Type");
+
+	if(type >= 8) {
+		types_enabled[4] = true;
+		type -= 8;
+	}
+	if(type >= 4) {
+		types_enabled[3] = true;
+		type -= 4;
+	}
+	if(type >= 2) {
+		types_enabled[2] = true;
+		type -= 2;
+	}
+	if(type >= 1) {
+		types_enabled[1] = true;
+	}
+		
+	int i;
+	while(1) {
+		i = random()%255;
+
+		if(i<208 && types_enabled[1]) {
+			side = RIGHT; // typ normal
+			break;
+		} else if(i<216 && i>=208 && types_enabled[2]) {
+			side = LEFT; // typ back
+			break;
+		} else if(i<224 && i>=216 && types_enabled[3]) {
+			side = MIDDLE; //typ pincer
+			break;
+		} else if(i>=224 && types_enabled[4]) {
+			side = LEFT; // typ side
+			break;
+		}
+	}
+
+	deque< deque<string> > ret = parser.getall("Fighter", "Enemy");
+	Character c = {"Enemy", 0, 0};
+	for(int i = 0; i < ret.size(); i++) {
+		switch(side) {
+			case LEFT:
+				fighters[RIGHT].push_back(new Fighter(this, c, ret[i][0]));
+			break;
+			case RIGHT:
+				fighters[LEFT].push_back(new Fighter(this, c, ret[i][0]));
+			break;
+			case MIDDLE:
+				switch(random()%2) {
+					case 0:
+						fighters[RIGHT].push_back(new Fighter(this, c, ret[i][0]));
+					break;
+					case 1:
+						fighters[LEFT].push_back(new Fighter(this, c, ret[i][0]));
+					break;
+				}
+			break;
+		}
+	}
 	time = 0;
 
 	menu_bg = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
@@ -266,7 +242,6 @@ Fight::Fight(string dateiname) {
 	rect(menu_bg, 3, 3, menu_bg->w-4, menu_bg->h-4, makecol(255, 255, 255));
 
 	//Party hinzufügen (noch nicht final)
-	Character c;
 	c.hp = 9876;
 	c.name = "test";
 	c.speed = 57;
@@ -334,6 +309,7 @@ void Fight::draw(BITMAP *buffer) {
 
 int Fight::update() {
 	time++;
+
 	if(comqueue.size())
 		if(comqueue[0].get_time() <= time) {
 			comqueue[0].execute();

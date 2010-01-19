@@ -1,14 +1,15 @@
+< tiles 1.0 Fighter >
 [Fighter]
-	name Luigi
-	hp 100
-	level 10
-	mp 50
-	speed 67
-	vigor 45
-	stamina 30
-	magic 80
-	evade 3
-	mblock 10
-[Images]
-	normal_image Luigi.tga
+	name Luigi ;;
+	hp 100 ;;
+	level 10 ;;
+	mp 50 ;;
+	speed 67 ;;
+	vigor 45 ;;
+	stamina 30 ;;
+	magic 80 ;;
+	evade 3 ;;
+	mblock 10 ;;
+[normal]
+	Luigi.tga ;;
 [eof]

@@ -1,6 +1,8 @@
+< tiles 1.0 Fighter >
 [Fighter]
-[Images]
-	normal_image Mario.tga
+[normal]
+	Mario.tga ;;
+	Mario2.tga ;;
 [eof]
 
-Werte unter Fighter überschreiben Charakterwerte sowie bei monstern zufallswerte.
+# Werte unter Fighter überschreiben Charakterwerte sowie bei monstern zufallswerte. ;;

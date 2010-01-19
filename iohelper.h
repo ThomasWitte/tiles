@@ -31,8 +31,8 @@ class FileParser {
 		void laden(string dateiname, string type);
 		void dump();
 		~FileParser();
-		string getstring(string section, string element);
-		double getvalue(string section, string element);
+		string getstring(string section, string element, string def = "");
+		double getvalue(string section, string element, double def = 0.0);
 		deque<string> get(string section, string element);
 		deque<deque<string> > getall(string section, string element);
 		deque<deque<string> > getsection(string section);

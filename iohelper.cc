@@ -121,18 +121,18 @@ void FileParser::dump() {
 FileParser::~FileParser() {
 }
 
-string FileParser::getstring(string section, string element) {
+string FileParser::getstring(string section, string element, string def) {
 	for(int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element)
 			return daten[i][2];
-	return "";
+	return def;
 }
 
-double FileParser::getvalue(string section, string element) {
+double FileParser::getvalue(string section, string element, double def) {
 	for(int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element)
 			return atof(daten[i][2].c_str());
-	return 0;
+	return def;
 }
 
 deque<string> FileParser::get(string section, string element) {
