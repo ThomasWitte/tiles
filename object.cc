@@ -23,6 +23,9 @@ BaseObject::BaseObject(int x, int y, bool s, Map *parent) {
 	this->parent = parent;
 	solid = s;
 	action = false;
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+	locked = false;
+#endif
 }
 
 void BaseObject::get_position(int &x, int &y) {
@@ -43,13 +46,13 @@ void BaseObject::update() {
 
 Animation::~Animation() {
 	for(int i = 0; i < frames.size(); i++)
-		destroy_bitmap(frames[i]);
+		imageloader.destroy(frames[i]);
 }
 
 void Animation::load(string dateiname) {
 	name = dateiname;
 	for(int i = 0; i < frames.size(); i++)
-		destroy_bitmap(frames[i]);
+		imageloader.destroy(frames[i]);
 	frames.resize(0);
 
 	string prefix = string("Objects/") + dateiname + string("/");
@@ -60,7 +63,7 @@ void Animation::load(string dateiname) {
 
 	for(int i = 0; i< ret.size(); i++) {
 		dateiname = prefix + ret[i][0];
-		frames.push_back(load_bitmap(dateiname.c_str(), NULL));
+		frames.push_back(imageloader.load(dateiname));
 	}
 }
 

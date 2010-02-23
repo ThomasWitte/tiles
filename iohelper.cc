@@ -14,6 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "allegro.h"
 #include "iohelper.h"
 #include "config.h"
 #include <cstdlib>
@@ -167,3 +168,71 @@ deque<deque<string> > FileParser::getsection(string section) {
 		}
 	return temp;
 }
+
+ImageLoader::~ImageLoader() {
+	for(map<string, Image>::iterator i = imgs.begin(); i != imgs.end(); i++) {
+		if(i->second.count) {
+			destroy_bitmap(i->second.bmp);
+			cout << "Imageloader [Warnung]: " << i->first << " geladen, aber nicht freigegeben" << endl; 
+		}
+	}
+}
+
+BITMAP* ImageLoader::load(string name) {
+	if(imgs.find(name) == imgs.end()) {
+		imgs[name].bmp = load_bitmap(name.c_str(), NULL);
+		imgs[name].count = 1;
+	} else {
+		imgs[name].count++;
+	}
+	return imgs[name].bmp;
+}
+
+BITMAP* ImageLoader::create(int w, int h) {
+	char name[25];
+	do {
+		sprintf(name, "%i", random());
+	} while(imgs.find(name) != imgs.end());
+	imgs[name].bmp = create_bitmap(w,h);
+	imgs[name].count = 1;
+	return imgs[name].bmp;
+}
+
+void ImageLoader::destroy(string name) {
+	if(imgs.find(name) != imgs.end()) {
+		imgs[name].count--;
+		if(imgs[name].count < 1) {
+			if(imgs[name].bmp) destroy_bitmap(imgs[name].bmp);
+			imgs.erase(imgs.find(name));
+		}
+	}
+}
+
+void ImageLoader::destroy(BITMAP *b) {
+	for(map<string, Image>::iterator i = imgs.begin(); i != imgs.end(); i++) {
+		if(i->second.bmp == b) {
+			i->second.count--;
+
+			if(i->second.count < 1) {
+				if(b) destroy_bitmap(b);
+				imgs.erase(i);
+			}
+			return;
+		} 
+	}
+}
+
+void ImageLoader::destroy_all(string name) {
+	if(imgs.find(name) != imgs.end())
+		if(imgs[name].count) destroy_bitmap(imgs[name].bmp);
+	imgs.erase(imgs.find(name));
+}
+
+void ImageLoader::clear() {
+	for(map<string, Image>::iterator i = imgs.begin(); i != imgs.end(); i++) {
+		if(i->second.count) destroy_bitmap(i->second.bmp); 
+	}
+	imgs.clear();
+}
+
+ImageLoader imageloader;

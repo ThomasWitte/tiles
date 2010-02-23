@@ -32,13 +32,16 @@ class BaseObject {
 		bool solid;
 		class Map *parent;
 	public:
+		bool action;
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+		bool locked;
+#endif
 		BaseObject(int x, int y, bool s = false, class Map *parent = NULL);
 		virtual void get_position(int &x, int &y);
 		virtual void set_position(int x, int y);
 		virtual bool is_solid() { return solid; }
 		virtual void draw(int xpos, int ypos, BITMAP *buffer);
 		virtual void update();
-		bool action;
 };
 
 class Animation {

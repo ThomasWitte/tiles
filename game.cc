@@ -18,7 +18,6 @@
 #include <iostream>
 #include <string>
 #include "game.h"
-#include "iohelper.h"
 
 Game::Game() : m("defaultLevel", this) {
 	me = NULL;
@@ -28,9 +27,9 @@ Game::Game() : m("defaultLevel", this) {
 	buffer = NULL;
 
 	#ifdef GP2X
-	buffer = create_bitmap(SCREEN_W, SCREEN_H);
+	buffer = imageloader.create(SCREEN_W, SCREEN_H);
 	#else
-	buffer = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	buffer = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	#endif
 
 	if(!buffer)
@@ -38,8 +37,10 @@ Game::Game() : m("defaultLevel", this) {
 }
 
 Game::~Game() {
+	if(f)
+		delete f;
 	if(buffer)
-		destroy_bitmap(buffer);
+		imageloader.destroy(buffer);
 }
 
 Game::Game(string spielstand) {
@@ -47,6 +48,12 @@ Game::Game(string spielstand) {
 	last_action = 0;
 	laden(spielstand);
 }
+
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+void Game::set_move_lock(bool lock) {
+	me->locked = lock;
+}
+#endif
 
 void Game::speichern(string spielstand) {
 	if(me) {
@@ -78,6 +85,7 @@ void Game::speichern(string spielstand) {
 }
 
 void Game::laden(string spielstand) {
+	if(f) delete f;
 	last_action = 0;
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
@@ -194,8 +202,8 @@ void Game::change_map(Event *e) {
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
 
-	BITMAP *start = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-	BITMAP *ziel = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 
 	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	m.laden(map_to_load, this);
@@ -213,8 +221,8 @@ void Game::change_map(Event *e) {
 void Game::start_fight(Event *e) {
 	f = new Fight(e->arg[0]);
 	
-	BITMAP *start = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-	BITMAP *ziel = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 
 	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 
@@ -225,7 +233,7 @@ void Game::start_fight(Event *e) {
 
 void Game::dialog(Event *e) {
 	Dlg d;
-	d.dlg = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
+	d.dlg = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
 	for(int i = 0; i < d.dlg->h; i++) {
 		line(d.dlg, 0, i, d.dlg->w, i, makecol(i, i, 255-i));
 	}
@@ -300,7 +308,6 @@ void Game::update() {
 					lastx = x;
 					lasty = y;
 				}
-
 				switch(me->get_direction()) {
 					case Sprite::UP:
 						y--;
@@ -406,16 +413,16 @@ Game::GAME_MODE Game::Blende::update() {
 		case SCHIEBEN:
 			versatz -= delta;
 			if(versatz <= 0) {
-				destroy_bitmap(start);
-				destroy_bitmap(ziel);
+				imageloader.destroy(start);
+				imageloader.destroy(ziel);
 				return mode;
 			}
 		break;
 		case ZOOM:
 			versatz += delta;
 			if(versatz >= PC_RESOLUTION_Y) {
-				destroy_bitmap(start);
-				destroy_bitmap(ziel);
+				imageloader.destroy(start);
+				imageloader.destroy(ziel);
 				return mode;
 			}
 		break;
@@ -426,8 +433,8 @@ Game::GAME_MODE Game::Blende::update() {
 			}
 			versatz += delta;
 			if(versatz >= PC_RESOLUTION_Y) {
-				destroy_bitmap(start);
-				destroy_bitmap(ziel);
+				imageloader.destroy(start);
+				imageloader.destroy(ziel);
 				return mode;
 			}
 		break;

@@ -24,8 +24,11 @@
 
 using namespace std;
 
+enum PlayerSide {LEFT, MIDDLE, RIGHT};
+
 struct Character {
 	string name;
+	bool defensive;
 	int hp;
 	int speed;
 };
@@ -41,7 +44,7 @@ class Command {
 
 class Fighter {
 	public:
-		Fighter(class Fight *f, Character c, string name);
+		Fighter(class Fight *f, Character c, string name, PlayerSide side, int dir);
 		~Fighter();
 		virtual void laden(string name);
 		virtual void update();
@@ -49,12 +52,15 @@ class Fighter {
 		virtual void draw(BITMAP *buffer, int x, int y);
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
 		inline virtual void draw_menu(BITMAP *buffer, int x, int y, int w, int h);
+		virtual PlayerSide get_side() {return side;}
 	protected:
 		Fight *parent;
 		Character c;
 		int atb;
 		int step;
-
+		PlayerSide side;
+		int direction; //Blickrichtung 0 = links
+		
 		struct FighterTileset {
 			deque<BITMAP*> normal;
 		} ts;
@@ -83,14 +89,14 @@ class Fight {
 		int update();
 		void draw(BITMAP *buffer);
 		void enqueue_ready_fighter(Fighter *f);
-		enum PlayerSide {LEFT, MIDDLE, RIGHT};
 	private:
+		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
+		enum {FRIEND, ENEMY};
 		long time;
 		BITMAP *bg, *menu_bg;
 		deque<Command> comqueue;
-		deque<Fighter*> fighters[3]; //PlayerSide
+		deque<Fighter*> fighters[2]; //Friends, Enemies
 		deque<Fighter*> ready_fighters;
-		PlayerSide side;
 };
 
 #endif

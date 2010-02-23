@@ -44,6 +44,10 @@
 //fps anzeigen?
 //#define ENABLE_FRAME_COUNTER
 
+//Während Dialogen bewegung verbieten?
+#define ENABLE_DIALOG_MOVE_LOCK
+
+//Tastenbelegungen
 #define MENU_KEY KEY_F12
 #define ACTION_KEY KEY_SPACE
 

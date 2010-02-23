@@ -1,10 +1,10 @@
 < tiles 1.0 Savefile >
 [Level]
-Level großes_level ;;
+Level hugelevel ;;
 [Userdata]
-last_map  ;;
+last_map großes_level ;;
 name default ;;
-position_x 13 ;;
-position_y 4 ;;
+position_x 7 ;;
+position_y 2 ;;
 test 8.6 ;;
 [eof]

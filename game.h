@@ -22,6 +22,7 @@
 #include <string>
 #include "map.h"
 #include "fight.h"
+#include "iohelper.h"
 
 struct Event {
 	deque<string> arg;
@@ -42,6 +43,9 @@ class Game {
 		void draw();
 		void set_player(class Sprite *s) {me = s;}
 		void action() {last_action = GAME_TIMER_BPS/4;}
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+		void set_move_lock(bool lock);
+#endif
 	protected:
 		enum EVENT {ON_LOAD, ON_EXIT, ALWAYS, PLAYER_AT, ON_ACTION, EXTENDED_EVENTS};
 		enum GAME_MODE {FIGHT, MAP, BLENDE};

@@ -29,13 +29,13 @@ Tileset::Tileset() {
 Tileset::~Tileset() {
 	for(int i = 0; i < MAX_TILES_PER_TILESET; i++)
 		if(tiles[i])
-			destroy_bitmap(tiles[i]);
+			imageloader.destroy(tiles[i]);
 }
 
 void Tileset::load(string name) {
 	for(int i = 0; i < MAX_TILES_PER_TILESET; i++) {
 		if(tiles[i])
-			destroy_bitmap(tiles[i]);
+			imageloader.destroy(tiles[i]);
 		tiles[i] = NULL;
 		walk[i] = 0;
 	}
@@ -50,13 +50,13 @@ void Tileset::load(string name) {
 	for(int i = 0; i < ret.size(); i++) {
 		index = atoi(ret[i][0].c_str());
 		if(index < MAX_TILES_PER_TILESET && index > -1) {
-			tiles[index] = load_bitmap((prefix + ret[i][1]).c_str(), NULL);
+			tiles[index] = imageloader.load(prefix + ret[i][1]);
 			walk[index] = atoi(ret[i][2].c_str());
 		}
 	}
 
 	if(!tiles[0]) {
-		tiles[0] = create_bitmap(16, 16);
+		tiles[0] = imageloader.create(16, 16);
 		cout << name << ": [Fehler] Tileset konnte nicht geladen werden." << endl;
 	} else
 		cout << name << ": [Information] Tileset geladen" << endl;
@@ -116,7 +116,7 @@ Map::~Map() {
 		delete animations[i];
 
 	for(int i = 0; i < dialoge.size(); i++)
-		destroy_bitmap(dialoge[i].dlg);
+		imageloader.destroy(dialoge[i].dlg);
 }
 
 bool Map::is_walkable(int x, int y) {
@@ -173,7 +173,7 @@ void Map::laden(string dateiname, Game *parent) {
 	animations.resize(0);
 
 	for(int i = 0; i < dialoge.size(); i++)
-		destroy_bitmap(dialoge[i].dlg);
+		imageloader.destroy(dialoge[i].dlg);
 	dialoge.resize(0);
 
 	dateiname.insert(0, "Levels/");
@@ -277,6 +277,9 @@ void Map::update() {
 	}
 
 	if(dialoge.size() > 0) {
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+		parent->set_move_lock(true);
+#endif
 		dialoge[0].min_frames--;
 		dialoge[0].max_frames--;
 
@@ -290,15 +293,19 @@ void Map::update() {
 
 		if(dialoge[0].min_frames < 0) {
 			if(action) {
-				destroy_bitmap(dialoge[0].dlg);
+				imageloader.destroy(dialoge[0].dlg);
 				dialoge.pop_front();
 				parent->action();
 			}
 		}
 		if(dialoge[0].max_frames < 0) {
-			destroy_bitmap(dialoge[0].dlg);
+			imageloader.destroy(dialoge[0].dlg);
 			dialoge.pop_front();
 		}
+	} else {
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+		parent->set_move_lock(false);
+#endif
 	}
 }
 

@@ -28,9 +28,9 @@ SpriteSet::SpriteSet(string name) {
 SpriteSet::~SpriteSet() {
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < walk[i].size(); j++)
-			destroy_bitmap(walk[i][j]);
+			imageloader.destroy(walk[i][j]);
 		for(int j = 0; j < wait[i].size(); j++)
-			destroy_bitmap(wait[i][j]);
+			imageloader.destroy(wait[i][j]);
 	}
 }
 
@@ -41,10 +41,10 @@ string SpriteSet::get_name() {
 void SpriteSet::load(string name) {
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < walk[i].size(); j++)
-			destroy_bitmap(walk[i][j]);
+			imageloader.destroy(walk[i][j]);
 		walk[i].resize(0);
 		for(int j = 0; j < wait[i].size(); j++)
-			destroy_bitmap(wait[i][j]);
+			imageloader.destroy(wait[i][j]);
 		wait[i].resize(0);
 	}
 
@@ -63,10 +63,10 @@ void SpriteSet::load(string name) {
 	for(int i = 0; i < 4; i++) {
 		ret = parser.getsection(string("walk_") + directions[i]);
 		for(int j = 0; j < ret.size(); j++)
-			walk[i].push_back(load_bitmap((prefix + ret[j][0]).c_str(), NULL));
+			walk[i].push_back(imageloader.load(prefix + ret[j][0]));
 		ret = parser.getsection(string("wait_") + directions[i]);
 		for(int j = 0; j < ret.size(); j++)
-			wait[i].push_back(load_bitmap((prefix + ret[j][0]).c_str(), NULL));
+			wait[i].push_back(imageloader.load(prefix + ret[j][0]));
 	}
 }
 
@@ -120,9 +120,17 @@ int Sprite::get_direction() {
 }
 
 void Sprite::update() {
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+	int cdir = current_direction;
+	int wk = true;
+#endif
 	frame++;
+
 	if((x+parent->get_tilesize()/2)%parent->get_tilesize() == 0 && (y+parent->get_tilesize()/2)%parent->get_tilesize() == 0) {
 		walking = false;
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+		wk = false;
+#endif
 		switch(strg->command()) {
 			case BaseSteuerung::UP:
 				current_direction = UP;
@@ -149,7 +157,14 @@ void Sprite::update() {
 			break;
 		}
 	}
-	
+
+#ifdef ENABLE_DIALOG_MOVE_LOCK
+	if(locked) {
+		walking = wk;
+		current_direction = cdir;
+	}
+#endif
+
 	if(walking)
 		switch(current_direction) {
 			case UP:

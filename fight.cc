@@ -28,12 +28,14 @@ long Command::get_time() {
 void Command::execute() {
 }
 
-Fighter::Fighter(Fight *f, Character c, string name) {
+Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	parent = f;
 	this->c = c;
 	atb = 0;
 	step = 0;
-
+	this->side = side;
+	direction = dir;
+	
 	laden(name);
 	//Items in Character oder durch abgeleitete Klassen?
 	string items[4] = {"Angriff","Item","Magie",""};
@@ -42,7 +44,7 @@ Fighter::Fighter(Fight *f, Character c, string name) {
 
 Fighter::~Fighter() {
 	for(int i = 0; i < ts.normal.size(); i++)
-		destroy_bitmap(ts.normal[i]);
+		imageloader.destroy(ts.normal[i]);
 }
 
 void Fighter::laden(string name) {
@@ -53,7 +55,7 @@ void Fighter::laden(string name) {
 
 	deque< deque<string> > ret = parser.getsection("normal");
 	for(int i = 0; i < ret.size(); i++)
-		ts.normal.push_back(load_bitmap((path + ret[i][0]).c_str(), NULL));
+		ts.normal.push_back(imageloader.load(path + ret[i][0]));
 
 	//alle anderen bilder auch mit normal belegen
 
@@ -78,7 +80,12 @@ int Fighter::update_menu() {
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
 	int index = (step/SPRITE_ANIMATION_SPEED)%ts.normal.size();
-	masked_blit(ts.normal[index], buffer, 0, 0, x-ts.normal[index]->w/2, y-ts.normal[index]->h/2, ts.normal[index]->w, ts.normal[index]->h);
+	//spiegeln, wenn direction = 0(linkss)
+	if(direction == 0) {
+		draw_sprite_h_flip(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2);
+	} else {
+		draw_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2);
+	}
 }
 
 void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
@@ -102,7 +109,7 @@ void Fighter::draw_menu(BITMAP *buffer, int x, int y, int w, int h) {
 }
 
 Fighter::FighterMenu::FighterMenu() {
-	pointer = load_bitmap("Images/auswahl.tga", NULL);
+	pointer = imageloader.load("Images/auswahl.tga");
 	if(!pointer)
 		cout << "Images/auswahl.tga konnte nicht geladen werden" << endl;
 	pointer_position = 0;
@@ -112,7 +119,7 @@ Fighter::FighterMenu::FighterMenu() {
 }
 
 Fighter::FighterMenu::~FighterMenu() {
-	destroy_bitmap(pointer);
+	imageloader.destroy(pointer);
 }
 
 void Fighter::FighterMenu::set_items(string items[4]) {
@@ -162,11 +169,10 @@ Fight::Fight(string dateiname) {
 	bg = NULL;
 	ifstream datei;
 	string input;
-	side = RIGHT;
-
+	
 	FileParser parser(string("Fights/") + dateiname, "Fight");
 
-	bg = load_bitmap((string("Fights/Images/") + parser.getstring("Fight", "Background")).c_str(), NULL);
+	bg = imageloader.load(string("Fights/Images/") + parser.getstring("Fight", "Background"));
 
 	bool types_enabled[4];
 	for(int i = 0; i < 4; i++) {
@@ -196,45 +202,54 @@ Fight::Fight(string dateiname) {
 		i = random()%255;
 
 		if(i<208 && types_enabled[1]) {
-			side = RIGHT; // typ normal
+			type = NORMAL; // typ normal
 			break;
 		} else if(i<216 && i>=208 && types_enabled[2]) {
-			side = LEFT; // typ back
+			type = BACK; // typ back
 			break;
 		} else if(i<224 && i>=216 && types_enabled[3]) {
-			side = MIDDLE; //typ pincer
+			type = PINCER; //typ pincer
 			break;
 		} else if(i>=224 && types_enabled[4]) {
-			side = LEFT; // typ side
+			type = SIDE; // typ side
 			break;
 		}
 	}
 
 	deque< deque<string> > ret = parser.getall("Fighter", "Enemy");
 	Character c = {"Enemy", 0, 0};
+	PlayerSide side;
+	int dir;
+
 	for(int i = 0; i < ret.size(); i++) {
-		switch(side) {
-			case LEFT:
-				fighters[RIGHT].push_back(new Fighter(this, c, ret[i][0]));
-			break;
-			case RIGHT:
-				fighters[LEFT].push_back(new Fighter(this, c, ret[i][0]));
-			break;
-			case MIDDLE:
-				switch(random()%2) {
-					case 0:
-						fighters[RIGHT].push_back(new Fighter(this, c, ret[i][0]));
-					break;
-					case 1:
-						fighters[LEFT].push_back(new Fighter(this, c, ret[i][0]));
-					break;
+		switch(type) {
+			case NORMAL:
+				side = LEFT;
+				dir = 1; //rechts
+				break;
+			case BACK:
+				side = RIGHT;
+				dir = 0;
+				break;
+			case PINCER:
+				if(random()%2 == 0) {
+					side = RIGHT;
+					dir = 0;
+				} else {
+					side = LEFT;
+					dir = 1;
 				}
-			break;
+				break;
+			case SIDE:
+				side = LEFT;
+				dir = 0;
+				break;
 		}
+		fighters[ENEMY].push_back(new Fighter(this, c, ret[i][0], side, dir));
 	}
 	time = 0;
 
-	menu_bg = create_bitmap(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
+	menu_bg = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
 	for(int i = 0; i < menu_bg->h; i++) {
 		line(menu_bg, 0, i, menu_bg->w, i, makecol(i, i, 255-i));
 	}
@@ -245,57 +260,66 @@ Fight::Fight(string dateiname) {
 	c.hp = 9876;
 	c.name = "test";
 	c.speed = 57;
-	fighters[side].push_back(new Fighter(this, c, "Mario"));
-	fighters[side].push_back(new Fighter(this, c, "Luigi"));
 
-	/*Positionstest
-	Character c;
-	c.hp = 9876;
-	c.name = "test";
-	c.speed = 57;
-	side = LEFT;
-
-	for(int i = 0; i < 3; i++) {
-		c.hp = 987*(i+1);
-		c.name = "test";
-		c.speed = 25*(i+1);
-		fighters[LEFT].push_back(new Fighter(this, c));
+	switch(type) {
+		case NORMAL:
+			side = RIGHT;
+			dir = 0;
+			break;
+		case BACK:
+			side = LEFT;
+			dir = 0;
+			break;
+		case PINCER:
+			side = MIDDLE;
+			dir = random()%2;
+			break;
+		case SIDE:
+			side = RIGHT;
+			dir = 0;
+			break;
 	}
-	for(int i = 0; i < 2; i++)
-		fighters[MIDDLE].push_back(new Fighter(this, c));
-	for(int i = 0; i < 4; i++) {
-		fighters[RIGHT].push_back(new Fighter(this, c));
-	}*/
+
+	fighters[FRIEND].push_back(new Fighter(this, c, "Mario", side, dir));
+	fighters[FRIEND].push_back(new Fighter(this, c, "Luigi", side, (dir+1)%2));
 }
 
 Fight::~Fight() {
-	if(bg)
-		destroy_bitmap(bg);
-	destroy_bitmap(menu_bg);
-	for(int i = 0; i < 3; i++) 
-		for(int j = 0; j < fighters[i].size(); j++)
+	imageloader.destroy(bg);
+	imageloader.destroy(menu_bg);
+	for(int i = 0; i < 2; i++) 
+		for(int j = 0; j < fighters[i].size(); j++) {
 			delete fighters[i][j];
+		}
 }
 
 void Fight::draw(BITMAP *buffer) {
 	int x, y;
+	int sz[3]; for(int i = 0; i < 3; i++) sz[i] = 0;
+	int szd[3]; for(int i = 0; i < 3; i++) szd[i] = 0;
 	stretch_blit(bg, buffer, 0, 0, bg->w, bg->h, 0, 0, buffer->w, buffer->h);
-	for(int i = 0; i < 3; i++)
+	for(int i = 0; i < 2; i++)
 		for(int j = 0; j < fighters[i].size(); j++) {
-			x = PC_RESOLUTION_X/8 + PC_RESOLUTION_X/8 * 3 * i; // + (i-1) * j-fighters[i].size()/2 * PC_RESOLUTION_X/16;
-			y = (2*PC_RESOLUTION_Y/3) / (fighters[i].size()+1) * (j+1);
+			sz[fighters[i][j]->get_side()]++;
+		}
+	for(int i = 0; i < 2; i++)
+		for(int j = 0; j < fighters[i].size(); j++) {
+			x = PC_RESOLUTION_X/8 + PC_RESOLUTION_X/8 * 3 * fighters[i][j]->get_side();
+			y = (2*PC_RESOLUTION_Y/3) / (sz[fighters[i][j]->get_side()]+1) * (szd[fighters[i][j]->get_side()]+1);
+			szd[fighters[i][j]->get_side()]++;
 			fighters[i][j]->draw(buffer, x, y);
 		}
 	blit(menu_bg, buffer, 0, 0, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y);
-	for(int i = 0; i < fighters[side].size(); i++) {
-		fighters[side][i]->draw_status(buffer, PC_RESOLUTION_X/3+2, 2*PC_RESOLUTION_Y/3+i*((PC_RESOLUTION_Y/3)/fighters[side].size()), 2*PC_RESOLUTION_X/3-4, (PC_RESOLUTION_Y/3)/fighters[side].size());
+
+	for(int i = 0; i < fighters[FRIEND].size(); i++) {
+		fighters[FRIEND][i]->draw_status(buffer, PC_RESOLUTION_X/3+2, 2*PC_RESOLUTION_Y/3+i*((PC_RESOLUTION_Y/3)/fighters[FRIEND].size()), 2*PC_RESOLUTION_X/3-4, (PC_RESOLUTION_Y/3)/fighters[FRIEND].size());
 	}
 
 	int current_menu = -1;
 	for(int i = 0; i < ready_fighters.size(); i++) {
 		bool end = false;
-		for(int j = 0; j < fighters[side].size(); j++) {
-			if(ready_fighters[i] == fighters[side][j]) {
+		for(int j = 0; j < fighters[FRIEND].size(); j++) {
+			if(ready_fighters[i] == fighters[FRIEND][j]) {
 				current_menu = i;
 				end = true;
 				break;
@@ -315,7 +339,7 @@ int Fight::update() {
 			comqueue[0].execute();
 			comqueue.pop_front();
 		}
-	for(int i = 0; i < 3; i++)
+	for(int i = 0; i < 2; i++)
 		for(int j = 0; j < fighters[i].size(); j++) {
 			fighters[i][j]->update();
 		}
@@ -323,8 +347,8 @@ int Fight::update() {
 	int current_menu = -1;
 	for(int i = 0; i < ready_fighters.size(); i++) {
 		bool end = false;
-		for(int j = 0; j < fighters[side].size(); j++) {
-			if(ready_fighters[i] == fighters[side][j]) {
+		for(int j = 0; j < fighters[FRIEND].size(); j++) {
+			if(ready_fighters[i] == fighters[FRIEND][j]) {
 				current_menu = i;
 				end = true;
 				break;

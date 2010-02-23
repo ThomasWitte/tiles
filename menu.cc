@@ -16,6 +16,7 @@
 
 #include "menu.h"
 #include "config.h"
+#include "iohelper.h"
 #include <dirent.h>
 #include <algorithm>
 #include <vector>
@@ -72,15 +73,15 @@ int Menu::main_menu() {
 
 	resize_menu(SCREEN_W, SCREEN_H, menu);
 
-	BITMAP *logo = load_bitmap("Images/title.tga", NULL);
-	BITMAP *st_logo = create_bitmap(menu[3].w, menu[3].h);
+	BITMAP *logo = imageloader.load("Images/title.tga");
+	BITMAP *st_logo = imageloader.create(menu[3].w, menu[3].h);
 	stretch_blit(logo, st_logo, 0, 0, logo->w, logo->h, 0, 0, st_logo->w, st_logo->h);
 	menu[3].dp = (void*) st_logo;
 
 	int ret = do_dialog(menu, 2);
 
-	destroy_bitmap(logo);
-	destroy_bitmap(st_logo);
+	imageloader.destroy(logo);
+	imageloader.destroy(st_logo);
 
 	if(ret == 1) ret = GAME;
 	else if(ret == 2) ret = EXIT;
@@ -210,12 +211,8 @@ int Menu::pause_menu() {
 
 	resize_menu(SCREEN_W, SCREEN_H, menu);
 
-	int time, ret;
-
-	do {
-		time  = timecounter;
-		ret = do_dialog(menu, 3);
-	} while(time + GAME_TIMER_BPS/4 > timecounter); //der Dialog sollte länger als 0.25s geöffnet bleiben
+	clear_keybuf();
+	int ret = do_dialog(menu, 3);
 
 	int ret2 = CANCEL;
 

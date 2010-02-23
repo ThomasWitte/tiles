@@ -17,7 +17,10 @@
 #ifndef IOHELPER_H
 #define IOHELPER_H
 
+//TODO Imageloader Cache
+
 #include <deque>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -39,5 +42,26 @@ class FileParser {
 	protected:
 		deque<deque<string> > daten;
 };
+
+
+class ImageLoader {
+	public:
+		~ImageLoader();
+		BITMAP* load(string name);
+		BITMAP* create(int w, int h);
+		void destroy(string name);
+		void destroy(BITMAP *bmp);
+		void destroy_all(string name);
+		void clear();
+	protected:
+		class Image {
+			public:
+			BITMAP *bmp;
+			int count;
+		};
+		map<string, Image> imgs;
+};
+
+extern ImageLoader imageloader;
 
 #endif
