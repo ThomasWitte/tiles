@@ -150,6 +150,8 @@ int Fighter::FighterMenu::update() {
 					auswahl = 0;
 			}
 			pause = GAME_TIMER_BPS/10;
+		} else if(key[KEY_ENTER]) {
+			return 0;
 		}
 	} else pause--;
 	pointer_position += pointer_delta;
