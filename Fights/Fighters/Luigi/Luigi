@@ -10,6 +10,16 @@
 	magic 80 ;;
 	evade 3 ;;
 	mblock 10 ;;
+[Menu]
+	Angriff ;;
+	Magie
+		Feuer
+		Eis
+		Blitz
+		Vita ;;
+	Item 
+		Trank ;;
+	Verteid. ;;
 [normal]
 	Luigi.tga ;;
 [eof]

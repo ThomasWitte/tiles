@@ -3,6 +3,16 @@
 [normal]
 	Mario.tga ;;
 	Mario2.tga ;;
+[Menu]
+	Angriff ;;
+	Magie
+		Feuer
+		Eis
+		Blitz
+		Vita ;;
+	Item 
+		Trank ;;
+	Verteid. ;;
 [eof]
 
 # Werte unter Fighter überschreiben Charakterwerte sowie bei monstern zufallswerte. ;;

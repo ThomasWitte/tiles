@@ -25,21 +25,13 @@
 using namespace std;
 
 enum PlayerSide {LEFT, MIDDLE, RIGHT};
+enum AnimationType {WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, CAST_SPELL, HURT, DIE, EVADE};
 
 struct Character {
 	string name;
 	bool defensive;
 	int hp;
 	int speed;
-};
-
-class Command {
-	public:
-		Command(long time);
-		long get_time();
-		virtual void execute();
-	protected:
-		long exec_time;
 };
 
 class Fighter {
@@ -53,8 +45,10 @@ class Fighter {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
 		inline virtual void draw_menu(BITMAP *buffer, int x, int y, int w, int h);
 		virtual PlayerSide get_side() {return side;}
+		virtual void get_ready();
 	protected:
 		Fight *parent;
+		friend Fight *get_parent(Fighter&);
 		Character c;
 		int atb;
 		int step;
@@ -69,17 +63,47 @@ class Fighter {
 			public:
 				FighterMenu();
 				~FighterMenu();
-				void set_items(string items[4]);
+				void set_parent(Fighter *fighter);
+				void set_items(deque< deque<string> > items);
 				void draw(BITMAP *buffer, int x, int y, int w, int h);
 				int update();
 			protected:
-				BITMAP *pointer;
+				enum State {MENU, CHOOSE_TARGET, TARGETS_BY_ATTACK} state; 
+				Fighter *fighter;
+				BITMAP *pointer, *sub_bg;
 				int auswahl;
 				int pointer_position;
 				int pointer_delta;
-				int pause;
-				string menu_items[4];
+				int sub_auswahl;
+				bool sub_open;
+				deque< deque<string> > menu_items;
+
+				int target_side, cur_target;
 		} menu;
+};
+
+class Command {
+	public:
+		Command(Fighter *caster = NULL);
+		virtual void add_target(Fighter *tg);
+		virtual void set_attack(string attack_name);
+		virtual void execute();
+	protected:
+		Fighter *caster;
+		deque<Fighter*> target;
+
+		string attack_name;
+
+		/*AnimationType wait_animation; //WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK oder DEFEND
+		AnimationType exec_animation; //CAST_SPELL oder ATTACK
+		//Target führt entweder HURT, DIE oder EVADE aus
+		//attack_animation <- Animation die die Attacke zeigt (zB Feuerball oder Esper)
+
+		void(*damage_function)(Fighter*, Fighter*); <- kann alles aus attack_name gewonnen werden*/
+};
+
+class ff6_Command : public Command {
+
 };
 
 class Fight {
@@ -89,14 +113,21 @@ class Fight {
 		int update();
 		void draw(BITMAP *buffer);
 		void enqueue_ready_fighter(Fighter *f);
+		void enqueue_command(Command c);
+		void block_comqueue(bool state) {command_is_executed = state;}
+		int get_fighter_count(int side);
+		void add_fighter_target(Command &c, int fighter, int side);
+		inline void mark_fighter(int fighter, int side, bool mark);
+		enum {FRIEND, ENEMY};
 	private:
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
-		enum {FRIEND, ENEMY};
 		long time;
-		BITMAP *bg, *menu_bg;
+		BITMAP *bg, *menu_bg, *auswahl;
 		deque<Command> comqueue;
+		bool command_is_executed;
 		deque<Fighter*> fighters[2]; //Friends, Enemies
 		deque<Fighter*> ready_fighters;
+		bool marked_fighters[2][20];
 };
 
 #endif
