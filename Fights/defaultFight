@@ -4,8 +4,8 @@
 	Type 15 ;;
 [Fighter]
 	Enemy Luigi ;;
-	Enemy Luigi ;;
-	Enemy Luigi ;;
+	Enemy Lobo ;;
+	Enemy Guard ;;
 [eof]
 
 # Type: normal=1, back=2, pincer=4, side=8 ;;
