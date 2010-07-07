@@ -16,8 +16,9 @@
 #include "fight.h"
 #include "iohelper.h"
 #include <iostream>
+#include <sstream>
 
-int mpause = 0;
+int Fighter::FighterMenu::mpause = 0;
 
 Command::Command(Fighter *caster) {
 	this->caster = caster;
@@ -33,7 +34,120 @@ void Command::set_attack(string attack_name) {
 }
 
 void Command::execute() {
+	for(int i = 0; i < target.size(); i++) {
+		target[i]->lose_health(calc_damage(i));
+	}
 	caster->get_ready();
+}
+
+int Command::calc_damage(int target_index) {
+	int dmg = 0;
+	bool character = caster->is_friend();
+	AttackLib::Attack a = AttackLib::get_attack(attack_name);
+	Character ccaster = caster->get_character();
+	Character ctarget = target[target_index]->get_character();
+	//Step1
+	if(a.physical == true) {
+		if(character) {
+			int vigor2 = 2*ccaster.vigor;
+			if(vigor2 > 255) vigor2 = 255;
+			int bpower = a.power;
+			if(a.power < 0) bpower = ccaster.apower;
+			//if equipped with gauntlet… 1c
+			dmg = bpower + ((ccaster.level * ccaster.level * (vigor2+bpower)) / 256) * 3/2;
+			//1e
+			//1f
+		} else { //Monster
+			dmg = ccaster.level * ccaster.level * (ccaster.apower * 4 + ccaster.vigor) / 256;
+		}
+	} else { //Magische Attacke
+		if(character) {
+			dmg = a.power * 4 + (ccaster.level * ccaster.mpower * a.power / 32);
+		} else {
+			dmg = a.power * 4 + (ccaster.level * (ccaster.mpower * 3/2)  * a.power / 32);
+		}
+	}
+	//Step2
+	//Step3
+	if((!a.physical) && (a.possible_targets & AttackLib::SINGLE) && (target.size() > 1))
+		dmg /= 2;
+	//Step4
+	if(attack_name == "Fight" && ccaster.defensive)
+		dmg /= 2;
+	//Step5
+	int dmg_multiplier = 0;
+	if(random()%32 == 0) dmg_multiplier += 2;
+	dmg += (dmg/2) * dmg_multiplier;
+	//Step6
+	dmg = (dmg * (random()%32 + 224) / 256) + 1;
+	if(a.physical)
+		dmg = (dmg * (255 - ctarget.adefense) / 256) + 1;
+	else
+		dmg = (dmg * (255 - ctarget.mdefense) / 256) + 1;
+	//6c
+	//6d
+	if(a.physical && ctarget.defensive)
+		dmg /= 2;
+	//6f
+	if((a.element != AttackLib::HEAL) && caster->is_friend() && target[target_index]->is_friend())
+		dmg /= 2;
+	//Step7
+	//Step8
+	//Step9
+
+	if(dmg > MAX_DAMAGE) dmg = MAX_DAMAGE;
+	if(dmg < -MAX_DAMAGE) dmg = -MAX_DAMAGE;
+	if(dmg <= 0) return 0;
+
+	//Trefferberechnung
+
+	//Step1
+	//Step2
+	//Step3
+	if(a.unblock) return dmg;
+	//Step4
+	if(!a.block_by_stamina) {
+		//4a
+		//4b
+		if(a.hit_rate == 255)
+			return dmg;
+		//4d
+		int bval;
+		if(a.physical)
+			bval = (255-ctarget.ablock*2) + 1;
+		else
+			bval = (255-ctarget.mblock*2) + 1;
+		if(bval < 1) bval = 1;
+		if(bval > 255) bval = 255;
+		int hitr;
+		if(a.hit_rate == -1) hitr = ccaster.hitrate;
+		else hitr = a.hit_rate;
+		if((hitr*bval/256) > (random()%100)) {
+			return dmg;
+		} else {
+			return MAX_DAMAGE + 1;
+		}
+	} else {
+	//Step5
+		int bval;
+		if(a.physical)
+			bval = (255-ctarget.ablock*2) + 1;
+		else
+			bval = (255-ctarget.mblock*2) + 1;
+		if(bval < 1) bval = 1;
+		if(bval > 255) bval = 255;
+		int hitr;
+		if(a.hit_rate == -1) hitr = ccaster.hitrate;
+		else hitr = a.hit_rate;
+		if((hitr*bval/256) > (random()%100)) {
+			if(ctarget.stamina > (random()%128))
+				return MAX_DAMAGE + 2;
+			else
+				return dmg;
+		} else {
+			return MAX_DAMAGE + 1;
+		}
+	}
 }
 
 Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
@@ -43,6 +157,9 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	step = 0;
 	this->side = side;
 	direction = dir;
+	texttoshow = "";
+	textremframes = 0;
+	textcol = 0;
 	
 	laden(name);
 
@@ -66,9 +183,25 @@ void Fighter::laden(string name) {
 
 	//alle anderen bilder auch mit normal belegen
 
-	c.hp = parser.getvalue("Fighter", "hp", c.hp);
-	c.speed = parser.getvalue("Fighter", "speed", c.speed);
+	c.defensive = true;
+	if(parser.getvalue("Fighter", "defensive", 0) == 0) c.defensive = false;
 	c.name = parser.getstring("Fighter", "name", c.name);
+	c.hp = parser.getvalue("Fighter", "hp", c.hp);
+	c.curhp = c.hp;
+	c.mp = parser.getvalue("Fighter", "mp", c.mp);
+	c.curmp = c.mp;
+	c.speed = parser.getvalue("Fighter", "speed", c.speed);
+	c.vigor = parser.getvalue("Fighter", "vigor", c.vigor);
+	c.stamina = parser.getvalue("Fighter", "stamina", c.stamina);
+	c.mpower = parser.getvalue("Fighter", "mpower", c.mpower);
+	c.apower = parser.getvalue("Fighter", "apower", c.apower);
+	c.mdefense = parser.getvalue("Fighter", "mdefense", c.mdefense);
+	c.adefense = parser.getvalue("Fighter", "adefense", c.adefense);
+	c.mblock = parser.getvalue("Fighter", "mblock", c.mblock);
+	c.ablock = parser.getvalue("Fighter", "ablock", c.ablock);
+	c.level = parser.getvalue("Fighter", "level", c.level);
+	c.hitrate = parser.getvalue("Fighter", "hitrate", c.hitrate);
+
 	deque< deque<string> > menu_items = parser.getsection("Menu");
 	menu.set_items(menu_items);
 }
@@ -95,13 +228,20 @@ void Fighter::draw(BITMAP *buffer, int x, int y) {
 	} else {
 		draw_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2);
 	}
+	if(textremframes) {
+		textremframes--;
+		textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes, textcol, -1);
+	}
 }
 
 void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
 	textout_ex(buffer, font, c.name.c_str(), x+5, y+h/2-text_height(font)/2, makecol(255,255,255), -1);
 	char text[10];
-	sprintf(text, "%i", c.hp);
-	textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, makecol(255,255,255), -1);
+	sprintf(text, "%i", c.curhp);
+	if(c.curhp < c.hp/10)
+		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_YELLOW, -1);
+	else
+		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_WHITE, -1);
 	rect(buffer, x+w*2/3+2, y+h/2-4, x+w-3, y+h/2+3, makecol(255,255,255));
 
 	int color;
@@ -119,6 +259,64 @@ void Fighter::draw_menu(BITMAP *buffer, int x, int y, int w, int h) {
 
 void Fighter::get_ready() {
 	atb = 0;
+}
+
+bool Fighter::is_friend() {
+	if(parent->get_side(this) == Fight::FRIEND) return true;
+	return false;
+}
+
+Character Fighter::get_character() {
+	return c;
+}
+
+void Fighter::override_character(Character o) {
+	if(o.name != "") c.name = o.name;
+	c.defensive = o.defensive;
+	if(o.hp >= 0) c.hp = o.hp;
+	if(o.curhp >= 0) c.curhp = o.curhp;
+	if(o.mp >= 0) c.mp = o.mp;
+	if(o.curmp >= 0) c.curmp = o.curmp;
+	if(o.speed >= 0) c.speed = o.speed;
+	if(o.vigor >= 0) c.vigor = o.vigor;
+	if(o.stamina >= 0) c.stamina = o.stamina;
+	if(o.mpower >= 0) c.mpower = o.mpower;
+	if(o.apower >= 0) c.apower = o.apower;
+	if(o.mdefense >= 0) c.mdefense = o.mdefense;
+	if(o.adefense >= 0) c.adefense = o.adefense;
+	if(o.mblock >= 0) c.mblock = o.mblock;
+	if(o.ablock >= 0) c.ablock = o.ablock;
+	if(o.xp >= 0) c.xp = o.xp;
+	if(o.levelupxp >= 0) c.levelupxp = o.levelupxp;
+	if(o.level >= 0) c.level = o.level;
+	if(o.hitrate >= 0) c.hitrate = o.hitrate;
+}
+
+void Fighter::lose_health(int hp) {
+	if(hp == MAX_DAMAGE+1) {
+		show_text("Miss", COL_WHITE, GAME_TIMER_BPS/5);
+	} else if(hp == MAX_DAMAGE+2) {
+		show_text("Block", COL_WHITE, GAME_TIMER_BPS/5);
+	} else if(hp < 0) {
+		stringstream s;
+		s << (hp*-1);
+		show_text(s.str(), COL_GREEN, GAME_TIMER_BPS/5);
+	} else {
+		stringstream s;
+		s << hp;
+		show_text(s.str(), COL_WHITE, GAME_TIMER_BPS/5);
+	}
+
+	if(hp > MAX_DAMAGE) hp = 0;
+	c.curhp -= hp;
+	if(c.curhp < 0) c.curhp = 0;
+	if(c.curhp > c.hp) c.curhp = c.hp;
+}
+
+void Fighter::show_text(string text, int color, int frames) {
+	texttoshow = text;
+	textcol = color;
+	textremframes = frames;
 }
 
 Fighter::FighterMenu::FighterMenu() {
@@ -336,7 +534,7 @@ Fight::Fight(string dateiname) {
 	}
 
 	deque< deque<string> > ret = parser.getall("Fighter", "Enemy");
-	Character c = {"Enemy", 0, 0};
+	Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	PlayerSide side;
 	int dir;
 
@@ -364,6 +562,7 @@ Fight::Fight(string dateiname) {
 				dir = 0;
 				break;
 		}
+		c.vigor = random()%8 + 56;
 		fighters[ENEMY].push_back(new Fighter(this, c, ret[i][0], side, dir));
 	}
 	time = 0;
@@ -375,7 +574,7 @@ Fight::Fight(string dateiname) {
 	vline(menu_bg, menu_bg->w/3, 3, menu_bg->h-4, makecol(255, 255, 255));
 	rect(menu_bg, 3, 3, menu_bg->w-4, menu_bg->h-4, makecol(255, 255, 255));
 
-	//Party hinzufügen (noch nicht final)
+	//Party hinzufügen (noch nicht final) am ende sollte ein fighter.override_character(c) stehen…
 	c.hp = 9876;
 	c.name = "test";
 	c.speed = 57;
@@ -509,3 +708,14 @@ void Fight::add_fighter_target(Command &c, int fighter, int side) {
 void Fight::mark_fighter(int fighter, int side, bool mark) {
 	marked_fighters[side][fighter] = mark;
 }
+
+int Fight::get_side(Fighter* f) {
+	for(int i = 0; i < fighters[FRIEND].size(); i++)
+		if(fighters[FRIEND][i] == f)
+			return FRIEND;
+	for(int i = 0; i < fighters[ENEMY].size(); i++)
+		if(fighters[ENEMY][i] == f)
+			return ENEMY;
+	return -1;
+}
+

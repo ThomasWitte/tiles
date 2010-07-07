@@ -44,12 +44,20 @@
 //fps anzeigen?
 //#define ENABLE_FRAME_COUNTER
 
+//Spieleinstellungen
 //Während Dialogen bewegung verbieten?
 #define ENABLE_DIALOG_MOVE_LOCK
+#define MAX_DAMAGE 9999
 
 //Tastenbelegungen
 #define MENU_KEY KEY_F12
 #define ACTION_KEY KEY_SPACE
+
+//Farben
+#define COL_WHITE makecol(255,255,255)
+#define COL_YELLOW makecol(255,255,0)
+#define COL_GREEN makecol(0,255,0)
+#define COL_BLACK makecol(0,0,0)
 
 extern volatile int timecounter;
 

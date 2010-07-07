@@ -21,6 +21,7 @@
 #include <string>
 #include <deque>
 #include "config.h"
+#include "attacks.h"
 
 using namespace std;
 
@@ -31,7 +32,22 @@ struct Character {
 	string name;
 	bool defensive;
 	int hp;
+	int curhp;
+	int mp;
+	int curmp;
 	int speed;
+	int vigor;
+	int stamina;
+	int mpower;
+	int apower;
+	int mdefense;
+	int adefense;
+	int mblock;
+	int ablock;
+	int xp;
+	int levelupxp;
+	int level;
+	int hitrate; // wird von waffe vorgegeben, bei kampf ohne waffe gild dieser wert
 };
 
 class Fighter {
@@ -46,6 +62,11 @@ class Fighter {
 		inline virtual void draw_menu(BITMAP *buffer, int x, int y, int w, int h);
 		virtual PlayerSide get_side() {return side;}
 		virtual void get_ready();
+		virtual bool is_friend();
+		Character get_character();
+		void override_character(Character);
+		virtual void lose_health(int);
+		void show_text(string text, int color, int frames);
 	protected:
 		Fight *parent;
 		friend Fight *get_parent(Fighter&);
@@ -54,6 +75,9 @@ class Fighter {
 		int step;
 		PlayerSide side;
 		int direction; //Blickrichtung 0 = links
+		string texttoshow;
+		int textremframes;
+		int textcol;
 		
 		struct FighterTileset {
 			deque<BITMAP*> normal;
@@ -79,6 +103,7 @@ class Fighter {
 				deque< deque<string> > menu_items;
 
 				int target_side, cur_target;
+				static int mpause;
 		} menu;
 };
 
@@ -93,17 +118,13 @@ class Command {
 		deque<Fighter*> target;
 
 		string attack_name;
-
+		int calc_damage(int target_index); //MAX_DAMAGE + 1: MISS; MAX_DAMAGE + 2: BLOCK
 		/*AnimationType wait_animation; //WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK oder DEFEND
 		AnimationType exec_animation; //CAST_SPELL oder ATTACK
 		//Target führt entweder HURT, DIE oder EVADE aus
 		//attack_animation <- Animation die die Attacke zeigt (zB Feuerball oder Esper)
 
 		void(*damage_function)(Fighter*, Fighter*); <- kann alles aus attack_name gewonnen werden*/
-};
-
-class ff6_Command : public Command {
-
 };
 
 class Fight {
@@ -118,6 +139,7 @@ class Fight {
 		int get_fighter_count(int side);
 		void add_fighter_target(Command &c, int fighter, int side);
 		inline void mark_fighter(int fighter, int side, bool mark);
+		int get_side(Fighter*);
 		enum {FRIEND, ENEMY};
 	private:
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;

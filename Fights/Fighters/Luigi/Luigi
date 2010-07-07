@@ -7,19 +7,21 @@
 	speed 67 ;;
 	vigor 45 ;;
 	stamina 30 ;;
-	magic 80 ;;
-	evade 3 ;;
+	mpower 80 ;;
+	ablock 3 ;;
 	mblock 10 ;;
+	defensive 0 ;;
+	apower 60 ;;
+	mdefense 35 ;;
+	adefense 55 ;;
+	hitrate 100 ;;
 [Menu]
-	Angriff ;;
-	Magie
-		Feuer
-		Eis
-		Blitz
-		Vita ;;
-	Item 
-		Trank ;;
-	Verteid. ;;
+	Fight ;;
+	Magitek
+		BoltBeam
+		BioBlast
+		FireBeam
+		IceBeam ;;
 [normal]
 	Luigi.tga ;;
 [eof]
