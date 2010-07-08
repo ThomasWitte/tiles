@@ -29,6 +29,9 @@ enum PlayerSide {LEFT, MIDDLE, RIGHT};
 enum AnimationType {WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, CAST_SPELL, HURT, DIE, EVADE};
 
 struct Character {
+	enum {NORMAL, WEAK, ABSORB, IMMUNE, RESISTANT};
+	enum {DARK, ZOMBIE, POISON, MTEK, CLEAR, IMP, PETRIFY, WOUND, CONDEMNED, NEAR_FATAL, IMAGE, MUTE, BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT};
+
 	string name;
 	bool defensive;
 	int hp;
@@ -48,6 +51,8 @@ struct Character {
 	int levelupxp;
 	int level;
 	int hitrate; // wird von waffe vorgegeben, bei kampf ohne waffe gild dieser wert
+	int elements[11];
+	int status[24];
 };
 
 class Fighter {
@@ -77,8 +82,8 @@ class Fighter {
 		int direction; //Blickrichtung 0 = links
 		string texttoshow;
 		int textremframes;
-		int textcol;
-		
+		int textcol;		
+
 		struct FighterTileset {
 			deque<BITMAP*> normal;
 		} ts;

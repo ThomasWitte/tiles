@@ -94,10 +94,17 @@ int Command::calc_damage(int target_index) {
 	//Step7
 	//Step8
 	//Step9
+	if(ctarget.elements[a.element] == Character::ABSORB)
+		dmg *= -1;
+	if(ctarget.elements[a.element] == Character::IMMUNE)
+		dmg = 0;
+	if(ctarget.elements[a.element] == Character::WEAK)
+		dmg *= 2;
+	if(ctarget.elements[a.element] == Character::RESISTANT)
+		dmg /= 2;
 
 	if(dmg > MAX_DAMAGE) dmg = MAX_DAMAGE;
 	if(dmg < -MAX_DAMAGE) dmg = -MAX_DAMAGE;
-	if(dmg <= 0) return 0;
 
 	//Trefferberechnung
 
@@ -202,6 +209,18 @@ void Fighter::laden(string name) {
 	c.level = parser.getvalue("Fighter", "level", c.level);
 	c.hitrate = parser.getvalue("Fighter", "hitrate", c.hitrate);
 
+	//Elemente
+	string elements[] = {"none", "Heal", "Death", "Bolt", "Ice", "Fire", "Water", "Wind", "Earth", "Poison", "Pearl"};
+	string rt;
+	for(int i = 0; i < 11; i++) {
+		rt = parser.getstring("Elements", elements[i], "normal");
+		if(rt == "normal") c.elements[i] = Character::NORMAL;
+		if(rt == "weak") c.elements[i] = Character::WEAK;
+		if(rt == "absorb") c.elements[i] = Character::ABSORB;
+		if(rt == "immune") c.elements[i] = Character::IMMUNE;
+		if(rt == "resist") c.elements[i] = Character::RESISTANT;
+	}
+
 	deque< deque<string> > menu_items = parser.getsection("Menu");
 	menu.set_items(menu_items);
 }
@@ -238,7 +257,7 @@ void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
 	textout_ex(buffer, font, c.name.c_str(), x+5, y+h/2-text_height(font)/2, makecol(255,255,255), -1);
 	char text[10];
 	sprintf(text, "%i", c.curhp);
-	if(c.curhp < c.hp/10)
+	if(c.curhp < c.hp/8)
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_YELLOW, -1);
 	else
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_WHITE, -1);
@@ -290,6 +309,18 @@ void Fighter::override_character(Character o) {
 	if(o.levelupxp >= 0) c.levelupxp = o.levelupxp;
 	if(o.level >= 0) c.level = o.level;
 	if(o.hitrate >= 0) c.hitrate = o.hitrate;
+	for(int i = 0; i < 11; i++)
+		if(o.elements[i] != Character::NORMAL) {
+			for(int j = 0; j < 11; j++)
+				c.elements[i] = o.elements[i];
+			break;
+		}
+	for(int i = 0; i < 24; i++)
+		if(o.status[i] != Character::NORMAL) {
+			for(int j = 0; j < 24; j++)
+				c.status[i] = o.status[i];
+			break;
+		}
 }
 
 void Fighter::lose_health(int hp) {
@@ -534,11 +565,17 @@ Fight::Fight(string dateiname) {
 	}
 
 	deque< deque<string> > ret = parser.getall("Fighter", "Enemy");
-	Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 	PlayerSide side;
 	int dir;
 
 	for(int i = 0; i < ret.size(); i++) {
+		Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		for(int j = 0; j < 11; j++)
+			c.elements[j] = Character::NORMAL;
+		for(int j = 0; j < 24; j++)
+			c.status[j] = Character::NORMAL;
+
 		switch(type) {
 			case NORMAL:
 				side = LEFT;
@@ -575,6 +612,13 @@ Fight::Fight(string dateiname) {
 	rect(menu_bg, 3, 3, menu_bg->w-4, menu_bg->h-4, makecol(255, 255, 255));
 
 	//Party hinzufügen (noch nicht final) am ende sollte ein fighter.override_character(c) stehen…
+
+	Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	for(int i = 0; i < 11; i++)
+		c.elements[i] = Character::NORMAL;
+	for(int i = 0; i < 24; i++)
+		c.status[i] = Character::NORMAL;
+
 	c.hp = 9876;
 	c.name = "test";
 	c.speed = 57;
