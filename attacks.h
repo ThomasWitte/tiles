@@ -39,11 +39,11 @@ class AttackLib {
 			int possible_targets;
 		};
 		static Attack get_attack(string name);
+		static int death(Fighter *caster, Fighter *target);
 	protected:
 		static int poison(Fighter *caster, Fighter *target);
 		static int seizure(Fighter *caster, Fighter *target);
 		static int poiseiz(Fighter *caster, Fighter *target);
-		static int death(Fighter *caster, Fighter *target);
 		static int muddle(Fighter *caster, Fighter *target);
 		//statische overridemethoden
 };

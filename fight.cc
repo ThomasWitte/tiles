@@ -76,7 +76,9 @@ int Command::calc_damage(int target_index) {
 		dmg /= 2;
 	//Step5
 	int dmg_multiplier = 0;
-	if(random()%32 == 0) dmg_multiplier += 2;
+	if(random()%32 == 0 && a.name == "Fight") dmg_multiplier += 2;
+	if(ccaster.status[Character::MORPH] == Character::SUFFERING) dmg_multiplier += 2;
+	if(a.physical && ccaster.status[Character::BERSERK] == Character::SUFFERING) dmg_multiplier++;
 	dmg += (dmg/2) * dmg_multiplier;
 	//Step6
 	dmg = (dmg * (random()%32 + 224) / 256) + 1;
@@ -84,16 +86,28 @@ int Command::calc_damage(int target_index) {
 		dmg = (dmg * (255 - ctarget.adefense) / 256) + 1;
 	else
 		dmg = (dmg * (255 - ctarget.mdefense) / 256) + 1;
-	//6c
+
+	if((a.physical && ctarget.status[Character::SAFE] == Character::SUFFERING) ||
+		(!a.physical && ctarget.status[Character::SHELL] == Character::SUFFERING))
+		dmg = (dmg * 170/256) + 1;
 	//6d
 	if(a.physical && ctarget.defensive)
 		dmg /= 2;
-	//6f
+	
+	if(!a.physical && ctarget.status[Character::MORPH] == Character::SUFFERING)
+		dmg /= 2;
+
 	if((a.element != AttackLib::HEAL) && caster->is_friend() && target[target_index]->is_friend())
 		dmg /= 2;
 	//Step7
+	if(a.physical && ((target[target_index]->get_dir() == 0 && caster->get_side() > target[target_index]->get_side()) || //Ziel schaut nach links 
+					  (target[target_index]->get_dir() == 1 && caster->get_side() < target[target_index]->get_side())))  //Ziel schaut nach rechts
+		dmg *= 1.5;
 	//Step8
+	if(ctarget.status[Character::PETRIFY] == Character::SUFFERING)
+		dmg = 0;
 	//Step9
+	//9a
 	if(ctarget.elements[a.element] == Character::ABSORB)
 		dmg *= -1;
 	if(ctarget.elements[a.element] == Character::IMMUNE)
@@ -109,15 +123,21 @@ int Command::calc_damage(int target_index) {
 	//Trefferberechnung
 
 	//Step1
+	if(a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING)
+		return MAX_DAMAGE + 1;
+	else if(!a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING)
+		goto hit;
 	//Step2
+	if(ctarget.status[Character::WOUND] == Character::IMMUNE && a.effect_function == AttackLib::death)
+		return MAX_DAMAGE + 1;
 	//Step3
-	if(a.unblock) return dmg;
+	if(a.unblock) goto hit;
 	//Step4
 	if(!a.block_by_stamina) {
 		//4a
 		//4b
 		if(a.hit_rate == 255)
-			return dmg;
+			goto hit;
 		//4d
 		int bval;
 		if(a.physical)
@@ -130,7 +150,7 @@ int Command::calc_damage(int target_index) {
 		if(a.hit_rate == -1) hitr = ccaster.hitrate;
 		else hitr = a.hit_rate;
 		if((hitr*bval/256) > (random()%100)) {
-			return dmg;
+			goto hit;
 		} else {
 			return MAX_DAMAGE + 1;
 		}
@@ -150,11 +170,16 @@ int Command::calc_damage(int target_index) {
 			if(ctarget.stamina > (random()%128))
 				return MAX_DAMAGE + 2;
 			else
-				return dmg;
+				goto hit;
 		} else {
 			return MAX_DAMAGE + 1;
 		}
 	}
+
+	hit:
+	if(a.effect_function != NULL)
+		a.effect_function(caster, target[target_index]);
+	return dmg;
 }
 
 Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
@@ -214,11 +239,20 @@ void Fighter::laden(string name) {
 	string rt;
 	for(int i = 0; i < 11; i++) {
 		rt = parser.getstring("Elements", elements[i], "normal");
-		if(rt == "normal") c.elements[i] = Character::NORMAL;
 		if(rt == "weak") c.elements[i] = Character::WEAK;
-		if(rt == "absorb") c.elements[i] = Character::ABSORB;
-		if(rt == "immune") c.elements[i] = Character::IMMUNE;
-		if(rt == "resist") c.elements[i] = Character::RESISTANT;
+		else if(rt == "absorb") c.elements[i] = Character::ABSORB;
+		else if(rt == "immune") c.elements[i] = Character::IMMUNE;
+		else if(rt == "resist") c.elements[i] = Character::RESISTANT;
+		else c.elements[i] = Character::NORMAL;
+	}
+
+	//Statuse
+	string status[] = {"Dark", "Zombie", "Poison", "MTek", "Clear", "Imp", "Petrify", "Wound", "Condemned", "NearFatal", "Image", "Mute", "Berserk", "Muddle", "Seizure", "Sleep", "Dance", "Regen", "Slow", "Haste", "Stop", "Shell", "Safe", "Reflect", "Morph"};
+	for(int i = 0; i < 25; i++) {
+		rt = parser.getstring("Status", status[i], "normal");
+		if(rt == "immune") c.status[i] = Character::IMMUNE;
+		else if(rt == "suffering") c.status[i] = Character::SUFFERING;
+		else c.status[i] = Character::NORMAL;
 	}
 
 	deque< deque<string> > menu_items = parser.getsection("Menu");
@@ -315,9 +349,9 @@ void Fighter::override_character(Character o) {
 				c.elements[i] = o.elements[i];
 			break;
 		}
-	for(int i = 0; i < 24; i++)
+	for(int i = 0; i < 25; i++)
 		if(o.status[i] != Character::NORMAL) {
-			for(int j = 0; j < 24; j++)
+			for(int j = 0; j < 25; j++)
 				c.status[i] = o.status[i];
 			break;
 		}
@@ -348,6 +382,16 @@ void Fighter::show_text(string text, int color, int frames) {
 	texttoshow = text;
 	textcol = color;
 	textremframes = frames;
+}
+
+int Fighter::get_status(int status) {
+	if(status >= 25 || status < 0) return -1;
+	return c.status[status];
+}
+
+void Fighter::set_status(int status, int state) {
+	if(status >= 25 || status < 0 || !(state == Character::NORMAL || state == Character::IMMUNE || state == Character::SUFFERING)) return;
+	c.status[status] = state;
 }
 
 Fighter::FighterMenu::FighterMenu() {
@@ -573,7 +617,7 @@ Fight::Fight(string dateiname) {
 		Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		for(int j = 0; j < 11; j++)
 			c.elements[j] = Character::NORMAL;
-		for(int j = 0; j < 24; j++)
+		for(int j = 0; j < 25; j++)
 			c.status[j] = Character::NORMAL;
 
 		switch(type) {
@@ -616,7 +660,7 @@ Fight::Fight(string dateiname) {
 	Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	for(int i = 0; i < 11; i++)
 		c.elements[i] = Character::NORMAL;
-	for(int i = 0; i < 24; i++)
+	for(int i = 0; i < 25; i++)
 		c.status[i] = Character::NORMAL;
 
 	c.hp = 9876;

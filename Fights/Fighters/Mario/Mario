@@ -15,6 +15,8 @@
 [Elements]
 	Fire weak ;;
 	Heal absorb ;;
+[Status]
+	Poison immune ;;
 [Treasure]
 	xp 37 ;;
 	gp 30 ;;
@@ -42,5 +44,3 @@
 		HealForce
 		IceBeam ;;
 [eof]
-
-# Werte unter Fighter überschreiben Charakterwerte sowie bei monstern zufallswerte. ;;

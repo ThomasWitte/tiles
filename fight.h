@@ -29,8 +29,8 @@ enum PlayerSide {LEFT, MIDDLE, RIGHT};
 enum AnimationType {WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, CAST_SPELL, HURT, DIE, EVADE};
 
 struct Character {
-	enum {NORMAL, WEAK, ABSORB, IMMUNE, RESISTANT};
-	enum {DARK, ZOMBIE, POISON, MTEK, CLEAR, IMP, PETRIFY, WOUND, CONDEMNED, NEAR_FATAL, IMAGE, MUTE, BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT};
+	enum {NORMAL, WEAK, ABSORB, IMMUNE, RESISTANT, SUFFERING};
+	enum {DARK, ZOMBIE, POISON, MTEK, CLEAR, IMP, PETRIFY, WOUND, CONDEMNED, NEAR_FATAL, IMAGE, MUTE, BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT, MORPH};
 
 	string name;
 	bool defensive;
@@ -52,7 +52,7 @@ struct Character {
 	int level;
 	int hitrate; // wird von waffe vorgegeben, bei kampf ohne waffe gild dieser wert
 	int elements[11];
-	int status[24];
+	int status[25];
 };
 
 class Fighter {
@@ -66,12 +66,15 @@ class Fighter {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
 		inline virtual void draw_menu(BITMAP *buffer, int x, int y, int w, int h);
 		virtual PlayerSide get_side() {return side;}
+		int get_dir() {return direction;}
 		virtual void get_ready();
 		virtual bool is_friend();
 		Character get_character();
 		void override_character(Character);
 		virtual void lose_health(int);
 		void show_text(string text, int color, int frames);
+		int get_status(int status);
+		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING
 	protected:
 		Fight *parent;
 		friend Fight *get_parent(Fighter&);

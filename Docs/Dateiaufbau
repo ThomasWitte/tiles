@@ -1,0 +1,123 @@
+==Dateiheader==
+
+Erkennung der Datei anhand des Headers, der in <> eingeschlossen ist.
+Zwischen < > und ;; werden immer Leerzeichen oder Whitespacezeichen benötigt.
+Der Header enthält den Namen des Programms, für das die Datei gebraucht wird, die unterstützte Programmversion und ein Stichwort, das die nähere Funktion der Datei beschreibt (z.B. Fighter, Tileset, Savefile, Level, Fight).
+
+==Kategorien==
+
+Einzelne Kategorien werden in [] eingeschlossen; Unterkategorien können aus einem Schlüssel-Wert Paar, abgeschlossen mit ;; bestehen, oder einem Schlüssel und einer Liste, abgeschlossen mit ;;. Ein Skriptblock dessen einzelne Anweisungen jeweils mit ;; abgeschlossen werden ist auch möglich.
+Der Inhalt und mögliche Kategorien werden in den folgenden seperaten Abschnitten behandelt.
+
+==Kommentare==
+
+Das letzte ausgewertete Schlüsselwort ist [eof], alles weitere ist Kommentar.
+Kommentare können auch auch vor [eof] eingefügt werden, müssen dann aber in # … ;; eingeschlossen sein.
+
+==Skripte==
+
+Syntax:
+
+EVENT EVENT_PARAMETER [SCHLÜSSELWORT SCHLÜSSELWORT_PARAMETER] FUNKTION FUNKTION_PARAMETER ;;
+
+EVENT:			EVENT_PARAMETER:
+on_load 								//wird beim Laden der Karte einmalig ausgeführt
+on_exit 								//wird beim Verlassen der Karte einmalig ausgeführt
+always 						 			//wird bei jedem Update (ca 60/s) ausgeführt
+player_at		xpos ypos				//wird ausgeführt, wenn sich der tastaturgesteuerte Sprite bei xpos ypos befindet
+on_action		xpos ypos				//player drückt die Leertaste und steht vor feld xpos ypos
+
+SCHLÜSSELWORT:	SW_PARAMETER:
+if				[var|val] [= < > !=] [var|val]		//Bedingung muss erfüllt sein (var|val bedeutet: var x = variable x
+																									 val 5.0 = wert 5.0)
+
+FUNKTION		FUNKTION_PARAMETER
+set_var			varname value			//setzt varname auf value
+dialog			< text >				//zeigt Dialog mit "text" an
+change_map		new_map					//wechselt zu new_map; name der letzten map wird in "last_map" gespeichert
+set_obj_position obj_index posx posy	//verschiebt Objekt[obj_index] nach posx posy
+
+==Dateitypen==
+
+=Fight=
+
+Im Header steht als Schlüsselwort "Fight". Die Datei enthält die Beschreibung eines Kampfes, inklusive Gegner, Hintergrundbild, mögliche Formationen, etc….
+Mögliche Kategorien sind [Fight] und [Fighter]. [Fight] enthält die Schlüssel Background und Type. Background ist der Pfad zum verwendeten Hintergrundbild, Type beschreibt mögliche Formationen als Summe:
+Normal 1; Attacke von hinten 2, Attacke von beiden Seiten 4, Gegner von hinten angreifen 8. D.h. sind alle Kampftypen erlaubt, so ist der Type 15.
+Fighter enthält eine Liste der Kampfteilnehmer. Das Schlüsselwort Enemy steht für feindliche Monster, gefolgt vom Namen des zu ladenden Monsters.
+
+=Level=
+
+Der Header enthält als Schlüsselwort "Level", die Datei beschreibt den Aufbau des Levels mit allen Objekten und Skripten.
+Die Kategorie [Map] besitzt die Schlüssel Tileset für das zu ladende Tileset und Size das die Größe des Levels in Feldern im Format "Breite x Höhe" erwartet (Leerzeichen sind essenziell).
+Das Schlüsselwort Data gefolgt von den Indizes der Felder und ;; beschreibt die Karte. Die Anzahl der Werte zwischen Data und ;; muss der angegebenen Größe, also Breite*Höhe entsprechen.
+In der Kategorie [Object] werden die plazierten Objekte aufgelistet.
+Die Syntax ist: Objekttyp, PositionX (in Feldern), PositionY, Name des Objekts, [Steuerung].
+Die Angaben sind jeweils durch Leerzeichen getrennt; eine Steuerung muss nur beim Schlüsselwort "sprite" angegeben werden, beim Schlüsselwort "object" entfällt der Parameter. Mögliche Steuerungen sind "player" und "none".
+Alle Skripte des Levels sind in der KAtegorie [Event] zusammengefasst. Näheres zu Skriten in ==Skripte==.
+
+=Tileset=
+
+Schlüsselwort im Header: "Tileset"; enthält die den Indices entsprechenden Dateinamen.
+in der Kategorie [Tileset] werden die Bilder aufgelistet:
+Index Dateiname Begehbar ;; Eine 0 bei Begehbar steht für nicht begehbare Felder.
+
+=Savefile=
+
+Schlüsselwort im Header: "Savefile"; enthält Spielstand.
+Die Kategorie [Level] besitzt den Schlüssel Level, der den Namen des derzeitigen Levels enthält.
+Die Kategorie [Userdata] enthält alle vom Spiel gesetzten Variablen, wie last_map, position_x/y oder name.
+
+=Sprite/Object=
+
+Schlüsselwort: "Sprite".
+Die Kategorien setzen sich zusammen aus Bewegungsart und -richtung: [Bewegungsart_Richtung] und enthalten jeweils eine Liste der Bilder für die Animation.
+Bewegungsarten: wait, walk
+Richtung:		up, down, left, right
+
+Schlüsselwort: "Object"
+Einzige Kategorie ist [Animation] mit einer Liste der Bilder für die Animation.
+
+=Fighter=
+
+Schlüsselwort: "Fighter".
+Die Kategorie [Fighter] enthält sämtliche Statuswerte, also:
+level, name, hp, mp, vigor, stamina, speed, mpower, apower, mblock, ablock, mdefense, adefense, hitrate und defensive [0/1].
+
+Alle Statuswerte werden beim Laden mit eventuell gespeicherten Werten (Für Spielercharaktere) überschrieben.
+
+Die Kategorie [Elements] enthält eventuelle Elementresistenzen oder Schwächen:
+mögliche Elemente:
+Heal, Bolt, Ice, Fire, Water, Wind, Earth, Poison, Pearl
+mögliche Werte:
+weak, absorb, immune, resist
+
+DIe Kategorie [Status] ist ganz ähnlich wie [Elements]:
+mögliche Statuse:
+"Dark", "Zombie", "Poison", "MTek", "Clear", "Imp", "Petrify", "Wound", "Condemned", "NearFatal", "Image", "Mute", "Berserk", "Muddle", "Seizure", "Sleep", "Dance", "Regen", "Slow", "Haste", "Stop", "Shell", "Safe", "Reflect", "Morph"
+mögliche Werte:
+immune, suffering
+
+[Treasure] enthält Werte die wichtig beim Besiegen des Monsters sind:
+xp - Erfahrungspunkte
+gp - erhaltene Gil
+Stolen - Items, die gestohlen werden können
+Dropped - Items, die beim Besiegen hinterlassen werden können (eines zufällig)
+Morph - Wahrscheinlichkeit, dass ein ItemMorph gelingt
+MorphItems - Items in die gemorpht wird.
+
+[Special] Spezialfähigkeiten und -attribute
+Fähigkeit [0/1], zB.: CantRun
+[Sketch] & [Rage]: Attacken, die nach jeweiligem Kommando zur verfügung stehen (2 Stck, Wahrscheinlichkeit 75% und 25%)
+
+[Menu]: normales Kampfmenü (möglicherweise Mehrstufig)
+Beispiel:
+	Fight ;;
+	Magitek
+		BoltBeam
+		BioBlast
+		HealForce
+		IceBeam ;;
+
+[normal] Normale Kampfanimation (Liste der Bilder)
+
