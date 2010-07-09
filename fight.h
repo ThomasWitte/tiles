@@ -68,6 +68,7 @@ class Fighter {
 		virtual PlayerSide get_side() {return side;}
 		int get_dir() {return direction;}
 		virtual void get_ready();
+		virtual bool is_monster() {return !is_friend();}; // nicht final
 		virtual bool is_friend();
 		Character get_character();
 		void override_character(Character);
@@ -80,6 +81,8 @@ class Fighter {
 		friend Fight *get_parent(Fighter&);
 		Character c;
 		int atb;
+		int itc;
+		int poisoncounter;
 		int step;
 		PlayerSide side;
 		int direction; //Blickrichtung 0 = links

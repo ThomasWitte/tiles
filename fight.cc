@@ -42,7 +42,7 @@ void Command::execute() {
 
 int Command::calc_damage(int target_index) {
 	int dmg = 0;
-	bool character = caster->is_friend();
+	bool character = !caster->is_monster();
 	AttackLib::Attack a = AttackLib::get_attack(attack_name);
 	Character ccaster = caster->get_character();
 	Character ctarget = target[target_index]->get_character();
@@ -97,7 +97,7 @@ int Command::calc_damage(int target_index) {
 	if(!a.physical && ctarget.status[Character::MORPH] == Character::SUFFERING)
 		dmg /= 2;
 
-	if((a.element != AttackLib::HEAL) && caster->is_friend() && target[target_index]->is_friend())
+	if((a.element != AttackLib::HEAL) && !caster->is_monster() && !target[target_index]->is_monster())
 		dmg /= 2;
 	//Step7
 	if(a.physical && ((target[target_index]->get_dir() == 0 && caster->get_side() > target[target_index]->get_side()) || //Ziel schaut nach links 
@@ -135,10 +135,23 @@ int Command::calc_damage(int target_index) {
 	//Step4
 	if(!a.block_by_stamina) {
 		//4a
+		if(	ctarget.status[Character::SLEEP] == Character::SUFFERING ||
+			ctarget.status[Character::PETRIFY] == Character::SUFFERING ||
+			ctarget.status[Character::STOP] == Character::SUFFERING)
+			goto hit;
 		//4b
+		if(a.physical && ((target[target_index]->get_dir() == 0 && caster->get_side() > target[target_index]->get_side()) || //Ziel schaut nach links 
+						  (target[target_index]->get_dir() == 1 && caster->get_side() < target[target_index]->get_side())))  //Ziel schaut nach rechts
+			goto hit;
+		//4c
 		if(a.hit_rate == 255)
 			goto hit;
 		//4d
+		if(a.physical && ctarget.status[Character::IMAGE] == Character::SUFFERING) {
+			if(random()%4 == 0)
+				target[target_index]->set_status(Character::IMAGE, Character::NORMAL);
+			return MAX_DAMAGE + 1;
+		}
 		int bval;
 		if(a.physical)
 			bval = (255-ctarget.ablock*2) + 1;
@@ -186,7 +199,9 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	parent = f;
 	this->c = c;
 	atb = 0;
+	itc = 0;
 	step = 0;
+	poisoncounter = 0;
 	this->side = side;
 	direction = dir;
 	texttoshow = "";
@@ -260,12 +275,78 @@ void Fighter::laden(string name) {
 }
 
 void Fighter::update() {
-	if(atb < 65536)
-		atb += 3*c.speed+20;
+	if(c.curhp <= 0) {
+		c.status[Character::WOUND] = Character::SUFFERING;
+		atb = 0;
+	} else if(c.curhp < c.hp/8) c.status[Character::NEAR_FATAL] = Character::SUFFERING;
+	else c.status[Character::NEAR_FATAL] = Character::NORMAL;
+
+	if(c.status[Character::WOUND] != Character::SUFFERING ||
+		c.status[Character::STOP] != Character::SUFFERING ||
+		c.status[Character::SLEEP] != Character::SUFFERING ||
+		c.status[Character::PETRIFY] != Character::SUFFERING)
+
+		if(atb < 65536)
+			if(is_monster()) {
+				if(c.status[Character::HASTE] == Character::SUFFERING) // Berechnungen in der Algorithms FAQ sind offensichtlich falsch…
+					atb += 63*(c.speed+20) / 16;
+				else if(c.status[Character::SLOW] == Character::SUFFERING)
+					atb += 24*(c.speed+20) / 16;
+				else
+					atb += 3*(c.speed+20);
+			} else {
+				if(c.status[Character::HASTE] == Character::SUFFERING)
+					atb += 63*(c.speed+20) / 16;
+				else if(c.status[Character::SLOW] == Character::SUFFERING)
+					atb += 24*(c.speed+20) / 16;
+				else
+					atb += 3*(c.speed+20);
+			}
 	if(atb > 65536) {
 		atb = 65536;
 		parent->enqueue_ready_fighter(this);
 	}
+
+	if(c.status[Character::HASTE] == Character::SUFFERING)
+		itc += 3;
+	else if(c.status[Character::SLOW] == Character::SUFFERING)
+		itc += 1;
+	else
+		itc += 2;
+
+	if(itc > 255) {
+		itc = 0;
+		if(c.status[Character::POISON] != Character::SUFFERING)
+			poisoncounter = 0;
+		if(c.status[Character::POISON] == Character::SUFFERING && random()%8 == 0) {
+			int dmg = (c.hp * c.stamina / 1024) + 2;
+			if(dmg > 255) dmg = 255;
+			dmg = dmg * (random()%32 + 224) / 256;
+			if(!is_monster()) dmg /= 2;
+			dmg *= (poisoncounter + 1);
+			lose_health(dmg);
+
+			poisoncounter++;
+			if(poisoncounter > 7) poisoncounter = 0;
+			//Giftschaden
+		}
+		if(c.status[Character::SEIZURE] == Character::SUFFERING && random()%4 == 0) {
+			int dmg = (c.hp * c.stamina / 1024) + 2;
+			if(dmg > 255) dmg = 255;
+			dmg = dmg * (random()%32 + 224) / 256;
+			if(!is_monster()) dmg /= 2;
+			lose_health(dmg);
+			//Seizureschaden
+		}
+		if(c.status[Character::REGEN] == Character::SUFFERING && random()%4 == 0) {
+			int dmg = (c.hp * c.stamina / 1024) + 2;
+			if(dmg > 255) dmg = 255;
+			dmg = dmg * (random()%32 + 224) / -256;
+			lose_health(dmg);
+			//hp durch regen
+		}
+	}
+
 	step++;
 }
 
@@ -283,25 +364,34 @@ void Fighter::draw(BITMAP *buffer, int x, int y) {
 	}
 	if(textremframes) {
 		textremframes--;
-		textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes, textcol, -1);
+		textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes/2, textcol, -1);
 	}
 }
 
 void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
-	textout_ex(buffer, font, c.name.c_str(), x+5, y+h/2-text_height(font)/2, makecol(255,255,255), -1);
+	textout_ex(buffer, font, c.name.c_str(), x+5, y+h/2-text_height(font)/2, COL_WHITE, -1);
 	char text[10];
 	sprintf(text, "%i", c.curhp);
-	if(c.curhp < c.hp/8)
+	if(c.status[Character::NEAR_FATAL] == Character::SUFFERING)
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_YELLOW, -1);
+	else if(c.status[Character::WOUND] == Character::SUFFERING)
+		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_RED, -1);
 	else
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_WHITE, -1);
-	rect(buffer, x+w*2/3+2, y+h/2-4, x+w-3, y+h/2+3, makecol(255,255,255));
+	rect(buffer, x+w*2/3+2, y+h/2-4, x+w-3, y+h/2+3, COL_WHITE);
 
 	int color;
-	if(atb < 65536)
-		color = makecol(255,255,255);
-	else
-		color = makecol(255, 255, 0);
+	if(atb < 65536) {
+		if(c.status[Character::HASTE] == Character::SUFFERING)
+			color = COL_LIGHT_BLUE;
+		else if(c.status[Character::SLOW] == Character::SUFFERING ||
+				c.status[Character::STOP] == Character::SUFFERING)
+			color = COL_RED;
+		else
+			color = COL_WHITE;
+	} else {
+		color = COL_YELLOW;
+	}
 
 	rectfill(buffer, x+w*2/3+4, y+h/2-2, x+w*2/3+4+(atb*(w/3-8))/65536, y+h/2+1, color);
 }
@@ -359,17 +449,17 @@ void Fighter::override_character(Character o) {
 
 void Fighter::lose_health(int hp) {
 	if(hp == MAX_DAMAGE+1) {
-		show_text("Miss", COL_WHITE, GAME_TIMER_BPS/5);
+		show_text("Miss", COL_WHITE, GAME_TIMER_BPS/2);
 	} else if(hp == MAX_DAMAGE+2) {
-		show_text("Block", COL_WHITE, GAME_TIMER_BPS/5);
+		show_text("Block", COL_WHITE, GAME_TIMER_BPS/2);
 	} else if(hp < 0) {
 		stringstream s;
 		s << (hp*-1);
-		show_text(s.str(), COL_GREEN, GAME_TIMER_BPS/5);
+		show_text(s.str(), COL_GREEN, GAME_TIMER_BPS/2);
 	} else {
 		stringstream s;
 		s << hp;
-		show_text(s.str(), COL_WHITE, GAME_TIMER_BPS/5);
+		show_text(s.str(), COL_WHITE, GAME_TIMER_BPS/2);
 	}
 
 	if(hp > MAX_DAMAGE) hp = 0;
