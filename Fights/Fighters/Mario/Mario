@@ -12,9 +12,30 @@
 	mdefense 35 ;;
 	adefense 55 ;;
 	hitrate 254 ;;
+[Elements]
+	Fire weak ;;
+	Heal absorb ;;
+[Status]
+	Poison immune ;;
+[Treasure]
+	xp 37 ;;
+	gp 30 ;;
+	Stolen Tonic ;;
+	Dropped Tonic none none none none none none none ;;
+	Morph 100 ;;
+	MorphItems DriedMeat ;;
+[Special]
+	CantRun 1 ;;
 [normal]
 	Mario.tga ;;
 	Mario2.tga ;;
+[Sketch]
+	Tusk Fight ;;
+[Rage]
+	Fight Tusk ;;
+[Script]
+	if var target.level > 6 rand Fight Tusk else Fight ;;
+	if var target.level > 6 Tusk else Fight ;;
 [Menu]
 	Fight ;;
 	Magitek
@@ -23,5 +44,3 @@
 		HealForce
 		IceBeam ;;
 [eof]
-
-# Werte unter Fighter überschreiben Charakterwerte sowie bei monstern zufallswerte. ;;

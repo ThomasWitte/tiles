@@ -1,0 +1,15 @@
+Docs/									enthält die Dokumentation
+Fights/									enthält alle Fight-Dateien
+	Fighters/
+		NameDesFighters/				enthält alle Daten des Fighters
+			NameDesFighters				Fighter-Datei
+	Images/								enthält Kampfhintergrundbilder
+Images/									enthält Bilder für Menüs etc…
+Levels/									enthält alle Level-Dateien
+Objects/
+	NameDesObjekts/						enthält alle Daten des Objekts
+		NameDesObjekts					Object/Sprite-Datei
+Saves/									enthält Savefiles
+Tilesets/
+	NameDesTilesets/					enthält alle Daten des Tilesets
+		NameDesTilesets					Tileset-Datei
