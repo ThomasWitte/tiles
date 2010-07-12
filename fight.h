@@ -21,6 +21,7 @@
 #include <string>
 #include <deque>
 #include "config.h"
+#include "game.h"
 #include "attacks.h"
 
 using namespace std;
@@ -76,6 +77,7 @@ class Fighter {
 		void show_text(string text, int color, int frames);
 		int get_status(int status);
 		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING
+		string get_spritename() {return spritename;}
 	protected:
 		Fight *parent;
 		friend Fight *get_parent(Fighter&);
@@ -88,7 +90,8 @@ class Fighter {
 		int direction; //Blickrichtung 0 = links
 		string texttoshow;
 		int textremframes;
-		int textcol;		
+		int textcol;
+		string spritename;
 
 		struct FighterTileset {
 			deque<BITMAP*> normal;
@@ -140,7 +143,7 @@ class Command {
 
 class Fight {
 	public:
-		Fight(string dateiname = "defaultFight");
+		Fight(string dateiname = "defaultFight", Game *g = NULL);
 		~Fight();
 		int update();
 		void draw(BITMAP *buffer);
@@ -153,6 +156,7 @@ class Fight {
 		int get_side(Fighter*);
 		enum {FRIEND, ENEMY};
 	private:
+		Game *parent;
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
 		long time;
 		BITMAP *bg, *menu_bg, *auswahl;

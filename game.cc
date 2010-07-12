@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include "game.h"
 
 Game::Game() : m("defaultLevel", this) {
@@ -219,7 +220,7 @@ void Game::change_map(Event *e) {
 }
 
 void Game::start_fight(Event *e) {
-	f = new Fight(e->arg[0]);
+	f = new Fight(e->arg[0], this);
 	
 	BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
@@ -374,6 +375,18 @@ void Game::draw() {
 	#else
 	stretch_blit(buffer, screen, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, 0, 0, SCREEN_W, SCREEN_H);
 	#endif
+}
+
+void Game::set_var(string key, int val) {
+	stringstream ss;
+	ss << val;
+	vars[key] = ss.str();
+}
+
+string Game::get_var(string key) {
+	if(vars.find(key) != vars.end())
+		return vars[key];
+	return "";
 }
 
 Game::Blende::Blende() {

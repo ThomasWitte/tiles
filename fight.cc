@@ -208,6 +208,7 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	textremframes = 0;
 	textcol = 0;
 	
+	spritename = name;
 	laden(name);
 
 	menu.set_parent(this);
@@ -314,7 +315,7 @@ void Fighter::update() {
 	else
 		itc += 2;
 
-	if(itc > 255) {
+	if(itc > 255 && c.status[Character::WOUND] != Character::SUFFERING) {
 		itc = 0;
 		if(c.status[Character::POISON] != Character::SUFFERING)
 			poisoncounter = 0;
@@ -640,7 +641,8 @@ void Fighter::FighterMenu::draw(BITMAP *buffer, int x, int y, int w, int h) {
 	}
 }
 
-Fight::Fight(string dateiname) {
+Fight::Fight(string dateiname, Game *g) {
+	parent = g;
 	bg = NULL;
 	command_is_executed = false;
 	ifstream datei;
@@ -746,41 +748,149 @@ Fight::Fight(string dateiname) {
 	rect(menu_bg, 3, 3, menu_bg->w-4, menu_bg->h-4, makecol(255, 255, 255));
 
 	//Party hinzufügen (noch nicht final) am ende sollte ein fighter.override_character(c) stehen…
+	if(parent) {
+		string chars = parent->get_var("CharactersInBattle");
+		int pos = chars.find_first_of(";");
+		while(pos != string::npos) {
+			string curchar = chars.substr(0, pos);
 
-	Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	for(int i = 0; i < 11; i++)
-		c.elements[i] = Character::NORMAL;
-	for(int i = 0; i < 25; i++)
-		c.status[i] = Character::NORMAL;
+			Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+			for(int i = 0; i < 11; i++)
+				c.elements[i] = Character::NORMAL;
+			for(int i = 0; i < 25; i++)
+				c.status[i] = Character::NORMAL;
 
-	c.hp = 9876;
-	c.name = "test";
-	c.speed = 57;
+			switch(type) {
+			case NORMAL:
+				side = RIGHT;
+				dir = 0;
+			break;
+			case BACK:
+				side = LEFT;
+				dir = 0;
+			break;
+			case PINCER:
+				side = MIDDLE;
+				dir = random()%2;
+			break;
+			case SIDE:
+				side = RIGHT;
+				dir = 0;
+			break;
+			}
 
-	switch(type) {
-		case NORMAL:
-			side = RIGHT;
-			dir = 0;
-			break;
-		case BACK:
-			side = LEFT;
-			dir = 0;
-			break;
-		case PINCER:
-			side = MIDDLE;
-			dir = random()%2;
-			break;
-		case SIDE:
-			side = RIGHT;
-			dir = 0;
-			break;
+			if(parent->get_var(curchar + ".name") != "")
+				c.name = parent->get_var(curchar + ".name");
+			if(parent->get_var(curchar + ".defensive") == "true") c.defensive = true;
+			else if(parent->get_var(curchar + ".defensive") == "false") c.defensive = false;
+			if(parent->get_var(curchar + ".hp") != "")
+				c.hp = atoi(parent->get_var(curchar + ".hp").c_str());
+			if(parent->get_var(curchar + ".curhp") != "")
+				c.curhp = atoi(parent->get_var(curchar + ".curhp").c_str());
+			if(parent->get_var(curchar + ".mp") != "")
+				c.mp = atoi(parent->get_var(curchar + ".mp").c_str());
+			if(parent->get_var(curchar + ".curmp") != "")
+				c.curmp = atoi(parent->get_var(curchar + ".curmp").c_str());
+			if(parent->get_var(curchar + ".speed") != "")
+				c.speed = atoi(parent->get_var(curchar + ".speed").c_str());
+			if(parent->get_var(curchar + ".vigor") != "")
+				c.vigor = atoi(parent->get_var(curchar + ".vigor").c_str());
+			if(parent->get_var(curchar + ".stamina") != "")
+				c.stamina = atoi(parent->get_var(curchar + ".stamina").c_str());
+			if(parent->get_var(curchar + ".mpower") != "")
+				c.mpower = atoi(parent->get_var(curchar + ".mpower").c_str());
+			if(parent->get_var(curchar + ".apower") != "")
+				c.apower = atoi(parent->get_var(curchar + ".apower").c_str());
+			if(parent->get_var(curchar + ".mdefense") != "")
+				c.mdefense = atoi(parent->get_var(curchar + ".mdefense").c_str());
+			if(parent->get_var(curchar + ".adefense") != "")
+				c.adefense = atoi(parent->get_var(curchar + ".adefense").c_str());
+			if(parent->get_var(curchar + ".mblock") != "")
+				c.mblock = atoi(parent->get_var(curchar + ".mblock").c_str());
+			if(parent->get_var(curchar + ".ablock") != "")
+				c.ablock = atoi(parent->get_var(curchar + ".ablock").c_str());
+			if(parent->get_var(curchar + ".xp") != "")
+				c.xp = atoi(parent->get_var(curchar + ".xp").c_str());
+			if(parent->get_var(curchar + ".levelupxp") != "")
+				c.levelupxp = atoi(parent->get_var(curchar + ".levelupxp").c_str());
+			if(parent->get_var(curchar + ".level") != "")
+				c.level = atoi(parent->get_var(curchar + ".level").c_str());
+			if(parent->get_var(curchar + ".hitrate") != "")
+				c.hitrate = atoi(parent->get_var(curchar + ".hitrate").c_str());
+
+			for(int i = 0; i < 11; i++) {
+				char s[50] = "";
+				sprintf(s, "%s.element%i", curchar.c_str(), i);
+				if(parent->get_var(s) == "normal") c.elements[i] = Character::NORMAL;
+				else if(parent->get_var(s) == "weak") c.elements[i] = Character::WEAK;
+				else if(parent->get_var(s) == "absorb") c.elements[i] = Character::ABSORB;
+				else if(parent->get_var(s) == "immune") c.elements[i] = Character::IMMUNE;
+				else if(parent->get_var(s) == "resist") c.elements[i] = Character::RESISTANT;
+			}
+
+			for(int i = 0; i < 25; i++) {
+				char s[50] = "";
+				sprintf(s, "%s.status%i", curchar.c_str(), i);
+				if(parent->get_var(s) == "normal") c.status[i] = Character::NORMAL;
+				else if(parent->get_var(s) == "immune") c.status[i] = Character::IMMUNE;
+				else if(parent->get_var(s) == "suffering") c.status[i] = Character::SUFFERING;
+			}
+
+			fighters[FRIEND].push_back(new Fighter(this, c, curchar, side, dir));
+
+			chars.erase(0, pos+1);
+			pos = chars.find_first_of(";");
+		} 
 	}
-
-	fighters[FRIEND].push_back(new Fighter(this, c, "Mario", side, dir));
-	fighters[FRIEND].push_back(new Fighter(this, c, "Luigi", side, (dir+1)%2));
 }
 
 Fight::~Fight() {
+	for(int j = 0; j < 2; j++)
+	for(int i = 0; i < fighters[j].size(); i++)
+	if(!fighters[j][i]->is_monster()) {
+		Character c = fighters[j][i]->get_character();
+		string curchar = fighters[j][i]->get_spritename();
+
+		parent->set_var(curchar + ".name", c.name);
+		if(c.defensive == true) parent->set_var(curchar + ".defensive", "true");
+		else parent->set_var(curchar + ".defensive", "false");
+		parent->set_var(curchar + ".hp", c.hp);
+		parent->set_var(curchar + ".curhp", c.curhp);
+		parent->set_var(curchar + ".mp", c.mp);
+		parent->set_var(curchar + ".curmp", c.curmp);
+		parent->set_var(curchar + ".speed", c.speed);
+		parent->set_var(curchar + ".vigor", c.vigor);
+		parent->set_var(curchar + ".stamina", c.stamina);
+		parent->set_var(curchar + ".mpower", c.mpower);
+		parent->set_var(curchar + ".apower", c.apower);
+		parent->set_var(curchar + ".mdefense", c.mdefense);
+		parent->set_var(curchar + ".adefense", c.adefense);
+		parent->set_var(curchar + ".mblock", c.mblock);
+		parent->set_var(curchar + ".ablock", c.ablock);
+		parent->set_var(curchar + ".xp", c.xp);
+		parent->set_var(curchar + ".levelupxp", c.levelupxp);
+		parent->set_var(curchar + ".level", c.level);
+		parent->set_var(curchar + ".hitrate", c.hitrate);
+
+		for(int i = 0; i < 11; i++) {
+			char s[50] = "";
+			sprintf(s, "%s.element%i", curchar.c_str(), i);
+			if(c.elements[i] == Character::NORMAL) parent->set_var(s, "normal");
+			else if(c.elements[i] == Character::WEAK) parent->set_var(s, "weak");
+			else if(c.elements[i] == Character::ABSORB) parent->set_var(s, "absorb");
+			else if(c.elements[i] == Character::IMMUNE) parent->set_var(s, "immune");
+			else if(c.elements[i] == Character::RESISTANT) parent->set_var(s, "resist");
+		}
+
+		for(int i = 0; i < 25; i++) {
+			char s[50] = "";
+			sprintf(s, "%s.status%i", curchar.c_str(), i);
+			if(c.status[i] == Character::NORMAL) parent->set_var(s, "normal");
+			else if(c.status[i] == Character::IMMUNE) parent->set_var(s, "immune");
+			else if(c.status[i] == Character::SUFFERING) parent->set_var(s, "suffering");
+		}
+	}
+
 	imageloader.destroy(bg);
 	imageloader.destroy(menu_bg);
 	imageloader.destroy(auswahl);
