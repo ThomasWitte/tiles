@@ -106,7 +106,7 @@ class Fighter {
 				void draw(BITMAP *buffer, int x, int y, int w, int h);
 				int update();
 			protected:
-				enum State {MENU, CHOOSE_TARGET, TARGETS_BY_ATTACK} state; 
+				enum State {START, MENU, CHOOSE_TARGET, TARGETS_BY_ATTACK} state; 
 				Fighter *fighter;
 				BITMAP *pointer, *sub_bg;
 				int auswahl;
@@ -116,7 +116,9 @@ class Fighter {
 				bool sub_open;
 				deque< deque<string> > menu_items;
 
-				int target_side, cur_target;
+				class Command *c;
+				PlayerSide target_side;
+				int cur_target;
 				static int mpause;
 		} menu;
 };
@@ -126,6 +128,7 @@ class Command {
 		Command(Fighter *caster = NULL);
 		virtual void add_target(Fighter *tg);
 		virtual void set_attack(string attack_name);
+		virtual string get_attack() {return attack_name;}
 		virtual void execute();
 	protected:
 		Fighter *caster;
@@ -151,9 +154,14 @@ class Fight {
 		void enqueue_command(Command c);
 		void block_comqueue(bool state) {command_is_executed = state;}
 		int get_fighter_count(int side);
+		int get_fighter_count(PlayerSide side);
 		void add_fighter_target(Command &c, int fighter, int side);
+		void add_fighter_target(Command &c, int fighter, PlayerSide side);
 		inline void mark_fighter(int fighter, int side, bool mark);
+		inline void mark_fighter(int fighter, PlayerSide side, bool mark);
+		int get_index_of_fighter(Fighter*, PlayerSide);
 		int get_side(Fighter*);
+		PlayerSide get_PlayerSide(Fighter*);
 		enum {FRIEND, ENEMY};
 	private:
 		Game *parent;

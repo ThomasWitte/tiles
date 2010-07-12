@@ -499,7 +499,7 @@ Fighter::FighterMenu::FighterMenu() {
 	fighter = NULL;
 	sub_auswahl = 0;
 	sub_open = false;
-	state = MENU;
+	state = START;
 }
 
 Fight *get_parent(Fighter& f) {
@@ -520,7 +520,12 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 }
 
 int Fighter::FighterMenu::update() {
+	AttackLib::Attack a;
+
 	switch(state) {
+	case START:
+		c = new Command(fighter);
+		state = MENU;
 	case MENU:
 	if(mpause < 0) {
 		if(key[KEY_UP]) {
@@ -548,6 +553,14 @@ int Fighter::FighterMenu::update() {
 				sub_auswahl = 1;
 				sub_open = true;
 			} else {
+				string attack = "Defend";
+				if(menu_items[auswahl].size() > 1) {
+					attack = menu_items[auswahl][sub_auswahl];
+				} else {
+					attack = menu_items[auswahl][0];
+				}
+				c->set_attack(attack);
+
 				state = TARGETS_BY_ATTACK;
 				sub_open = false;
 			}
@@ -563,12 +576,24 @@ int Fighter::FighterMenu::update() {
 
 	case TARGETS_BY_ATTACK:
 	//Starttargets werden anhand der gewählten Attacke ausgesucht…
-	if(get_parent(*fighter)->get_fighter_count(Fight::ENEMY)) {
-		target_side = Fight::ENEMY;
+	a = AttackLib::get_attack(c->get_attack());
+
+	if(a.element == AttackLib::HEAL && (a.possible_targets & AttackLib::FRIEND)) {
+		target_side = fighter->get_side();
 		cur_target = 0;
-	} else {
-		target_side = Fight::FRIEND;
+	} else if(a.possible_targets & AttackLib::ENEMY) {
+		for(int i = LEFT; i <= RIGHT; i++) {
+			if((fighter->get_side() != i) && get_parent(*fighter)->get_fighter_count((PlayerSide)i)) {
+				target_side = (PlayerSide)i;
+				cur_target = 0;
+			}
+		}
+	} else if(a.possible_targets & AttackLib::FRIEND) {
+		target_side = fighter->get_side();
 		cur_target = 0;
+	} else { //SELF einziges mögliches ziel
+		target_side = fighter->get_side();
+		cur_target = get_parent(*fighter)->get_index_of_fighter(fighter, target_side);
 	}
 	state = CHOOSE_TARGET;
 	//kein break, um sofort den state zu wechseln
@@ -584,24 +609,31 @@ int Fighter::FighterMenu::update() {
 			cur_target++;
 			if(cur_target >= fc) cur_target = 0;
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_LEFT] || key[KEY_RIGHT]) {
-			if(get_parent(*fighter)->get_fighter_count((target_side+1)%2)) {
+		} else if(key[KEY_LEFT]) {
+			int i = target_side;
+			do {
+				i--;
+				if(i < 0) i = RIGHT;
 				cur_target = 0;
-				target_side = (target_side+1)%2;
-			}
+				target_side = (PlayerSide)i;
+			} while(get_parent(*fighter)->get_fighter_count(target_side) == 0);
+			mpause = GAME_TIMER_BPS/10;
+		} else if(key[KEY_RIGHT]) {
+			int i = target_side;
+			do {
+				i++;
+				cur_target = 0;
+				target_side = (PlayerSide)(i%3);
+			} while(get_parent(*fighter)->get_fighter_count(target_side) == 0);
 			mpause = GAME_TIMER_BPS/10;
 		} else if(key[KEY_ENTER]) {
-			Command c(fighter);
-			get_parent(*fighter)->add_fighter_target(c, cur_target, target_side);
-			string attack = "Verteid.";
-			if(menu_items[auswahl].size() > 1) {
-				attack = menu_items[auswahl][sub_auswahl];
-			} else {
-				attack = menu_items[auswahl][0];
-			}			
-			c.set_attack(attack);
-			get_parent(*fighter)->enqueue_command(c);
-			state = MENU;
+			get_parent(*fighter)->add_fighter_target(*c, cur_target, target_side);
+			get_parent(*fighter)->enqueue_command(*c);
+
+			delete c;
+			c = NULL;
+
+			state = START;
 			mpause = GAME_TIMER_BPS/10;
 			for(int h = 0; h < 2; h++)
 				for(int i = 0; i < get_parent(*fighter)->get_fighter_count(h); i++)
@@ -989,12 +1021,59 @@ int Fight::get_fighter_count(int side) {
 	return fighters[side].size();
 }
 
+int Fight::get_fighter_count(PlayerSide side) {
+	int fc = 0;
+	for(int i = 0; i < 2; i++)
+		for(int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == side)
+				fc++;
+	return fc;
+}
+
 void Fight::add_fighter_target(Command &c, int fighter, int side) {
 	c.add_target(fighters[side][fighter]);
 }
 
+void Fight::add_fighter_target(Command &c, int fighter, PlayerSide side) {
+	int fc = 0;
+	for(int i = 0; i < 2; i++)
+		for(int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == side)
+				if(fc == fighter) {
+					c.add_target(fighters[i][j]);
+					return;
+				} else {
+					fc++;
+				}
+}
+
 void Fight::mark_fighter(int fighter, int side, bool mark) {
 	marked_fighters[side][fighter] = mark;
+}
+
+void Fight::mark_fighter(int fighter, PlayerSide side, bool mark) {
+	int fc = 0;
+	for(int i = 0; i < 2; i++)
+		for(int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == side)
+				if(fc == fighter) {
+					marked_fighters[i][j] = mark;
+					return;
+				} else {
+					fc++;
+				}
+}
+
+int Fight::get_index_of_fighter(Fighter* f, PlayerSide s) {
+	int fc = 0;
+	for(int i = 0; i < 2; i++)
+		for(int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == s)
+				if(f == fighters[i][j]) {
+					return fc;
+				} else {
+					fc++;
+				}
 }
 
 int Fight::get_side(Fighter* f) {
@@ -1007,3 +1086,6 @@ int Fight::get_side(Fighter* f) {
 	return -1;
 }
 
+PlayerSide Fight::get_PlayerSide(Fighter *f) {
+	return f->get_side();
+}
