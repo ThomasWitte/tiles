@@ -172,8 +172,7 @@ deque<deque<string> > FileParser::getsection(string section) {
 ImageLoader::~ImageLoader() {
 	for(map<string, Image>::iterator i = imgs.begin(); i != imgs.end(); i++) {
 		if(i->second.count) {
-			destroy_bitmap(i->second.bmp);
-			cout << "Imageloader [Warnung]: " << i->first << " geladen, aber nicht freigegeben" << endl; 
+			cout << "Imageloader [Warnung]: " << i->first << " geladen, aber nicht freigegeben." << i->second.count << endl; 
 		}
 	}
 }

@@ -42,35 +42,35 @@ AttackLib::Attack AttackLib::get_attack(string name) {
 	return lib[0];
 }
 
-int AttackLib::poison(Fighter *caster, Fighter *target) {
+int AttackLib::poison(FighterBase *caster, FighterBase *target) {
 	//Fügt Poison zu
 	if(target->get_status(Character::POISON) != Character::IMMUNE)
 		target->set_status(Character::POISON, Character::SUFFERING);
 	return 0;
 }
 
-int AttackLib::seizure(Fighter *caster, Fighter *target) {
+int AttackLib::seizure(FighterBase *caster, FighterBase *target) {
 	//Fügt Seizure zu
 	if(target->get_status(Character::SEIZURE) != Character::IMMUNE)
 		target->set_status(Character::SEIZURE, Character::SUFFERING);
 	return 0;
 }
 
-int AttackLib::poiseiz(Fighter *caster, Fighter *target) {
+int AttackLib::poiseiz(FighterBase *caster, FighterBase *target) {
 	//Fügt Poison und Seizure zu
 	poison(caster, target);
 	seizure(caster, target);
 	return 0;
 }
 
-int AttackLib::death(Fighter *caster, Fighter *target) {
+int AttackLib::death(FighterBase *caster, FighterBase *target) {
 	//Tötet…
 	if(target->get_status(Character::WOUND) != Character::IMMUNE)
 		target->set_status(Character::WOUND, Character::SUFFERING);
 	return 0;
 }
 
-int AttackLib::muddle(Fighter *caster, Fighter *target) {
+int AttackLib::muddle(FighterBase *caster, FighterBase *target) {
 	//Verwirrt
 	if(target->get_status(Character::MUDDLE) != Character::IMMUNE)
 		target->set_status(Character::MUDDLE, Character::SUFFERING);
