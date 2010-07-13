@@ -18,7 +18,6 @@
 #define ATTACKLIB_H
 
 #include <string>
-#include "fight.h"
 
 using namespace std;
 
@@ -47,5 +46,7 @@ class AttackLib {
 		static int muddle(Fighter *caster, Fighter *target);
 		//statische overridemethoden
 };
+
+#include "fight.h"
 
 #endif

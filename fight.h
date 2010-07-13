@@ -117,8 +117,10 @@ class Fighter {
 				deque< deque<string> > menu_items;
 
 				class Command *c;
+				class AttackLib::Attack a;
 				PlayerSide target_side;
 				int cur_target;
+				int multitarget;
 				static int mpause;
 		} menu;
 };
@@ -160,7 +162,8 @@ class Fight {
 		inline void mark_fighter(int fighter, int side, bool mark);
 		inline void mark_fighter(int fighter, PlayerSide side, bool mark);
 		int get_index_of_fighter(Fighter*, PlayerSide);
-		int get_side(Fighter*);
+		int get_team(Fighter*);
+		int get_team(int fighter, PlayerSide side);
 		PlayerSide get_PlayerSide(Fighter*);
 		enum {FRIEND, ENEMY};
 	private:
