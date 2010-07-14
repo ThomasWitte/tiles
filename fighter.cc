@@ -412,6 +412,8 @@ int Fighter::FighterMenu::update() {
 		target_side = fighter->get_side();
 		cur_target = 0;
 	} else if(a.possible_targets & AttackLib::ENEMY) {
+		target_side = fighter->get_side();
+		cur_target = 0;
 		for(int i = LEFT; i <= RIGHT; i++) {
 			if((fighter->get_side() != i) && get_parent(*fighter)->get_fighter_count((PlayerSide)i)) {
 				target_side = (PlayerSide)i;
@@ -534,5 +536,17 @@ void Fighter::FighterMenu::draw(BITMAP *buffer, int x, int y, int w, int h) {
 			textout_ex(buffer, font, menu_items[auswahl][i].c_str(), x+w-5+26, y+h-sub_bg->h+5+(i-1)*sub_bg->h/15, makecol(255,255,255), -1);
 	} else {
 		masked_blit(pointer, buffer, 0, 0, x+5+pointer_position, y+auswahl*h/4+5, pointer->w, pointer->h);
+	}
+}
+
+Monster::Monster(Fight *f, Character c, string name, PlayerSide side, int dir)
+	: Fighter(f, c, name, side, dir) {
+}
+
+void Monster::update() {
+	Fighter::update();
+	if(c.status[Character::WOUND] == Character::SUFFERING) {
+		//Auflöseanimation fehlt noch…
+		parent->destroy_fighter(this);
 	}
 }

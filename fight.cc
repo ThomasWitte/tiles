@@ -114,7 +114,7 @@ Fight::Fight(string dateiname, Game *g) {
 				break;
 		}
 		c.vigor = random()%8 + 56;
-		fighters[ENEMY].push_back(new Fighter(this, c, ret[i][0], side, dir));
+		fighters[ENEMY].push_back(new Monster(this, c, ret[i][0], side, dir));
 	}
 	time = 0;
 
@@ -351,6 +351,11 @@ int Fight::update() {
 		ready_fighters.erase(ready_fighters.begin()+current_menu);
 	}
 
+	if(fighters[ENEMY].size() == 0) {
+		//xp und gp verteilen!!
+		return 0;
+	}
+
 	return 1; //0 = Kampfende
 };
 
@@ -446,4 +451,18 @@ int Fight::get_team(int fighter, PlayerSide side) {
 
 PlayerSide Fight::get_PlayerSide(FighterBase *f) {
 	return f->get_side();
+}
+
+void Fight::destroy_fighter(FighterBase *f) {
+	for(int i = 0; i < ready_fighters.size(); i++) {
+		if(f == ready_fighters[i])
+			ready_fighters.erase(ready_fighters.begin()+i);
+	}
+	for(int i = 0; i < 2; i++)
+		for(int j = 0; j < fighters[i].size(); j++) {
+			if(fighters[i][j] == f) {
+				fighters[i].erase(fighters[i].begin()+j);
+				delete f;
+			}
+		}
 }

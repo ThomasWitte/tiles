@@ -97,4 +97,14 @@ class Fighter : public FighterBase {
 		} menu;
 };
 
+class Hero : public Fighter {
+};
+
+class Monster : public Fighter {
+	public:
+		Monster(class Fight *f, Character c, string name, PlayerSide side, int dir);
+		virtual bool is_monster() {return true;}
+		virtual void update();
+};
+
 #endif

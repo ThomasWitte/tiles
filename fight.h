@@ -46,6 +46,7 @@ class Fight {
 		int get_index_of_fighter(FighterBase*, PlayerSide);
 		int get_team(FighterBase*);
 		int get_team(int fighter, PlayerSide side);
+		void destroy_fighter(FighterBase*);
 		PlayerSide get_PlayerSide(FighterBase*);
 		enum {FRIEND, ENEMY};
 	private:
