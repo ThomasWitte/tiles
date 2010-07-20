@@ -40,6 +40,8 @@ class AttackLib {
 		};
 		static Attack get_attack(string name);
 		static int death(FighterBase *caster, FighterBase *target);
+		static int full_revive(FighterBase *caster, FighterBase *target);
+		static int revive(FighterBase *caster, FighterBase *target);
 	protected:
 		static int poison(FighterBase *caster, FighterBase *target);
 		static int seizure(FighterBase *caster, FighterBase *target);

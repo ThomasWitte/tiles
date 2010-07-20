@@ -25,6 +25,7 @@ Fight::Fight(string dateiname, Game *g) {
 	command_is_executed = false;
 	ifstream datei;
 	string input;
+	state = FIGHT;
 	
 	FileParser parser(string("Fights/") + dateiname, "Fight");
 
@@ -157,6 +158,9 @@ Fight::Fight(string dateiname, Game *g) {
 			break;
 			}
 
+			fighters[FRIEND].push_back(new Hero(this, c, curchar, side, dir));
+			c = fighters[FRIEND].back()->get_character();
+
 			if(parent->get_var(curchar + ".name") != "")
 				c.name = parent->get_var(curchar + ".name");
 			if(parent->get_var(curchar + ".defensive") == "true") c.defensive = true;
@@ -165,10 +169,14 @@ Fight::Fight(string dateiname, Game *g) {
 				c.hp = atoi(parent->get_var(curchar + ".hp").c_str());
 			if(parent->get_var(curchar + ".curhp") != "")
 				c.curhp = atoi(parent->get_var(curchar + ".curhp").c_str());
+			else
+				c.curhp = c.hp;
 			if(parent->get_var(curchar + ".mp") != "")
 				c.mp = atoi(parent->get_var(curchar + ".mp").c_str());
 			if(parent->get_var(curchar + ".curmp") != "")
 				c.curmp = atoi(parent->get_var(curchar + ".curmp").c_str());
+			else
+				c.curmp = c.mp;
 			if(parent->get_var(curchar + ".speed") != "")
 				c.speed = atoi(parent->get_var(curchar + ".speed").c_str());
 			if(parent->get_var(curchar + ".vigor") != "")
@@ -214,7 +222,7 @@ Fight::Fight(string dateiname, Game *g) {
 				else if(parent->get_var(s) == "suffering") c.status[i] = Character::SUFFERING;
 			}
 
-			fighters[FRIEND].push_back(new Fighter(this, c, curchar, side, dir));
+			fighters[FRIEND].back()->override_character(c);
 
 			chars.erase(0, pos+1);
 			pos = chars.find_first_of(";");
@@ -276,6 +284,8 @@ Fight::~Fight() {
 		for(int j = 0; j < fighters[i].size(); j++) {
 			delete fighters[i][j];
 		}
+	for(int i = 0; i < defeated_fighters.size(); i++)
+		delete defeated_fighters[i];
 }
 
 void Fight::draw(BITMAP *buffer) {
@@ -320,42 +330,77 @@ void Fight::draw(BITMAP *buffer) {
 }
 
 int Fight::update() {
-	time++;
+	switch(state) {
+	case FIGHT:
+		{
+		time++;
 
-	if(comqueue.size() && !command_is_executed) {
-		comqueue[0].execute();
-		comqueue.pop_front();
-	}
-	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++) {
-			fighters[i][j]->update();
+		if(comqueue.size() && !command_is_executed) {
+			comqueue[0].execute();
+			comqueue.pop_front();
 		}
-
-	int current_menu = -1;
-	for(int i = 0; i < ready_fighters.size(); i++) {
-		bool end = false;
-		for(int j = 0; j < fighters[FRIEND].size(); j++) {
-			if(ready_fighters[i] == fighters[FRIEND][j]) {
-				current_menu = i;
-				end = true;
-				break;
+		for(int i = 0; i < 2; i++)
+			for(int j = 0; j < fighters[i].size(); j++) {
+				fighters[i][j]->update();
 			}
+
+		int current_menu = -1;
+		for(int i = 0; i < ready_fighters.size(); i++) {
+			bool end = false;
+			for(int j = 0; j < fighters[FRIEND].size(); j++) {
+				if(ready_fighters[i] == fighters[FRIEND][j]) {
+					current_menu = i;
+					end = true;
+					break;
+				}
+			}
+			if(end) break;
 		}
-		if(end) break;
-	}
-	int ret = -1;
-	if(current_menu >= 0)
-		ret = ready_fighters[current_menu]->update_menu();
+		int ret = -1;
+		if(current_menu >= 0)
+			ret = ready_fighters[current_menu]->update_menu();
 
-	if(ret == 0) {
-		ready_fighters.erase(ready_fighters.begin()+current_menu);
-	}
+		if(ret == 0) {
+			ready_fighters.erase(ready_fighters.begin()+current_menu);
+		}
 
-	if(fighters[ENEMY].size() == 0) {
-		//xp und gp verteilen!!
+		if(fighters[ENEMY].size() == 0) {
+			state = MENU;
+		}
+		}
+	break;
+	case MENU:
+		{
+		int xp = 0;
+		int gp = 0;
+		for(int i = 0; i < defeated_fighters.size(); i++) {
+			Monster::Treasure t = ((Monster*)defeated_fighters[i])->treasure();
+			xp += t.xp;
+			gp += t.gp;
+		}
+		int living_heroes = 0;
+		for(int i = 0; i < fighters[FRIEND].size(); i++) {
+			if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
+				living_heroes++;
+		}
+		xp /= living_heroes;
+		//enqueue_menu(); //xp
+		for(int i = 0; i < fighters[FRIEND].size(); i++) {
+			if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
+				if(((Hero*)fighters[FRIEND][i])->get_xp(xp)) {
+					//levelup…
+					//enqueue_menu(); //levelup?
+				}
+		}
+
+		parent->set_var("gp", gp + atoi(parent->get_var("gp").c_str()));
+		//enqueue_menu(); //gp
+		//enqueue_menu(); //items
+		
+		}
 		return 0;
+	break;
 	}
-
 	return 1; //0 = Kampfende
 };
 
@@ -453,7 +498,7 @@ PlayerSide Fight::get_PlayerSide(FighterBase *f) {
 	return f->get_side();
 }
 
-void Fight::destroy_fighter(FighterBase *f) {
+void Fight::defeated_fighter(FighterBase *f) {
 	for(int i = 0; i < ready_fighters.size(); i++) {
 		if(f == ready_fighters[i])
 			ready_fighters.erase(ready_fighters.begin()+i);
@@ -462,7 +507,7 @@ void Fight::destroy_fighter(FighterBase *f) {
 		for(int j = 0; j < fighters[i].size(); j++) {
 			if(fighters[i][j] == f) {
 				fighters[i].erase(fighters[i].begin()+j);
-				delete f;
+				defeated_fighters.push_back(f);
 			}
 		}
 }

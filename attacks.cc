@@ -42,6 +42,24 @@ AttackLib::Attack AttackLib::get_attack(string name) {
 	return lib[0];
 }
 
+int AttackLib::full_revive(FighterBase *caster, FighterBase *target) {
+	Character c = target->get_character();
+	if(c.status[Character::WOUND] == Character::SUFFERING) {
+		target->set_status(Character::WOUND, Character::NORMAL);
+		target->lose_health(c.hp);
+	}
+	return 0;
+}
+
+int AttackLib::revive(FighterBase *caster, FighterBase *target) {
+	Character c = target->get_character();
+	if(c.status[Character::WOUND] == Character::SUFFERING) {
+		target->set_status(Character::WOUND, Character::NORMAL);
+		target->lose_health(-c.hp/4);
+	}
+	return 0;
+}
+
 int AttackLib::poison(FighterBase *caster, FighterBase *target) {
 	//Fügt Poison zu
 	if(target->get_status(Character::POISON) != Character::IMMUNE)

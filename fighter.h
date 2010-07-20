@@ -98,6 +98,10 @@ class Fighter : public FighterBase {
 };
 
 class Hero : public Fighter {
+	public:
+		Hero(class Fight *f, Character c, string name, PlayerSide side, int dir);
+		virtual bool is_monster() {return false;}
+		virtual int get_xp(int);
 };
 
 class Monster : public Fighter {
@@ -105,6 +109,20 @@ class Monster : public Fighter {
 		Monster(class Fight *f, Character c, string name, PlayerSide side, int dir);
 		virtual bool is_monster() {return true;}
 		virtual void update();
+		virtual void laden(string name);
+
+		struct Treasure {
+			int xp;
+			int gp;
+			deque<string> dropped_items;
+			deque<string> stolen_items;
+			int morph;
+			deque<string> morph_items;
+		};
+
+		virtual Treasure treasure();
+	protected:
+		Treasure t;
 };
 
 #endif

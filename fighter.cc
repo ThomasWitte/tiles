@@ -74,6 +74,8 @@ void Fighter::laden(string name) {
 	c.ablock = parser.getvalue("Fighter", "ablock", c.ablock);
 	c.level = parser.getvalue("Fighter", "level", c.level);
 	c.hitrate = parser.getvalue("Fighter", "hitrate", c.hitrate);
+	c.xp = parser.getvalue("Fighter", "xp", c.xp);
+	c.levelupxp = parser.getvalue("Fighter", "levelupxp", c.levelupxp);
 
 	//Elemente
 	string elements[] = {"none", "Heal", "Death", "Bolt", "Ice", "Fire", "Water", "Wind", "Earth", "Poison", "Pearl"};
@@ -107,9 +109,9 @@ void Fighter::update() {
 	} else if(c.curhp < c.hp/8) c.status[Character::NEAR_FATAL] = Character::SUFFERING;
 	else c.status[Character::NEAR_FATAL] = Character::NORMAL;
 
-	if(c.status[Character::WOUND] != Character::SUFFERING ||
-		c.status[Character::STOP] != Character::SUFFERING ||
-		c.status[Character::SLEEP] != Character::SUFFERING ||
+	if(c.status[Character::WOUND] != Character::SUFFERING &&
+		c.status[Character::STOP] != Character::SUFFERING &&
+		c.status[Character::SLEEP] != Character::SUFFERING &&
 		c.status[Character::PETRIFY] != Character::SUFFERING)
 
 		if(atb < 65536)
@@ -267,8 +269,9 @@ void Fighter::override_character(Character o) {
 		}
 	for(int i = 0; i < 25; i++)
 		if(o.status[i] != Character::NORMAL) {
-			for(int j = 0; j < 25; j++)
-				c.status[i] = o.status[i];
+			for(int j = 0; j < 25; j++) {
+				c.status[j] = o.status[j];
+			}
 			break;
 		}
 }
@@ -539,14 +542,47 @@ void Fighter::FighterMenu::draw(BITMAP *buffer, int x, int y, int w, int h) {
 	}
 }
 
+Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)
+	: Fighter(f, c, name, side, dir) {
+}
+
+int Hero::get_xp(int xp) {
+	c.xp += xp;
+	c.levelupxp -= xp;
+	if(c.levelupxp <= 0) {
+		c.level++;
+		c.levelupxp = 1000*(c.level+1)-c.xp; // Nicht final, ich weiß nicht, wie die Formel aussieht…
+		return 1;
+	}
+	return 0;
+}
+
 Monster::Monster(Fight *f, Character c, string name, PlayerSide side, int dir)
 	: Fighter(f, c, name, side, dir) {
+	laden(name);
 }
 
 void Monster::update() {
 	Fighter::update();
 	if(c.status[Character::WOUND] == Character::SUFFERING) {
 		//Auflöseanimation fehlt noch…
-		parent->destroy_fighter(this);
+		parent->defeated_fighter(this);
 	}
+}
+
+void Monster::laden(string name) {
+	string path;
+	path = string("Fights/Fighters/") + name + string("/");
+	FileParser parser(path + name, "Fighter");
+
+	t.xp = parser.getvalue("Treasure", "xp", 0);
+	t.gp = parser.getvalue("Treasure", "gp", 0);
+	t.dropped_items = parser.get("Treasure", "Dropped");
+	t.stolen_items = parser.get("Treasure", "Stolen");
+	t.morph_items = parser.get("Treasure", "MorphItems");
+	t.morph = parser.getvalue("Treasure", "Morph", 0);
+}
+
+Monster::Treasure Monster::treasure() {
+	return t;
 }

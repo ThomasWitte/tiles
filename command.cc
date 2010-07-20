@@ -118,7 +118,10 @@ int Command::calc_damage(int target_index) {
 	if(dmg < -MAX_DAMAGE) dmg = -MAX_DAMAGE;
 
 	//Trefferberechnung
-
+	//Step0
+	if(ctarget.status[Character::WOUND] && a.effect_function != AttackLib::revive && a.effect_function != AttackLib::full_revive) {
+		return MAX_DAMAGE + 1;
+	}
 	//Step1
 	if(a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING)
 		return MAX_DAMAGE + 1;

@@ -46,18 +46,20 @@ class Fight {
 		int get_index_of_fighter(FighterBase*, PlayerSide);
 		int get_team(FighterBase*);
 		int get_team(int fighter, PlayerSide side);
-		void destroy_fighter(FighterBase*);
+		void defeated_fighter(FighterBase*);
 		PlayerSide get_PlayerSide(FighterBase*);
 		enum {FRIEND, ENEMY};
 	private:
 		Game *parent;
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
+		enum FightState{FIGHT, MENU} state;
 		long time;
 		BITMAP *bg, *menu_bg, *auswahl;
 		deque<Command> comqueue;
 		bool command_is_executed;
 		deque<FighterBase*> fighters[2]; //Friends, Enemies
 		deque<FighterBase*> ready_fighters;
+		deque<FighterBase*> defeated_fighters;
 		bool marked_fighters[2][20];
 };
 
