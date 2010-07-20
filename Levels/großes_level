@@ -19,7 +19,7 @@ Data
 
 [Object]
 
-sprite 5 5 Mario player ;;
+sprite 5 5 DefaultSprite player ;;
 object 3 3 TV_eingeschaltet ;;
 object 4 3 TV_eingeschaltet ;;
 object 5 3 TV_eingeschaltet ;;
