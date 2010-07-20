@@ -19,7 +19,7 @@ CXXFLAGS = -O2 -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
 LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
 
-OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o
+OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o command.o fighter.o
 BIN =     tiles
 
 all: $(OBJ)

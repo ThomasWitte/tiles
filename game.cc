@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include "game.h"
 
 Game::Game() : m("defaultLevel", this) {
@@ -219,7 +220,7 @@ void Game::change_map(Event *e) {
 }
 
 void Game::start_fight(Event *e) {
-	f = new Fight(e->arg[0]);
+	f = new Fight(e->arg[0], this);
 	
 	BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
@@ -348,6 +349,13 @@ void Game::update() {
 				mode = MAP;
 				delete f;
 				f = NULL;
+
+				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				m.draw(ziel);
+				mode = BLENDE;
+				b.init(start, ziel, Blende::REV_ZOOM, MAP, GAME_TIMER_BPS/2);
 			}
 		break;
 		case BLENDE:
@@ -376,6 +384,18 @@ void Game::draw() {
 	#endif
 }
 
+void Game::set_var(string key, int val) {
+	stringstream ss;
+	ss << val;
+	vars[key] = ss.str();
+}
+
+string Game::get_var(string key) {
+	if(vars.find(key) != vars.end())
+		return vars[key];
+	return "";
+}
+
 Game::Blende::Blende() {
 	start = ziel = dest = NULL;
 	type = SCHIEBEN;
@@ -392,10 +412,19 @@ void Game::Blende::init(BITMAP* s, BITMAP *z, BLEND_TYPE t, Game::GAME_MODE m, i
 	type = t;
 	mode = m;
 
+	BITMAP *temp = NULL;
+
 	switch(type) {
 		case SCHIEBEN:
 			delta = PC_RESOLUTION_Y/frames;
 			versatz = PC_RESOLUTION_Y;
+		break;
+		case REV_ZOOM:
+			delta = PC_RESOLUTION_Y/frames;
+			versatz = PC_RESOLUTION_Y;
+			temp = start;
+			start = ziel;
+			ziel = temp;
 		break;
 		case ZOOM:
 			delta = PC_RESOLUTION_Y/frames;
@@ -426,6 +455,14 @@ Game::GAME_MODE Game::Blende::update() {
 				return mode;
 			}
 		break;
+		case REV_ZOOM:
+			versatz -= delta;
+			if(versatz <= 0) {
+				imageloader.destroy(start);
+				imageloader.destroy(ziel);
+				return mode;
+			}
+		break;
 		case STREIFEN:
 			for(int i = 0; i < 8; i++) {
 				rectfill(start, i*PC_RESOLUTION_X/8, versatz, (2*i+1)*PC_RESOLUTION_X/16-1, versatz+delta, makecol(255, 0, 255));
@@ -448,6 +485,7 @@ void Game::Blende::draw(BITMAP *buffer) {
 			blit(start, buffer, 0, 0, 0, PC_RESOLUTION_Y - versatz, PC_RESOLUTION_X, versatz);
 			blit(ziel, buffer, 0, versatz, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y - versatz);
 		break;
+		case REV_ZOOM:
 		case ZOOM:
 			blit(start, buffer, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 			stretch_blit(ziel, buffer, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y, (PC_RESOLUTION_X-(versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y)/2, (PC_RESOLUTION_Y-versatz)/2, (versatz*PC_RESOLUTION_X)/PC_RESOLUTION_Y, versatz);

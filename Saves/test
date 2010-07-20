@@ -6,4 +6,8 @@ name default ;;
 position_x 5 ;;
 position_y 5 ;;
 test 8.6 ;;
+CharactersInBattle Mario;Luigi; ;;
+Mario.hp 9876 ;;
+Mario.name test ;;
+Mario.speed 57 ;;
 [eof]

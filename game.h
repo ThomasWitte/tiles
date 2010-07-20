@@ -43,6 +43,9 @@ class Game {
 		void draw();
 		void set_player(class Sprite *s) {me = s;}
 		void action() {last_action = GAME_TIMER_BPS/4;}
+		void set_var(string key, string val) {vars[key] = val;};
+		void set_var(string key, int val);
+		string get_var(string key);
 #ifdef ENABLE_DIALOG_MOVE_LOCK
 		void set_move_lock(bool lock);
 #endif
@@ -52,7 +55,7 @@ class Game {
 
 		class Blende {
 			public:
-				enum BLEND_TYPE {SCHIEBEN, ZOOM, STREIFEN};
+				enum BLEND_TYPE {SCHIEBEN, ZOOM, REV_ZOOM, STREIFEN};
 				Blende();
 				~Blende();
 
@@ -73,7 +76,7 @@ class Game {
 		int last_action, lastx, lasty;
 		Map m;
 		Blende b;
-		Fight *f;
+		class Fight *f;
 		map<string, string> vars;
 		GAME_MODE mode;
 

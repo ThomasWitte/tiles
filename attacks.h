@@ -18,7 +18,7 @@
 #define ATTACKLIB_H
 
 #include <string>
-#include "fight.h"
+#include "fighter_base.h"
 
 using namespace std;
 
@@ -28,7 +28,7 @@ class AttackLib {
 		enum Element {NONE, HEAL, DEATH, BOLT, ICE, FIRE, WATER, WIND, EARTH, POISON, PEARL};
 		struct Attack {
 			string name;
-			int (*effect_function)(class Fighter*, Fighter*);
+			int (*effect_function)(class FighterBase*, FighterBase*);
 			int power;
 			bool physical;
 			bool ign_def;
@@ -39,12 +39,14 @@ class AttackLib {
 			int possible_targets;
 		};
 		static Attack get_attack(string name);
-		static int death(Fighter *caster, Fighter *target);
+		static int death(FighterBase *caster, FighterBase *target);
+		static int full_revive(FighterBase *caster, FighterBase *target);
+		static int revive(FighterBase *caster, FighterBase *target);
 	protected:
-		static int poison(Fighter *caster, Fighter *target);
-		static int seizure(Fighter *caster, Fighter *target);
-		static int poiseiz(Fighter *caster, Fighter *target);
-		static int muddle(Fighter *caster, Fighter *target);
+		static int poison(FighterBase *caster, FighterBase *target);
+		static int seizure(FighterBase *caster, FighterBase *target);
+		static int poiseiz(FighterBase *caster, FighterBase *target);
+		static int muddle(FighterBase *caster, FighterBase *target);
 		//statische overridemethoden
 };
 
