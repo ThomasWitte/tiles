@@ -16,6 +16,6 @@ Data
 ;;
 [Object]
 
-sprite 5 5 Mario player ;;
+sprite 5 5 Terra player ;;
 
 [eof]

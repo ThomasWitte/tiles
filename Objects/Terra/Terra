@@ -1,0 +1,46 @@
+< tiles 1.0 Sprite >
+[wait_up]
+	stand_up.tga ;;
+[walk_up]
+	walk_up1.tga ;;
+	walk_up1.tga ;;
+	stand_up.tga ;;
+	stand_up.tga ;;
+	walk_up2.tga ;;
+	walk_up2.tga ;;
+	stand_up.tga ;;
+	stand_up.tga ;;
+[wait_down]
+	stand_down.tga ;;
+[walk_down]
+	walk_down1.tga ;;
+	walk_down1.tga ;;
+	stand_down.tga ;;
+	stand_down.tga ;;
+	walk_down2.tga ;;
+	walk_down2.tga ;;
+	stand_down.tga ;;
+	stand_down.tga ;;
+[wait_left]
+	stand_left.tga ;;
+[walk_left]
+	walk_left1.tga ;;
+	walk_left1.tga ;;
+	stand_left.tga ;;
+	stand_left.tga ;;
+	walk_left2.tga ;;
+	walk_left2.tga ;;
+	stand_left.tga ;;
+	stand_left.tga ;;
+[wait_right]
+	stand_right.tga ;;
+[walk_right]
+	walk_right1.tga ;;
+	walk_right1.tga ;;
+	stand_right.tga ;;
+	stand_right.tga ;;
+	walk_right2.tga ;;
+	walk_right2.tga ;;
+	stand_right.tga ;;
+	stand_right.tga ;;
+[eof]
