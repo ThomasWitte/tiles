@@ -2,6 +2,7 @@
 [Level]
 Level keller ;;
 [Userdata]
+map.DefaultSprite Terra ;;
 CharactersInBattle Terra; ;;
 last_map großes_level ;;
 name default ;;
