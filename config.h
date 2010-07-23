@@ -48,6 +48,7 @@
 //Während Dialogen bewegung verbieten?
 #define ENABLE_DIALOG_MOVE_LOCK
 #define MAX_DAMAGE 9999
+#define XP_FACTOR 9.15 //werte zwischen 9.05 und 9.25 sollten funktionieren; niedriger = schneller levelup;
 
 //Tastenbelegungen
 #define MENU_KEY KEY_F12
