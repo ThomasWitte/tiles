@@ -216,14 +216,12 @@ void Map::laden(string dateiname, Game *parent) {
 
 	retall = parser.getall("Object", "sprite");
 	for(int n = 0; n < retall.size(); n++) {
-		int index = -1;
-		for(int i = 0; i < sprites.size(); i++) {
-			if(sprites[i]->get_name() == retall[n][3]) index = i;
-		}
-		if(index == -1) {
+		if(retall[n][2] == "DefaultSprite" && parent->get_var("Map.DefaultSprite") != "") {
+			sprites.push_back(new SpriteSet(parent->get_var("Map.DefaultSprite")));
+		} else {
 			sprites.push_back(new SpriteSet(retall[n][2]));
-			index = sprites.size()-1;
 		}
+		int index = sprites.size()-1;
 
 		if(retall[n][3] == "player") {
 			objects.push_back(new Sprite(

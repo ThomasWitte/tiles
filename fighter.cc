@@ -549,9 +549,10 @@ Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)
 int Hero::get_xp(int xp) {
 	c.xp += xp;
 	c.levelupxp -= xp;
-	if(c.levelupxp <= 0) {
+	while(c.levelupxp <= 0) {
 		c.level++;
-		c.levelupxp = 1000*(c.level+1)-c.xp; // Nicht final, ich weiß nicht, wie die Formel aussieht…
+		c.levelupxp += (XP_FACTOR*c.level*c.level) + ((14-XP_FACTOR)*c.level) + 18;
+		//HP etc steigern…
 		return 1;
 	}
 	return 0;

@@ -3,6 +3,7 @@
 Level keller ;;
 [Userdata]
 CharactersInBattle Mario;Luigi; ;;
+Map.DefaultSprite Luigi ;;
 Luigi.ablock 3 ;;
 Luigi.adefense 55 ;;
 Luigi.apower 60 ;;
