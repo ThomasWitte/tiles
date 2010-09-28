@@ -1,5 +1,6 @@
 < tiles 1.0 Fighter >
 [Fighter]
+	name Terra ;;
 	level 3 ;;
 	mp 24 ;;
 	hp 63 ;;
