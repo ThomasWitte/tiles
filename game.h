@@ -22,6 +22,7 @@
 #include <string>
 #include "map.h"
 #include "fight.h"
+#include "game_menu.h"
 #include "iohelper.h"
 
 struct Event {
