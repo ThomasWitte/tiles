@@ -52,7 +52,7 @@ class Game {
 #endif
 	protected:
 		enum EVENT {ON_LOAD, ON_EXIT, ALWAYS, PLAYER_AT, ON_ACTION, EXTENDED_EVENTS};
-		enum GAME_MODE {FIGHT, MAP, BLENDE};
+		enum GAME_MODE {FIGHT, MAP, BLENDE, MENU};
 
 		class Blende {
 			public:
@@ -78,6 +78,7 @@ class Game {
 		Map m;
 		Blende b;
 		class Fight *f;
+		class GameMenu *menu;
 		map<string, string> vars;
 		GAME_MODE mode;
 

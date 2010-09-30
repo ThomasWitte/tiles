@@ -25,9 +25,9 @@ int menu_bg_proc(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
 			for(int i = d->y, x = 0; i < d->h+d->y; i+=d->h/80, x++) {
-				rectfill(screen, d->x, i, d->x+d->w, i+d->h/80, makecol(x, x, 255-x));
+				rectfill(gui_get_screen(), d->x, i, d->x+d->w, i+d->h/80, makecol(x, x, 255-x));
 			}
-			rect(screen, d->x+3, d->y+3, d->x+d->w-4, d->y+d->h-4, makecol(255, 255, 255));
+			rect(gui_get_screen(), d->x+3, d->y+3, d->x+d->w-4, d->y+d->h-4, makecol(255, 255, 255));
 		break;
 	}
 	return D_O_K;

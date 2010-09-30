@@ -16,3 +16,35 @@
 
 #include "game_menu.h"
 
+GameMenu::GameMenu(Game *parent) {
+	this->parent = parent;
+
+	//Hier muss ein echter Dialog her…
+	dialog = new DIALOG[10];
+	DIALOG menu[] =
+	{
+	   /* (proc)        (x) (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                    (dp2) (dp3) */
+	   { d_button_proc, 56, 132, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Spiel starten", NULL, NULL },
+	   { d_button_proc, 56, 176, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",       NULL, NULL },
+	   { d_bitmap_proc, 56, 36,  212, 80,  0,   0,   0,    0,      0,   0,   NULL,				     NULL, NULL },
+	   { NULL,          0,  0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL }
+	};
+	memcpy(dialog, menu, 4*sizeof(DIALOG));
+	player = init_dialog(dialog, -1);
+}
+
+GameMenu::~GameMenu() {
+	shutdown_dialog(player);
+	delete [] dialog;
+}
+
+void GameMenu::draw(BITMAP *buffer) {
+	gui_set_screen(buffer);
+	dialog_message(dialog, MSG_DRAW, 0, NULL);
+	gui_set_screen(NULL);
+}
+
+int GameMenu::update() {
+	update_dialog(player); //Ich brauche einen Ersatz, der nichts zeichnet…
+	return 0; //0 = zurück zur map
+}

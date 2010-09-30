@@ -23,6 +23,7 @@
 Game::Game() : m("defaultLevel", this) {
 	me = NULL;
 	f = NULL;
+	menu = NULL;
 	last_action = 0;
 
 	buffer = NULL;
@@ -40,6 +41,8 @@ Game::Game() : m("defaultLevel", this) {
 Game::~Game() {
 	if(f)
 		delete f;
+	if(menu)
+		delete menu;
 	if(buffer)
 		imageloader.destroy(buffer);
 }
@@ -87,6 +90,8 @@ void Game::speichern(string spielstand) {
 
 void Game::laden(string spielstand) {
 	if(f) delete f;
+	if(menu) delete menu;
+
 	last_action = 0;
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
@@ -112,6 +117,8 @@ void Game::laden(string spielstand) {
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
 	}
+
+	menu = new GameMenu(this);
 	mode = MAP;
 }
 
@@ -358,6 +365,11 @@ void Game::update() {
 				b.init(start, ziel, Blende::REV_ZOOM, MAP, GAME_TIMER_BPS/2);
 			}
 		break;
+		case MENU:
+			if(menu->update() == 0) {//Menü wurde geschlossen
+				mode = MAP;
+			}
+		break;
 		case BLENDE:
 			mode = b.update();
 		break;
@@ -371,6 +383,9 @@ void Game::draw() {
 		break;
 		case FIGHT:
 			f->draw(buffer);
+		break;
+		case MENU:
+			menu->draw(buffer);
 		break;
 		case BLENDE:
 			b.draw(buffer);

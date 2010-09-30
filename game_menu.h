@@ -25,6 +25,15 @@
 using namespace std;
 
 class GameMenu {
+	public:
+		GameMenu(Game *parent);
+		~GameMenu();
+		void draw(BITMAP *buffer);
+		int update(); //liefert 0, wenn Menü geschlossen wurde
+	protected:
+		Game *parent;
+		DIALOG_PLAYER *player;
+		DIALOG *dialog;
 };
 
 #endif
