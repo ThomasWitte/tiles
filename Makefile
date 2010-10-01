@@ -28,7 +28,7 @@ all: $(OBJ)
 fedora: $(OBJ)
 	$(CC) $(CXXFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS_FEDORA)
 
-%.o: %.cc
+%.o: src/%.cc
 	$(CC) $(CXXFLAGS) -c $<
 
 clean:
