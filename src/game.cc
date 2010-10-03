@@ -297,6 +297,16 @@ void Game::update() {
 	switch(mode) {
 		case MAP:
 			m.update();
+			if(key[INGAME_MENU_KEY]) { //GameMenu öffnen
+				mode = MENU;
+
+				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				menu->draw(ziel);
+				mode = BLENDE;
+				b.init(start, ziel, Blende::SCHIEBEN, MENU, GAME_TIMER_BPS/4);
+			}
 			if(last_action)
 				key[ACTION_KEY] = 0;
 
@@ -368,6 +378,13 @@ void Game::update() {
 		case MENU:
 			if(menu->update() == 0) {//Menü wurde geschlossen
 				mode = MAP;
+
+				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				m.draw(ziel);
+				mode = BLENDE;
+				b.init(start, ziel, Blende::SCHIEBEN, MAP, GAME_TIMER_BPS/10);
 			}
 		break;
 		case BLENDE:

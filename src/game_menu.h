@@ -19,6 +19,7 @@
 
 #include <allegro.h>
 #include <string>
+#include <deque>
 #include "config.h"
 #include "game.h"
 
@@ -32,8 +33,10 @@ class GameMenu {
 		int update(); //liefert 0, wenn Menü geschlossen wurde
 	protected:
 		Game *parent;
-		DIALOG_PLAYER *player;
-		DIALOG *dialog;
+		int update_game_menu(DIALOG_PLAYER *player);
+		//DIALOG_PLAYER und DIALOG als Stack…
+		deque<DIALOG_PLAYER*> player;
+		deque<DIALOG*> dialog;
 };
 
 #endif

@@ -51,6 +51,10 @@
 #define XP_FACTOR 9.15 //werte zwischen 9.05 und 9.25 sollten funktionieren; niedriger = schneller levelup;
 
 //Tastenbelegungen
+#define DIR_LEFT KEY_LEFT
+#define DIR_RIGHT KEY_RIGHT
+#define DIR_UP KEY_UP
+#define DIR_DOWN KEY_DOWN
 #define INGAME_MENU_KEY KEY_ESC
 #define MENU_KEY KEY_F12
 #define ACTION_KEY KEY_SPACE
