@@ -14,31 +14,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GAME_MENU_H
-#define GAME_MENU_H
+#ifndef GUIHELPER_H
+#define GUIHELPER_H
 
 #include <allegro.h>
-#include <string>
-#include <deque>
-#include "config.h"
-#include "game.h"
 
-using namespace std;
+#define D_OPEN 128 //neuen Dialog öffnen, ID im d2 feld der sendenden DIALOG-Struktur
+int menu_bg_proc(int msg, DIALOG *d, int c);		//Farbverlauf als Menühintergrund
+int gvar_update(int msg, DIALOG *d, int c);		//angezeigter text wird ständig aktualisiert
+int v_ch_proc(int msg, DIALOG *d, int c);			//Container mit vertikaler Auswahl
+int r_box_proc(int msg, DIALOG *d, int c);			//abgerundete Box
 
-class GameMenu {
-	public:
-		GameMenu(Game *parent);
-		~GameMenu();
-		void draw(BITMAP *buffer);
-		int update(); //liefert 0, wenn Menü geschlossen wurde
-	protected:
-		enum DIALOG_ID {MAIN_DIALOG};
-		Game *parent;
-		int update_game_menu();
-		DIALOG *create_dialog(DIALOG_ID id);
-		//DIALOG_PLAYER und DIALOG als Stack…
-		deque<DIALOG_PLAYER*> player;
-		deque<DIALOG*> dialog;
-};
+//aus Allegro Quellcode:
+
+int move_focus(DIALOG *d, int ascii, int scan, int *focus_object);
 
 #endif

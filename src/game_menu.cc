@@ -1,4 +1,4 @@
-/*  Copyright 2009 Thomas Witte
+/*  Copyright 2009-2010 Thomas Witte
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,21 +15,12 @@
 */
 
 #include "game_menu.h"
+#include "guihelper.h"
 
 GameMenu::GameMenu(Game *parent) {
 	this->parent = parent;
 
-	//Hier muss ein echter Dialog her…
-	dialog.push_back(new DIALOG[10]);
-	DIALOG menu[] =
-	{
-	   /* (proc)        (x) (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                    (dp2) (dp3) */
-	   { d_box_proc, 0, 0,  320, 240,  0,   makecol(128,128,128),   0,    0,      0,   0,   NULL,				     NULL, NULL },
-	   { d_button_proc, 56, 132, 212, 28,  makecol(0,0,0),   makecol(255,255,255),   0,    D_EXIT, 0,   0,   (void*)"Spiel starten", NULL, NULL },
-	   { d_button_proc, 56, 176, 212, 28,  makecol(0,0,0),   makecol(255,255,255),   0,    D_EXIT, 0,   0,   (void*)"Beenden",       NULL, NULL },
-	   { NULL,          0,  0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL }
-	};
-	memcpy(dialog[0], menu, 4*sizeof(DIALOG));
+	dialog.push_back(create_dialog(MAIN_DIALOG));
 	player.push_back(init_dialog(dialog[0], -1));
 }
 
@@ -47,25 +38,70 @@ void GameMenu::draw(BITMAP *buffer) {
 }
 
 int GameMenu::update() {
-	if(!update_game_menu(player.back())) {
-		if(player.back()->obj == -1)
+	if(!update_game_menu()) { //D_CLOSE erhalten!
+		if(player.size() <= 1) {
 			return 0; //zurück zur map
-		else {
-			//neuen Dialog öffnen?!
+		} else { //aktiven Dialog schließen
+			shutdown_dialog(player.back());
+			player.pop_back();
+			delete [] dialog.back();
+			dialog.pop_back();
 		}
+	} else if(player.back()->res & D_OPEN) {
+		player.back()->res &= ~D_OPEN;
+		DIALOG_ID id = (DIALOG_ID)(player.back()->dialog + player.back()->obj)->d2;
+		dialog.push_back(create_dialog(id));
+		player.push_back(init_dialog(dialog.back(), -1));
 	}
 	return 1;
 }
 
-int GameMenu::update_game_menu(DIALOG_PLAYER *player)
+DIALOG *GameMenu::create_dialog(DIALOG_ID id) {
+	DIALOG *ret = NULL;
+	switch(id) {
+		default:
+		case MAIN_DIALOG:
+			ret = new DIALOG[13];
+			DIALOG menu[] =
+			{
+			   /* (proc)        (x)  (y)  (w)  (h)  (fg)		(bg)		(key) (flags) (d1) (d2) (dp)             (dp2) (dp3) */
+			   { menu_bg_proc,  0,   0,   320, 240, 0,   		0,  		0,    0,      0,   0,   NULL,            NULL, NULL },
+			   { r_box_proc,    232, 8,   80,  136, COL_WHITE,	-1,			0,    0,      0,   0,   NULL,            NULL, NULL },
+			   { r_box_proc,    232, 144, 80,  32,  COL_WHITE,	-1,   		0,    0,      0,   0,   NULL,            NULL, NULL },
+			   { r_box_proc,    232, 176, 80,  56,  COL_WHITE,	-1,   		0,    0,      0,   0,   NULL,            NULL, NULL },
+			   { d_text_proc,   240, 184, 56,  8,   COL_WHITE,	-1,   		0,    0,      0,   0,   (void*)"Time",   NULL, NULL },
+			   { d_text_proc,   240, 208, 56,  8,   COL_WHITE,	-1,   		0,    0,      0,   0,   (void*)"Steps",  NULL, NULL },
+			   { d_text_proc,   240, 152, 56,  8,   COL_WHITE,	-1,   		0,    0,      0,   0,   (void*)"Gil",    NULL, NULL },
+			   { v_ch_proc,		240, 16,  64,  120, 0,   		0,   		0,    0,      0,   0,   (void*)"button", NULL, NULL },
+			   { v_ch_proc,		8,   8,   216, 224, 0,   		0,   		0,    0,      0,   0,   (void*)"button", NULL, NULL },
+			   { gvar_update,	248, 192, 56,  8,   COL_WHITE,	-1,   		0,    0,      0,   0,   (void*)parent, 	 (void*)"Game.Playtime", NULL },
+			   { gvar_update,	248, 216, 56,  8,   COL_WHITE,	-1,   		0,    0,      0,   0,   (void*)parent,   (void*)"Game.Steps", NULL },
+			   { gvar_update,	248, 160, 56,  8,   COL_WHITE,	-1,   		0,    0,      0,   0,   (void*)parent,   (void*)"gp", NULL },
+			   { NULL,          0,   0,   0,   0,   0,   		0,   		0,    0,      0,   0,   NULL,            NULL, NULL }
+			};
+			memcpy(ret, menu, 13*sizeof(DIALOG));
+		break;
+	}
+	return ret;
+}
+
+#define MESSAGE(i, msg, c) {                       \
+   r = object_message(player.back()->dialog+i, msg, c);   \
+   if (r != D_O_K) {                               \
+      player.back()->res |= r;                            \
+      player.back()->obj = i;                             \
+   }                                               \
+}
+
+int GameMenu::update_game_menu()
 {
    int c, cascii, cscan, ccombo, r, ret, nowhere, z;
-   ASSERT(player);
+   ASSERT(player.back());
 
    /* need to give the input focus to someone? */
-   if (player->res & D_WANTFOCUS) {
-      player->res ^= D_WANTFOCUS;
-      player->res |= offer_focus(player->dialog, player->obj, &player->focus_obj, FALSE);
+   if (player.back()->res & D_WANTFOCUS) {
+      player.back()->res ^= D_WANTFOCUS;
+      player.back()->res |= offer_focus(player.back()->dialog, player.back()->obj, &player.back()->focus_obj, FALSE);
    }
 
    /* deal with keyboard input */
@@ -76,61 +112,60 @@ int GameMenu::update_game_menu(DIALOG_PLAYER *player)
       ccombo = (cscan<<8) | ((cascii <= 255) ? cascii : '^');
 
       /* let object deal with the key */
-      if (player->focus_obj >= 0) {
-	 object_message(&dialog.back()[player->focus_obj], MSG_CHAR, ccombo);
-	 if (player->res & (D_USED_CHAR | D_CLOSE))
+      if (player.back()->focus_obj >= 0) {
+	 MESSAGE(player.back()->focus_obj, MSG_CHAR, ccombo);
+	 if (player.back()->res & (D_USED_CHAR | D_CLOSE))
 	    goto getout;
 
-	 object_message(&dialog.back()[player->focus_obj], MSG_UCHAR, cascii);
-	 if (player->res & (D_USED_CHAR | D_CLOSE))
+	 MESSAGE(player.back()->focus_obj, MSG_UCHAR, cascii);
+	 if (player.back()->res & (D_USED_CHAR | D_CLOSE))
 	    goto getout;
       }
 
       /* keyboard shortcut? */
-      for (c=0; player->dialog[c].proc; c++) {
+      for (c=0; player.back()->dialog[c].proc; c++) {
 	 if ((((cascii > 0) && (cascii <= 255) &&
-	       (utolower(player->dialog[c].key) == utolower((cascii)))) ||
-	      ((!cascii) && (player->dialog[c].key == (cscan<<8)))) &&
-	     (!(player->dialog[c].flags & (D_HIDDEN | D_DISABLED)))) {
-	    object_message(&dialog.back()[c], MSG_KEY, ccombo);
+	       (utolower(player.back()->dialog[c].key) == utolower((cascii)))) ||
+	      ((!cascii) && (player.back()->dialog[c].key == (cscan<<8)))) &&
+	     (!(player.back()->dialog[c].flags & (D_HIDDEN | D_DISABLED)))) {
+	    MESSAGE(c, MSG_KEY, ccombo);
 	    goto getout;
 	 }
       }
 
       /* broadcast in case any other objects want it */
-      for (c=0; player->dialog[c].proc; c++) {
-	 if (!(player->dialog[c].flags & (D_HIDDEN | D_DISABLED))) {
-	    object_message(&dialog.back()[c], MSG_XCHAR, ccombo);
-	    if (player->res & D_USED_CHAR)
+      for (c=0; player.back()->dialog[c].proc; c++) {
+	 if (!(player.back()->dialog[c].flags & (D_HIDDEN | D_DISABLED))) {
+	    MESSAGE(c, MSG_XCHAR, ccombo);
+	    if (player.back()->res & D_USED_CHAR)
 	       goto getout;
 	 }
       }
 
       /* pass <CR> or <SPACE> to selected object */
-      if (key[ACTION_KEY] &&
-	  (player->focus_obj >= 0)) {
-	 object_message(&dialog.back()[player->focus_obj], MSG_KEY, ccombo);
-	 goto getout;
+      if (key[ACTION_KEY] && (player.back()->focus_obj >= 0)) {
+		 MESSAGE(player.back()->focus_obj, MSG_KEY, ccombo);
+		 goto getout;
       }
 
       /* ESC closes dialog */
       if (key[INGAME_MENU_KEY]) {
-	 player->res |= D_CLOSE;
-	 player->obj = -1;
+	 player.back()->res |= D_CLOSE;
+	 player.back()->obj = -1;
 	 goto getout;
       }
 
       /* move focus around the dialog */
-      //player->res |= move_focus(player->dialog, cascii, cscan, &player->focus_obj);
+      player.back()->res |= move_focus(player.back()->dialog, cascii, cscan, &player.back()->focus_obj);
    }
 
    /* send idle messages */
-   player->res |= dialog_message(player->dialog, MSG_IDLE, 0, &player->obj);
+   player.back()->res |= dialog_message(player.back()->dialog, MSG_IDLE, 0, &player.back()->obj);
 
    getout:
 
-   ret = (!(player->res & D_CLOSE));
-   player->res &= ~D_CLOSE;
+   ret = (!(player.back()->res & D_CLOSE));
+   player.back()->res &= ~D_CLOSE;
    return ret;
 }
 

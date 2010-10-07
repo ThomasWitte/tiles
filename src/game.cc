@@ -24,8 +24,8 @@ Game::Game() : m("defaultLevel", this) {
 	me = NULL;
 	f = NULL;
 	menu = NULL;
-	last_action = 0;
-
+	last_action = frame = 0;
+	
 	buffer = NULL;
 
 	#ifdef GP2X
@@ -325,6 +325,7 @@ void Game::update() {
 						}
 					lastx = x;
 					lasty = y;
+					set_var("Game.Steps", atoi(get_var("Game.Steps").c_str())+1);
 				}
 				switch(me->get_direction()) {
 					case Sprite::UP:
@@ -391,6 +392,11 @@ void Game::update() {
 			mode = b.update();
 		break;
 	}
+	frame++;
+	if(frame > GAME_TIMER_BPS) {
+		frame = 0;
+		inc_playtime(1);
+	}
 }
 
 void Game::draw() {
@@ -426,6 +432,29 @@ string Game::get_var(string key) {
 	if(vars.find(key) != vars.end())
 		return vars[key];
 	return "";
+}
+
+void Game::inc_playtime(int seconds) {
+	string pt = get_var("Game.Playtime");
+	int s = 0, min = 0, h = 0;
+
+	if(pt.find_last_of(":") != string::npos) {
+		s = seconds + atoi(pt.substr(pt.find_last_of(":")+1).c_str());
+		pt.erase(pt.find_last_of(":"));
+	}
+	if(pt.find_last_of(":") != string::npos) {
+		min = (s/60) + atoi(pt.substr(pt.find_last_of(":")+1).c_str());
+		pt.erase(pt.find_last_of(":"));
+	}
+
+	h = (min/60) + atoi(pt.c_str());
+	s = s%60;
+	min = min%60;
+
+	char temp[15];
+	sprintf(temp, "%i:%2i:%2i", h, min, s);
+	pt = temp;
+	set_var("Game.Playtime", pt);
 }
 
 Game::Blende::Blende() {

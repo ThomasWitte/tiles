@@ -74,7 +74,7 @@ class Game {
 
 		BITMAP *buffer;
 		Sprite *me;
-		int last_action, lastx, lasty;
+		int last_action, lastx, lasty, frame;
 		Map m;
 		Blende b;
 		class Fight *f;
@@ -88,6 +88,8 @@ class Game {
 		void dialog(Event *e);
 		void set_player_position(Event *e);
 		void if_function(Event *e);
+
+		void inc_playtime(int seconds);
 };
 
 #endif
