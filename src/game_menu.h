@@ -32,7 +32,7 @@ class GameMenu {
 		void draw(BITMAP *buffer);
 		int update(); //liefert 0, wenn Menü geschlossen wurde
 	protected:
-		enum DIALOG_ID {MAIN_DIALOG};
+		enum DIALOG_ID {MAIN_DIALOG, ITEM_DIALOG, SKILL_DIALOG, EQUIP_DIALOG, RELIC_DIALOG, STATUS_DIALOG};
 		Game *parent;
 		int update_game_menu();
 		DIALOG *create_dialog(DIALOG_ID id);

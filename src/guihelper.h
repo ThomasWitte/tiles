@@ -19,11 +19,13 @@
 
 #include <allegro.h>
 
-#define D_OPEN 128 //neuen Dialog öffnen, ID im d2 feld der sendenden DIALOG-Struktur
+#define D_SPAWN 128 	//neuen Dialog öffnen, ID im d2 feld der sendenden DIALOG-Struktur
+#define D_OPEN	D_USER 	//dieses objekt soll beim aktivieren einen neuen Dialog öffnen (D_SPAWN senden)
 int menu_bg_proc(int msg, DIALOG *d, int c);		//Farbverlauf als Menühintergrund
-int gvar_update(int msg, DIALOG *d, int c);		//angezeigter text wird ständig aktualisiert
+int gvar_update(int msg, DIALOG *d, int c);			//angezeigter text wird ständig aktualisiert
 int v_ch_proc(int msg, DIALOG *d, int c);			//Container mit vertikaler Auswahl
 int r_box_proc(int msg, DIALOG *d, int c);			//abgerundete Box
+int ff6_button(int msg, DIALOG *d, int c);			//button mit zeigender Hand
 
 //aus Allegro Quellcode:
 
