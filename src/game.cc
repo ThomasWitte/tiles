@@ -23,8 +23,9 @@
 Game::Game() : m("defaultLevel", this) {
 	me = NULL;
 	f = NULL;
-	last_action = 0;
-
+	menu = NULL;
+	last_action = frame = 0;
+	
 	buffer = NULL;
 
 	#ifdef GP2X
@@ -40,6 +41,8 @@ Game::Game() : m("defaultLevel", this) {
 Game::~Game() {
 	if(f)
 		delete f;
+	if(menu)
+		delete menu;
 	if(buffer)
 		imageloader.destroy(buffer);
 }
@@ -87,6 +90,8 @@ void Game::speichern(string spielstand) {
 
 void Game::laden(string spielstand) {
 	if(f) delete f;
+	if(menu) delete menu;
+
 	last_action = 0;
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
@@ -112,6 +117,8 @@ void Game::laden(string spielstand) {
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
 	}
+
+	menu = new GameMenu(this);
 	mode = MAP;
 }
 
@@ -290,6 +297,16 @@ void Game::update() {
 	switch(mode) {
 		case MAP:
 			m.update();
+			if(key[INGAME_MENU_KEY]) { //GameMenu öffnen
+				mode = MENU;
+
+				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				menu->draw(ziel);
+				mode = BLENDE;
+				b.init(start, ziel, Blende::SCHIEBEN, MENU, GAME_TIMER_BPS/4);
+			}
 			if(last_action)
 				key[ACTION_KEY] = 0;
 
@@ -308,6 +325,7 @@ void Game::update() {
 						}
 					lastx = x;
 					lasty = y;
+					set_var("Game.Steps", atoi(get_var("Game.Steps").c_str())+1);
 				}
 				switch(me->get_direction()) {
 					case Sprite::UP:
@@ -358,9 +376,26 @@ void Game::update() {
 				b.init(start, ziel, Blende::REV_ZOOM, MAP, GAME_TIMER_BPS/2);
 			}
 		break;
+		case MENU:
+			if(menu->update() == 0) {//Menü wurde geschlossen
+				mode = MAP;
+
+				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				m.draw(ziel);
+				mode = BLENDE;
+				b.init(start, ziel, Blende::SCHIEBEN, MAP, GAME_TIMER_BPS/10);
+			}
+		break;
 		case BLENDE:
 			mode = b.update();
 		break;
+	}
+	frame++;
+	if(frame > GAME_TIMER_BPS) {
+		frame = 0;
+		inc_playtime(1);
 	}
 }
 
@@ -371,6 +406,9 @@ void Game::draw() {
 		break;
 		case FIGHT:
 			f->draw(buffer);
+		break;
+		case MENU:
+			menu->draw(buffer);
 		break;
 		case BLENDE:
 			b.draw(buffer);
@@ -394,6 +432,29 @@ string Game::get_var(string key) {
 	if(vars.find(key) != vars.end())
 		return vars[key];
 	return "";
+}
+
+void Game::inc_playtime(int seconds) {
+	string pt = get_var("Game.Playtime");
+	int s = 0, min = 0, h = 0;
+
+	if(pt.find_last_of(":") != string::npos) {
+		s = seconds + atoi(pt.substr(pt.find_last_of(":")+1).c_str());
+		pt.erase(pt.find_last_of(":"));
+	}
+	if(pt.find_last_of(":") != string::npos) {
+		min = (s/60) + atoi(pt.substr(pt.find_last_of(":")+1).c_str());
+		pt.erase(pt.find_last_of(":"));
+	}
+
+	h = (min/60) + atoi(pt.c_str());
+	s = s%60;
+	min = min%60;
+
+	char temp[15];
+	sprintf(temp, "%i:%2i:%2i", h, min, s);
+	pt = temp;
+	set_var("Game.Playtime", pt);
 }
 
 Game::Blende::Blende() {

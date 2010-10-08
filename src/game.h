@@ -22,6 +22,7 @@
 #include <string>
 #include "map.h"
 #include "fight.h"
+#include "game_menu.h"
 #include "iohelper.h"
 
 struct Event {
@@ -51,7 +52,7 @@ class Game {
 #endif
 	protected:
 		enum EVENT {ON_LOAD, ON_EXIT, ALWAYS, PLAYER_AT, ON_ACTION, EXTENDED_EVENTS};
-		enum GAME_MODE {FIGHT, MAP, BLENDE};
+		enum GAME_MODE {FIGHT, MAP, BLENDE, MENU};
 
 		class Blende {
 			public:
@@ -73,10 +74,11 @@ class Game {
 
 		BITMAP *buffer;
 		Sprite *me;
-		int last_action, lastx, lasty;
+		int last_action, lastx, lasty, frame;
 		Map m;
 		Blende b;
 		class Fight *f;
+		class GameMenu *menu;
 		map<string, string> vars;
 		GAME_MODE mode;
 
@@ -86,6 +88,8 @@ class Game {
 		void dialog(Event *e);
 		void set_player_position(Event *e);
 		void if_function(Event *e);
+
+		void inc_playtime(int seconds);
 };
 
 #endif
