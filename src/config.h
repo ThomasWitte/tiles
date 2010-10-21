@@ -17,7 +17,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define MAX_TILES_PER_TILESET 256
+#define MAX_TILES_PER_TILESET 1024
 
 //Spielname
 #define TILES_NAME "tiles"

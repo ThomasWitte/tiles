@@ -19,8 +19,8 @@ CXXFLAGS = -O2 -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
 LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
 
-OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o command.o fighter.o game_menu.o guihelper.o
-BIN =     tiles
+OBJ =     extract_tileset.o
+BIN =     extract_tileset
 
 all: $(OBJ)
 	$(CC) $(CXXFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS)
@@ -31,9 +31,5 @@ fedora: $(OBJ)
 %.o: src/%.cc
 	$(CC) $(CXXFLAGS) -c $<
 
-tools:
-	cd Tools && make && cd ..
-
 clean:
-	rm -rf $(BIN) $(OBJ) *~ && \
-	cd Tools && make clean && cd ..
+	rm -rf $(BIN) $(OBJ) *~
