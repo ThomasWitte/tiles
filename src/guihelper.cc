@@ -50,7 +50,59 @@ int gvar_update(int msg, DIALOG *d, int c) {
 	return D_O_K;
 }
 
-int v_ch_proc(int msg, DIALOG *d, int c) {
+int char_select(int msg, DIALOG *d, int c) {
+	BITMAP *scr = gui_get_screen();
+	string *name = new string("empty");
+	Game *g = (Game*)d->dp;
+	string chars;
+	switch(msg) {
+		case MSG_START:
+			//eigenen namen herausfinden
+			chars = g->get_var("CharactersInBattle");
+			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
+				int pos = chars.find_first_of(";");
+				if(pos == string::npos) {
+					//Position bleibt leer
+					d->dp2 = NULL;
+					break;
+				}
+				*name = chars.substr(0, pos);
+				chars.erase(0, pos+1);
+			}
+			//portrait laden…
+			d->dp2 = (void*)imageloader.load("Fights/Fighters/" + *name + "/face.tga");
+			d->dp3 = (void*)name;
+		break;
+		case MSG_DRAW:
+			name = (string*)d->dp3;
+			if(*name != "empty") { //sonst leere position…
+				int def = 0;
+				if(g->get_var((*name) + ".defensive") == "true")
+					def = 10;
+				//portrait
+				masked_blit((BITMAP*)d->dp2, scr, 0, 0, d->x + 3 + def, d->y,((BITMAP*)d->dp2)->w, ((BITMAP*)d->dp2)->h);
+				//name
+				gui_textout_ex(scr, g->get_var((*name) + ".name").c_str(), d->x + 60, d->y, d->fg, d->bg, FALSE);
+				//level
+				gui_textout_ex(scr, "LV", d->x + 65, d->y + 12, d->fg, d->bg, FALSE);
+				gui_textout_ex(scr, g->get_var((*name) + ".level").c_str(), d->x + 97, d->y + 12, d->fg, d->bg, FALSE);
+				//HP
+				gui_textout_ex(scr, "HP      /", d->x + 65, d->y + 24, d->fg, d->bg, FALSE);
+				gui_textout_ex(scr, g->get_var((*name) + ".curhp").c_str(), d->x + 97, d->y + 24, d->fg, d->bg, FALSE);
+				gui_textout_ex(scr, g->get_var((*name) + ".hp").c_str(), d->x + 137, d->y + 24, d->fg, d->bg, FALSE);
+				//MP
+				gui_textout_ex(scr, "MP      /", d->x + 65, d->y + 36, d->fg, d->bg, FALSE);
+				gui_textout_ex(scr, g->get_var((*name) + ".curmp").c_str(), d->x + 97, d->y + 36, d->fg, d->bg, FALSE);
+				gui_textout_ex(scr, g->get_var((*name) + ".mp").c_str(), d->x + 137, d->y + 36, d->fg, d->bg, FALSE);
+			}
+		break;
+		case MSG_END:
+			imageloader.destroy((BITMAP*)d->dp2);
+			delete (string*)d->dp3;
+		break;
+		default:
+			return d_button_proc(msg, d, c);
+	}
 	return D_O_K;
 }
 

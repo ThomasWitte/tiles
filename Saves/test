@@ -2,6 +2,7 @@
 [Level]
 Level großes_level ;;
 [Userdata]
+Map.DefaultSprite Mario ;;
 name default ;;
 position_x 5 ;;
 position_y 5 ;;

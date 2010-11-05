@@ -9,7 +9,7 @@ Luigi.adefense 55 ;;
 Luigi.apower 60 ;;
 Luigi.curhp 100 ;;
 Luigi.curmp 50 ;;
-Luigi.defensive false ;;
+Luigi.defensive true ;;
 Luigi.element0 normal ;;
 Luigi.element1 absorb ;;
 Luigi.element10 normal ;;
