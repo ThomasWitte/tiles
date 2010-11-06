@@ -52,11 +52,13 @@ int gvar_update(int msg, DIALOG *d, int c) {
 
 int char_select(int msg, DIALOG *d, int c) {
 	BITMAP *scr = gui_get_screen();
-	string *name = new string("empty");
+	int offset = 0;
+	string *name = NULL;
 	Game *g = (Game*)d->dp;
 	string chars;
 	switch(msg) {
 		case MSG_START:
+			name = new string();
 			//eigenen namen herausfinden
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
@@ -64,23 +66,35 @@ int char_select(int msg, DIALOG *d, int c) {
 				if(pos == string::npos) {
 					//Position bleibt leer
 					d->dp2 = NULL;
+					d->flags |= D_DISABLED;
 					break;
 				}
 				*name = chars.substr(0, pos);
 				chars.erase(0, pos+1);
 			}
 			//portrait laden…
-			d->dp2 = (void*)imageloader.load("Fights/Fighters/" + *name + "/face.tga");
+			d->dp2 = (void*)new BITMAP*[2];
+			((BITMAP**)d->dp2)[0] = imageloader.load("Fights/Fighters/" + *name + "/face.tga");
+			//finger
+			((BITMAP**)d->dp2)[1] = imageloader.load("Images/auswahl.tga");
 			d->dp3 = (void*)name;
+
+			if(!(d->flags & D_DISABLED)) {
+				if(g->get_var((*name) + ".defensive") == "true") {
+					d->flags |= D_SELECTED;
+				} else {
+					d->flags &= ~D_SELECTED;
+				}
+			}
 		break;
 		case MSG_DRAW:
-			name = (string*)d->dp3;
-			if(*name != "empty") { //sonst leere position…
+			if(!(d->flags & D_DISABLED)) { //sonst leere position…
+				name = (string*)d->dp3;
 				int def = 0;
-				if(g->get_var((*name) + ".defensive") == "true")
+				if(d->flags & D_SELECTED)
 					def = 10;
 				//portrait
-				masked_blit((BITMAP*)d->dp2, scr, 0, 0, d->x + 3 + def, d->y,((BITMAP*)d->dp2)->w, ((BITMAP*)d->dp2)->h);
+				masked_blit(((BITMAP**)d->dp2)[0], scr, 0, 0, d->x + 3 + def, d->y,((BITMAP**)d->dp2)[0]->w, ((BITMAP**)d->dp2)[0]->h);
 				//name
 				gui_textout_ex(scr, g->get_var((*name) + ".name").c_str(), d->x + 60, d->y, d->fg, d->bg, FALSE);
 				//level
@@ -94,10 +108,46 @@ int char_select(int msg, DIALOG *d, int c) {
 				gui_textout_ex(scr, "MP      /", d->x + 65, d->y + 36, d->fg, d->bg, FALSE);
 				gui_textout_ex(scr, g->get_var((*name) + ".curmp").c_str(), d->x + 97, d->y + 36, d->fg, d->bg, FALSE);
 				gui_textout_ex(scr, g->get_var((*name) + ".mp").c_str(), d->x + 137, d->y + 36, d->fg, d->bg, FALSE);
+
+				if(d->flags & D_GOTFOCUS) {
+					offset = 30*d->d1/GAME_TIMER_BPS;
+					if(offset < 0) offset *= -1;
+					masked_blit(((BITMAP**)d->dp2)[1], scr, 0, 0, d->x-((BITMAP**)d->dp2)[1]->w-offset+10, d->y+10, ((BITMAP**)d->dp2)[1]->w, ((BITMAP*)d->dp2)->h);
+				}
 			}
 		break;
+		case MSG_IDLE:
+			//reihenfolge verändert?
+			name = new string("empty");
+			chars = g->get_var("CharactersInBattle");
+			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
+				int pos = chars.find_first_of(";");
+				if(pos == string::npos) {
+					break;
+				}
+				*name = chars.substr(0, pos);
+				chars.erase(0, pos+1);
+			}
+			if(*name != *(string*)d->dp3) {
+				char_select(MSG_END, d, c);
+				char_select(MSG_START, d, c);
+			}
+			delete name;
+
+			//beweglicher finger:
+			d->d1--;
+			if(d->d1 < -GAME_TIMER_BPS/6)
+				d->d1 = GAME_TIMER_BPS/6;
+		break;
 		case MSG_END:
-			imageloader.destroy((BITMAP*)d->dp2);
+			if(d->flags & D_SELECTED) {
+				g->set_var(*((string*)d->dp3) + ".defensive", "true");
+			} else {
+				g->set_var(*((string*)d->dp3) + ".defensive", "false");
+			}
+			imageloader.destroy(((BITMAP**)d->dp2)[0]);
+			imageloader.destroy(((BITMAP**)d->dp2)[1]);
+			delete [] (BITMAP*)d->dp2;
 			delete (string*)d->dp3;
 		break;
 		default:

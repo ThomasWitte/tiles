@@ -21,7 +21,7 @@ GameMenu::GameMenu(Game *parent) {
 	this->parent = parent;
 
 	dialog.push_back(create_dialog(MAIN_DIALOG));
-	player.push_back(init_dialog(dialog[0], 11));
+	player.push_back(init_dialog(dialog[0], 10));
 }
 
 GameMenu::~GameMenu() {
@@ -93,7 +93,7 @@ DIALOG *GameMenu::create_dialog(DIALOG_ID id) {
    { char_select,  8,   176, 216, 56,  COL_WHITE, -1,  0,    0,          0,   3,             (void*)parent,      NULL,                   NULL },
    { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                   NULL }
 };
-			memcpy(ret, menu, 19*sizeof(DIALOG));
+			memcpy(ret, menu, 22*sizeof(DIALOG));
 		break;
 	}
 	return ret;

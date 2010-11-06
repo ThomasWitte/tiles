@@ -299,6 +299,7 @@ void Game::update() {
 			m.update();
 			if(key[INGAME_MENU_KEY]) { //GameMenu öffnen
 				mode = MENU;
+				clear_keybuf();
 
 				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
