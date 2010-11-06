@@ -101,9 +101,19 @@ int char_select(int msg, DIALOG *d, int c) {
 				gui_textout_ex(scr, "LV", d->x + 65, d->y + 12, d->fg, d->bg, FALSE);
 				gui_textout_ex(scr, g->get_var((*name) + ".level").c_str(), d->x + 97, d->y + 12, d->fg, d->bg, FALSE);
 				//HP
-				gui_textout_ex(scr, "HP      /", d->x + 65, d->y + 24, d->fg, d->bg, FALSE);
-				gui_textout_ex(scr, g->get_var((*name) + ".curhp").c_str(), d->x + 97, d->y + 24, d->fg, d->bg, FALSE);
-				gui_textout_ex(scr, g->get_var((*name) + ".hp").c_str(), d->x + 137, d->y + 24, d->fg, d->bg, FALSE);
+				if(g->get_var((*name) + ".status9") == "suffering") { //NearFatal
+					gui_textout_ex(scr, "HP      /", d->x + 65, d->y + 24, COL_YELLOW, d->bg, FALSE);
+					gui_textout_ex(scr, g->get_var((*name) + ".curhp").c_str(), d->x + 97, d->y + 24, COL_YELLOW, d->bg, FALSE);
+					gui_textout_ex(scr, g->get_var((*name) + ".hp").c_str(), d->x + 137, d->y + 24, COL_YELLOW, d->bg, FALSE);
+				} else if(g->get_var((*name) + ".status7") == "suffering") { //Wound
+					gui_textout_ex(scr, "HP      /", d->x + 65, d->y + 24, COL_RED, d->bg, FALSE);
+					gui_textout_ex(scr, g->get_var((*name) + ".curhp").c_str(), d->x + 97, d->y + 24, COL_RED, d->bg, FALSE);
+					gui_textout_ex(scr, g->get_var((*name) + ".hp").c_str(), d->x + 137, d->y + 24, COL_RED, d->bg, FALSE);
+				} else {
+					gui_textout_ex(scr, "HP      /", d->x + 65, d->y + 24, d->fg, d->bg, FALSE);
+					gui_textout_ex(scr, g->get_var((*name) + ".curhp").c_str(), d->x + 97, d->y + 24, d->fg, d->bg, FALSE);
+					gui_textout_ex(scr, g->get_var((*name) + ".hp").c_str(), d->x + 137, d->y + 24, d->fg, d->bg, FALSE);
+				}
 				//MP
 				gui_textout_ex(scr, "MP      /", d->x + 65, d->y + 36, d->fg, d->bg, FALSE);
 				gui_textout_ex(scr, g->get_var((*name) + ".curmp").c_str(), d->x + 97, d->y + 36, d->fg, d->bg, FALSE);
@@ -112,7 +122,7 @@ int char_select(int msg, DIALOG *d, int c) {
 				if(d->flags & D_GOTFOCUS) {
 					offset = 30*d->d1/GAME_TIMER_BPS;
 					if(offset < 0) offset *= -1;
-					masked_blit(((BITMAP**)d->dp2)[1], scr, 0, 0, d->x-((BITMAP**)d->dp2)[1]->w-offset+10, d->y+10, ((BITMAP**)d->dp2)[1]->w, ((BITMAP*)d->dp2)->h);
+					masked_blit(((BITMAP**)d->dp2)[1], scr, 0, 0, d->x-((BITMAP**)d->dp2)[1]->w-offset+10, d->y+10, ((BITMAP**)d->dp2)[1]->w, ((BITMAP**)d->dp2)[1]->h);
 				}
 			}
 		break;
