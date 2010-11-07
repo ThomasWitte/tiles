@@ -1,0 +1,39 @@
+< tiles 1.0 Fighter >
+[Fighter]
+	name Guard ;;
+	level 5 ;;
+	defensive 0 ;;
+	hp 40 ;;
+	mp 15 ;;
+	speed 30 ;;
+	stamina 0 ;;
+	mpower 6 ;;
+	apower 16 ;;
+	ablock 0 ;;
+	mblock 0 ;;
+	adefense 100 ;;
+	mdefense 140 ;;
+	hitrate 100 ;;
+[Elements]
+	Poison weak ;;
+	Heal absorb ;;
+[Treasure]
+	xp 48 ;;
+	gp 48 ;;
+	Stolen Potion Tonic Tonic Tonic Tonic Tonic Tonic Tonic ;;
+	Dropped Tonic none none none none none none none ;;
+	Morph 100 ;;
+	MorphItems Antidote GreenCherry Eyedrop Soft ;;
+[Special]
+	Human 1 ;;
+[Menu]
+	Fight ;;
+[Sketch]
+	Fight Fight ;;
+[Rage]
+	Fight Critical ;;
+[Script]
+	rand Fight Fight Critical ;;
+[normal]
+	Guard.tga ;;
+[eof]

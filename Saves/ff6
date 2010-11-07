@@ -1,0 +1,11 @@
+< tiles 1.0 Savefile >
+[Level]
+Level keller ;;
+[Userdata]
+Map.DefaultSprite Terra ;;
+CharactersInBattle Terra; ;;
+last_map großes_level ;;
+name default ;;
+position_x 7 ;;
+position_y 2 ;;
+[eof]

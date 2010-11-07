@@ -1,0 +1,54 @@
+< tiles 1.0 Fighter >
+[Fighter]
+	name Terra ;;
+	level 3 ;;
+	mp 24 ;;
+	hp 63 ;;
+	vigor 31 ;;
+	stamina 28 ;;
+	mpower 39 ;;
+	ablock 15 ;;
+	mblock 7 ;;
+	defensive 0 ;;
+	apower 42 ;;
+	mdefense 69 ;;
+	adefense 97 ;;
+	hitrate 254 ;;
+[Elements]
+	Heal absorb ;;
+[Status]
+[Special]
+[normal]
+	normal.tga ;;
+[attack_wait]
+	ready.tga ;;
+[magic_wait]
+	prepare_spell1.tga ;;
+	prepare_spell1.tga ;;
+	prepare_spell2.tga ;;
+	prepare_spell2.tga ;;
+[critical]
+	critical.tga ;;
+[hit]
+	hit.tga ;;
+[wound]
+	wound.tga ;;
+[attack]
+	walk1.tga ;;
+[magic]
+	magic1.tga ;;
+	magic1.tga ;;
+	magic2.tga ;;
+	magic2.tga ;;
+	magic2.tga ;;
+[Sketch]
+[Rage]
+[Script]
+[Menu]
+	Fight ;;
+	Magitek
+		BoltBeam
+		BioBlast
+		HealForce
+		IceBeam ;;
+[eof]
