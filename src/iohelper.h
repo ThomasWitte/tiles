@@ -24,8 +24,16 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 using namespace std;
+
+template <class T>
+string to_string(T toBeConverted) {
+	stringstream buffer;
+	buffer << toBeConverted;
+	return buffer.str();
+}
 
 class FileParser {
 	public:

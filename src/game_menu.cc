@@ -65,37 +65,77 @@ DIALOG *GameMenu::create_dialog(DIALOG_ID id) {
 		case EQUIP_DIALOG:
 		case RELIC_DIALOG:
 		case STATUS_DIALOG:
+			ret = create_status_dialog();
+		break;
+		case STATUS_CH_DIALOG:
+			ret = create_status_chooser();
+		break;
 		case MAIN_DIALOG:
-			ret = new DIALOG[22];
-			DIALOG menu[] =
-{
-   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)           (dp)                (dp2)                   (dp3) */
-   { menu_bg_proc, 0,   0,   320, 240, 0,         0,   0,    0,          0,   0,             NULL,               NULL,                   NULL },
-   { r_box_proc,   232, 8,   80,  136, COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,                   NULL },
-   { r_box_proc,   232, 144, 80,  32,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,                   NULL },
-   { r_box_proc,   232, 176, 80,  56,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,                   NULL },
-   { d_text_proc,  240, 184, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Time",      NULL,                   NULL },
-   { d_text_proc,  240, 208, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Steps",     NULL,                   NULL },
-   { d_text_proc,  240, 152, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Gil",       NULL,                   NULL },
-   { gvar_update,  248, 192, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"Game.Playtime", NULL },
-   { gvar_update,  248, 216, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"Game.Steps",    NULL },
-   { gvar_update,  248, 160, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"gp",            NULL },
-   { ff6_button,   240, 16,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   ITEM_DIALOG,   (void*)"Item",      NULL,                   NULL },
-   { ff6_button,   240, 32,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   SKILL_DIALOG,  (void*)"Skills",    NULL,                   NULL },
-   { ff6_button,   240, 48,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   EQUIP_DIALOG,  (void*)"Equip",     NULL,                   NULL },
-   { ff6_button,   240, 64,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   RELIC_DIALOG,  (void*)"Relic",     NULL,                   NULL },
-   { ff6_button,   240, 80,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   STATUS_DIALOG, (void*)"Status",    NULL,                   NULL },
-   { ff6_button,   240, 96,  64,  16,  COL_WHITE, -1,  0,    D_DISABLED, 0,   0,             (void*)"Save/Exit", NULL,                   NULL },
-   { ff6_button,   240, 112, 64,  16,  COL_WHITE, -1,  0,    D_EXIT,     0,   0,             (void*)"Close",     NULL,                   NULL },
-   { char_select,  8,   8,   216, 56,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      NULL,                   NULL },
-   { char_select,  8,   64,  216, 56,  COL_WHITE, -1,  0,    0,          0,   1,             (void*)parent,      NULL,                   NULL },
-   { char_select,  8,   120, 216, 56,  COL_WHITE, -1,  0,    0,          0,   2,             (void*)parent,      NULL,                   NULL },
-   { char_select,  8,   176, 216, 56,  COL_WHITE, -1,  0,    0,          0,   3,             (void*)parent,      NULL,                   NULL },
-   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                   NULL }
-};
-			memcpy(ret, menu, 22*sizeof(DIALOG));
+			ret = create_main_dialog();
 		break;
 	}
+	return ret;
+}
+
+DIALOG *GameMenu::create_main_dialog() {
+	DIALOG *ret = new DIALOG[22];
+	DIALOG menu[] =
+	{
+	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)           (dp)                (dp2)                   (dp3) */
+	   { menu_bg_proc, 0,   0,   320, 240, 0,         0,   0,    0,          0,   0,             NULL,               NULL,                   NULL },
+	   { r_box_proc,   232, 8,   80,  136, COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,                   NULL },
+	   { r_box_proc,   232, 144, 80,  32,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,                   NULL },
+	   { r_box_proc,   232, 176, 80,  56,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,                   NULL },
+	   { d_text_proc,  240, 184, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Time",      NULL,                   NULL },
+	   { d_text_proc,  240, 208, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Steps",     NULL,                   NULL },
+	   { d_text_proc,  240, 152, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Gil",       NULL,                   NULL },
+	   { gvar_update,  248, 192, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"Game.Playtime", NULL },
+	   { gvar_update,  248, 216, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"Game.Steps",    NULL },
+	   { gvar_update,  248, 160, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"gp",            NULL },
+	   { ff6_button,   240, 16,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   ITEM_DIALOG,   (void*)"Item",      NULL,                   NULL },
+	   { ff6_button,   240, 32,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   SKILL_DIALOG,  (void*)"Skills",    NULL,                   NULL },
+	   { ff6_button,   240, 48,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   EQUIP_DIALOG,  (void*)"Equip",     NULL,                   NULL },
+	   { ff6_button,   240, 64,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   RELIC_DIALOG,  (void*)"Relic",     NULL,                   NULL },
+	   { ff6_button,   240, 80,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   STATUS_CH_DIALOG, (void*)"Status",    NULL,                   NULL },
+	   { ff6_button,   240, 96,  64,  16,  COL_WHITE, -1,  0,    D_DISABLED, 0,   0,             (void*)"Save/Exit", NULL,                   NULL },
+	   { ff6_button,   240, 112, 64,  16,  COL_WHITE, -1,  0,    D_EXIT,     0,   0,             (void*)"Close",     NULL,                   NULL },
+	   { char_select,  8,   8,   216, 56,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      NULL,                   NULL },
+	   { char_select,  8,   64,  216, 56,  COL_WHITE, -1,  0,    0,          0,   1,             (void*)parent,      NULL,                   NULL },
+	   { char_select,  8,   120, 216, 56,  COL_WHITE, -1,  0,    0,          0,   2,             (void*)parent,      NULL,                   NULL },
+	   { char_select,  8,   176, 216, 56,  COL_WHITE, -1,  0,    0,          0,   3,             (void*)parent,      NULL,                   NULL },
+	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                   NULL }
+	};
+	memcpy(ret, menu, 22*sizeof(DIALOG));
+	return ret;
+}
+
+DIALOG *GameMenu::create_status_chooser() {
+	DIALOG *ret = new DIALOG[5];
+	DIALOG menu[] =
+	{
+	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)           (dp)                (dp2)                  (dp3) */
+	   { ch_button,    8,   8,   216, 56,  COL_WHITE, 0,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,      NULL,					(void*)"Internal.dlgID" },
+	   { ch_button,    8,   64,  216, 56,  COL_WHITE, 1,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,	     NULL,					(void*)"Internal.dlgID" },
+	   { ch_button,    8,   120, 216, 56,  COL_WHITE, 2,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,	     NULL,					(void*)"Internal.dlgID" },
+	   { ch_button,    8,   176, 216, 56,  COL_WHITE, 3,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,	     NULL,					(void*)"Internal.dlgID" },
+	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL }
+	};
+	memcpy(ret, menu, 5*sizeof(DIALOG));
+	return ret;
+}
+
+DIALOG *GameMenu::create_status_dialog() {
+	DIALOG *ret = new DIALOG[5];
+	DIALOG menu[] =
+	{
+	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)           (dp)                (dp2)                  (dp3) */
+	   { menu_bg_proc, 0,   0,   320, 240, 0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL },
+	   { r_box_proc,   0,   0,   320, 16,  COL_WHITE, -1,  0,    0,          0,   0, 			 NULL,               NULL,					NULL },
+	   { r_box_proc,   0,   16,  320, 224, COL_WHITE, -1,  0,    0,          0,   0, 			 NULL,               NULL,					NULL },
+	   { r_box_proc,   216, 80,  100, 80,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,					NULL },
+	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL }
+	};
+	memcpy(ret, menu, 5*sizeof(DIALOG));
 	return ret;
 }
 

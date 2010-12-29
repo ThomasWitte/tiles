@@ -26,6 +26,7 @@ int gvar_update(int msg, DIALOG *d, int c);			//angezeigter text wird ständig a
 int char_select(int msg, DIALOG *d, int c);
 int r_box_proc(int msg, DIALOG *d, int c);			//abgerundete Box
 int ff6_button(int msg, DIALOG *d, int c);			//button mit zeigender Hand
+int ch_button(int msg, DIALOG *d, int c);			//transparenter button mit zeigender Hand und Parameterübergabe
 
 //aus Allegro Quellcode:
 

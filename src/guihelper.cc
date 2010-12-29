@@ -195,6 +195,65 @@ int r_box_proc(int msg, DIALOG *d, int c) {
 	return D_O_K;
 }
 
+int ch_button(int msg, DIALOG *d, int c) {
+	BITMAP *scr = gui_get_screen();
+	Game *g = (Game*)d->dp;
+	string chars;
+	int offset;
+	BITMAP *ausw = NULL, *bg = NULL;
+	switch(msg) {
+		case MSG_START:
+			//ist an der position überhaupt ein character?
+			chars = g->get_var("CharactersInBattle");
+			for(int i = 0; i <= d->bg; i++) { //d->bg = 0…3 im Menü
+				int pos = chars.find_first_of(";");
+				if(pos == string::npos) {
+					//Position bleibt leer
+					d->flags |= D_DISABLED;
+					break;
+				}
+				chars.erase(0, pos+1);
+			}
+
+			d->dp2 = (void*)new BITMAP*[2];
+			((BITMAP**)d->dp2)[0] = ausw = imageloader.load("Images/auswahl.tga");
+			((BITMAP**)d->dp2)[1] = bg = NULL;
+			return D_O_K;
+		break;
+		case MSG_END:
+			imageloader.destroy(((BITMAP**)d->dp2)[0]);
+			imageloader.destroy(((BITMAP**)d->dp2)[1]);
+			delete [] (BITMAP*)d->dp2;
+			return D_O_K;
+		break;
+		case MSG_DRAW:
+			if(!((BITMAP**)d->dp2)[1]) {
+				((BITMAP**)d->dp2)[1] = bg = imageloader.create(((BITMAP**)d->dp2)[0]->w+10, ((BITMAP**)d->dp2)[0]->h);
+				blit(scr, bg, d->x-((BITMAP**)d->dp2)[0]->w+5, d->y+10, 0, 0, bg->w, bg->h);
+			}
+
+			if(!(d->flags & D_DISABLED)) {
+				ausw = ((BITMAP**)d->dp2)[0];
+				bg = ((BITMAP**)d->dp2)[1];
+				blit(bg, scr, 0, 0, d->x-ausw->w+5, d->y+10, bg->w, bg->h);
+				if(d->flags & D_GOTFOCUS) {
+					offset = 30*d->d1/GAME_TIMER_BPS;
+					if(offset < 0) offset *= -1;
+					masked_blit(ausw, scr, 0, 0, d->x-ausw->w-offset+10, d->y+10, ausw->w, ausw->h);
+				}
+			}
+			return D_O_K;
+		break;
+		case MSG_KEY:
+			if(d->flags & D_OPEN) {
+				g->set_var((char*)d->dp3, to_string(d->bg));
+			}
+			return ff6_button(msg,d,c);
+		break;
+	}
+	return ff6_button(msg,d,c);
+}
+
 int ff6_button(int msg, DIALOG *d, int c) {
 	BITMAP *scr = gui_get_screen();
 	int offset;
