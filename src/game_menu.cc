@@ -64,6 +64,7 @@ DIALOG *GameMenu::create_dialog(DIALOG_ID id) {
 		case SKILL_DIALOG:
 		case EQUIP_DIALOG:
 		case RELIC_DIALOG:
+		break;
 		case STATUS_DIALOG:
 			ret = create_status_dialog();
 		break;
@@ -125,17 +126,35 @@ DIALOG *GameMenu::create_status_chooser() {
 }
 
 DIALOG *GameMenu::create_status_dialog() {
-	DIALOG *ret = new DIALOG[5];
+	shutdown_dialog(player.back()); //status chooser entfernen
+	player.pop_back();
+	delete [] dialog.back();
+	dialog.pop_back();
+
+	string pstr;
+	int player = atoi(parent->get_var("Internal.dlgID").c_str());
+	string chars = parent->get_var("CharactersInBattle");
+	for(int i = 0; i <= player; i++) {
+		int pos = chars.find_first_of(";");
+		if(pos == string::npos)
+			break;
+		pstr = chars.substr(0, pos);
+		chars.erase(0, pos+1);
+	}
+
+	DIALOG *ret = new DIALOG[7];
 	DIALOG menu[] =
 	{
 	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)           (dp)                (dp2)                  (dp3) */
 	   { menu_bg_proc, 0,   0,   320, 240, 0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL },
-	   { r_box_proc,   0,   0,   320, 16,  COL_WHITE, -1,  0,    0,          0,   0, 			 NULL,               NULL,					NULL },
-	   { r_box_proc,   0,   16,  320, 224, COL_WHITE, -1,  0,    0,          0,   0, 			 NULL,               NULL,					NULL },
-	   { r_box_proc,   216, 80,  100, 80,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,					NULL },
+	   { r_box_proc,   8,   8,   304, 16,  COL_WHITE, -1,  0,    0,          0,   0, 			 NULL,               NULL,					NULL },
+	   { r_box_proc,   8,   24,  304, 208, COL_WHITE, -1,  0,    0,          0,   0, 			 NULL,               NULL,					NULL },
+	   { r_box_proc,   208, 80,  100, 80,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,					NULL },
+	   { d_text_proc,  12,  12,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Status",    NULL,                  NULL },
+	   { gvar_update,  12,  28,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".name").c_str(), NULL },
 	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL }
 	};
-	memcpy(ret, menu, 5*sizeof(DIALOG));
+	memcpy(ret, menu, 7*sizeof(DIALOG));
 	return ret;
 }
 
