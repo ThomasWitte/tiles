@@ -19,6 +19,27 @@
 #include "iohelper.h"
 #include "config.h"
 
+int menu_items(int msg, DIALOG *d, int c) {
+	if(msg == MSG_START) {
+		string name((char*)d->dp);
+		FileParser parser(("Fights/Fighters/") + name + ("/") + name, "Fighter");
+		deque< deque<string> > menu_items = parser.getsection("Menu");
+		d->dp3 = (void*)new char*[4];
+		for(int i = 0; i < 4; i++)
+			if(i >= menu_items.size())
+				((char**)d->dp3)[i] = tochar("");
+			else
+				((char**)d->dp3)[i] = tochar(menu_items[i][0]);
+	} else if(msg == MSG_END) {
+		for(int i = 0; i < 4; i++)
+			delete [] ((char**)d->dp3)[i];
+	} else if(msg == MSG_DRAW) {
+		for(int i = 0; i < 4; i++)
+			gui_textout_ex(gui_get_screen(), ((char**)d->dp3)[i], d->x, d->y + i*d->h/4, d->fg, d->bg, FALSE);
+	}
+	return D_O_K;
+}
+
 int menu_bg_proc(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
@@ -206,7 +227,8 @@ int transp_bmp(int msg, DIALOG *d, int c) {
 			imageloader.destroy((BITMAP*)d->dp3);
 		break;
 		case MSG_DRAW:
-			masked_blit((BITMAP*)d->dp3, gui_get_screen(), 0, 0, d->x, d->y, d->w, d->h);
+			if(d->dp3)
+				masked_blit((BITMAP*)d->dp3, gui_get_screen(), 0, 0, d->x, d->y, d->w, d->h);
 		break;
 	}
 	return D_O_K;
@@ -306,6 +328,17 @@ int ff6_button(int msg, DIALOG *d, int c) {
 		break;
 		default:
 			return d_button_proc(msg, d, c);
+	}
+	return D_O_K;
+}
+
+int dialog_cleanup(int msg, DIALOG *d, int c) {
+	if(msg == MSG_END) {
+		char **array = (char**)d->dp;
+		for(int i = 0; array[i] != NULL; i++) {
+			delete [] array[i];
+		}
+		delete [] array;
 	}
 	return D_O_K;
 }

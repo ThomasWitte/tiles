@@ -107,6 +107,7 @@ DIALOG *GameMenu::create_main_dialog() {
 	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                   NULL }
 	};
 	memcpy(ret, menu, 22*sizeof(DIALOG));
+	cout << "main_dialog created" << endl;
 	return ret;
 }
 
@@ -122,6 +123,7 @@ DIALOG *GameMenu::create_status_chooser() {
 	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL }
 	};
 	memcpy(ret, menu, 5*sizeof(DIALOG));
+	cout << "status_chooser created" << endl;
 	return ret;
 }
 
@@ -142,7 +144,10 @@ DIALOG *GameMenu::create_status_dialog() {
 		chars.erase(0, pos+1);
 	}
 
-	DIALOG *ret = new DIALOG[38];
+	char** strings = new char*[20];
+	strings[19] = NULL;
+	
+	DIALOG *ret = new DIALOG[40];
 	DIALOG menu[] =
 	{
 	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)           (dp)                (dp2)                  (dp3) */
@@ -152,40 +157,44 @@ DIALOG *GameMenu::create_status_dialog() {
 	   { r_box_proc,   160, 84,  140, 80,  COL_WHITE, -1,  0,    0,          0,   0,             NULL,               NULL,					NULL },
 	   { d_text_proc,  16,  12,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Status",    NULL,                  NULL },
 	   { d_text_proc,  70,  42,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"LV",        NULL,                  NULL },
-	   { gvar_update,  102, 42,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".level").c_str(), NULL },
+	   { gvar_update,  102, 42,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[0] = tochar(pstr+".level")), NULL },
 	   { d_text_proc,  70,  54,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"HP      /", NULL,                  NULL },
-	   { gvar_update,  102, 54,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".curhp").c_str(), NULL },
-	   { gvar_update,  142, 54,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".hp").c_str(), NULL },
+	   { gvar_update,  102, 54,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[1] = tochar(pstr+".curhp")), NULL },
+	   { gvar_update,  142, 54,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[2] = tochar(pstr+".hp")), NULL },
 	   { d_text_proc,  70,  66,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"MP      /", NULL,                  NULL },
-	   { gvar_update,  102, 66,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".curmp").c_str(), NULL },
-	   { gvar_update,  142, 66,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".mp").c_str(), NULL },
+	   { gvar_update,  102, 66,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[3] = tochar(pstr+".curmp")), NULL },
+	   { gvar_update,  142, 66,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[4] = tochar(pstr+".mp")), NULL },
 	   { d_text_proc,  16,  92,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Your Exp.", NULL,                  NULL },
-	   { gvar_update,  70,  108, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".xp").c_str(), NULL },
+	   { gvar_update,  70,  108, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[5] = tochar(pstr+".xp")), NULL },
 	   { d_text_proc,  16,  124, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)"For level up",NULL,                NULL },
-	   { gvar_update,  70,  140, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".levelupxp").c_str(), NULL },
-	   { transp_bmp,   16,  40,  48,  48,  0,          0,  0,    0,          0,   0,             (void*)("Fights/Fighters/" + pstr + "/face.tga").c_str(), NULL, NULL },
-	   { gvar_update,  16,  28,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".name").c_str(), NULL },
+	   { gvar_update,  70,  140, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[6] = tochar(pstr+".levelupxp")), NULL },
+	   { transp_bmp,   16,  40,  48,  48,  0,          0,  0,    0,          0,   0,             (void*)(strings[7] = tochar("Fights/Fighters/" + pstr + "/face.tga")), NULL, NULL },
+	   { gvar_update,  16,  28,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[8] = tochar(pstr+".name")), NULL },
 	   { d_text_proc,  16,  186,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Vigor",     NULL,                  NULL },
-	   { gvar_update,  100, 186,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".vigor").c_str(), NULL },
+	   { gvar_update,  100, 186,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[9] = tochar(pstr+".vigor")), NULL },
 	   { d_text_proc,  16,  198,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Speed",     NULL,                  NULL },
-	   { gvar_update,  100, 198,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".speed").c_str(), NULL },
+	   { gvar_update,  100, 198,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[10] = tochar(pstr+".speed")), NULL },
 	   { d_text_proc,  16,  210,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Stamina",   NULL,                  NULL },
-	   { gvar_update,  100, 210,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".stamina").c_str(), NULL },
+	   { gvar_update,  100, 210,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[11] = tochar(pstr+".stamina")), NULL },
 	   { d_text_proc,  16,  222,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Mag.Pwr",   NULL,                  NULL },
-	   { gvar_update,  100, 222,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".mpower").c_str(), NULL },
+	   { gvar_update,  100, 222,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[12] = tochar(pstr+".mpower")), NULL },
 	   { d_text_proc,  160, 174,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Bat.Pwr",   NULL,                  NULL },
-	   { gvar_update,  244, 174,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".apower").c_str(), NULL },
+	   { gvar_update,  244, 174,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[13] = tochar(pstr+".apower")), NULL },
 	   { d_text_proc,  160, 186,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Defense",   NULL,                  NULL },
-	   { gvar_update,  244, 186,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".adefense").c_str(), NULL },
+	   { gvar_update,  244, 186,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[14] = tochar(pstr+".adefense")), NULL },
 	   { d_text_proc,  160, 198,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Evade%",    NULL,                  NULL },
-	   { gvar_update,  244, 198,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".ablock").c_str(), NULL },
+	   { gvar_update,  244, 198,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[15] = tochar(pstr+".ablock")), NULL },
 	   { d_text_proc,  160, 210,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"Mag.Def",   NULL,                  NULL },
-	   { gvar_update,  244, 210,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".mdefense").c_str(), NULL },
+	   { gvar_update,  244, 210,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[16] = tochar(pstr+".mdefense")), NULL },
 	   { d_text_proc,  160, 222,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)"MBlock%",   NULL,                  NULL },
-	   { gvar_update,  244, 222,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(pstr+".mblock").c_str(), NULL },
+	   { gvar_update,  244, 222,  56,  8,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)(strings[17] = tochar(pstr+".mblock")), NULL },
+	   { menu_items,   172, 88,  140, 72,  COL_WHITE, -1,  0,    0,          0,   0,             (void*)(strings[18] = tochar(pstr)),NULL,					NULL },
+	   { dialog_cleanup,0,  0,   0,   0,   0,         0,   0,    0,          0,   0,             (void*)strings,     NULL,                  NULL },
 	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL }
 	};
-	memcpy(ret, menu, 38*sizeof(DIALOG));
+	//ich brauche ein array mit den speicheradressen das an ein dialogelement übergeben wird: dieses dialog_cleanup element gibt den speicher frei…
+	memcpy(ret, menu, 40*sizeof(DIALOG));
+	cout << "status_dialog created" << endl;
 	return ret;
 }
 

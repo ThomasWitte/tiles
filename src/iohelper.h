@@ -35,6 +35,8 @@ string to_string(T toBeConverted) {
 	return buffer.str();
 }
 
+char* tochar(string s);
+
 class FileParser {
 	public:
 		FileParser();

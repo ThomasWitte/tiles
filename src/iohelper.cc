@@ -19,7 +19,11 @@
 #include "config.h"
 #include <cstdlib>
 
-
+char* tochar(string s) {
+	char* ret = new char[s.length()+1];
+	sprintf(ret, "%s", s.c_str());
+	return ret;
+}
 
 FileParser::FileParser() {
 }
