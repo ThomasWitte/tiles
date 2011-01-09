@@ -19,6 +19,27 @@
 #include "iohelper.h"
 #include "config.h"
 
+int menu_items(int msg, DIALOG *d, int c) {
+	if(msg == MSG_START) {
+		string name((char*)d->dp);
+		FileParser parser(("Fights/Fighters/") + name + ("/") + name, "Fighter");
+		deque< deque<string> > menu_items = parser.getsection("Menu");
+		d->dp3 = (void*)new char*[4];
+		for(int i = 0; i < 4; i++)
+			if(i >= menu_items.size())
+				((char**)d->dp3)[i] = tochar("");
+			else
+				((char**)d->dp3)[i] = tochar(menu_items[i][0]);
+	} else if(msg == MSG_END) {
+		for(int i = 0; i < 4; i++)
+			delete [] ((char**)d->dp3)[i];
+	} else if(msg == MSG_DRAW) {
+		for(int i = 0; i < 4; i++)
+			gui_textout_ex(gui_get_screen(), ((char**)d->dp3)[i], d->x, d->y + i*d->h/4, d->fg, d->bg, FALSE);
+	}
+	return D_O_K;
+}
+
 int menu_bg_proc(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
@@ -34,14 +55,16 @@ int menu_bg_proc(int msg, DIALOG *d, int c) {
 int gvar_update(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_START:
+			d->dp2 = (void*)new string((char*)d->dp2);
 			d->dp3 = (void*)new char[50];
-			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var((char*)d->dp2).c_str());
+			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var(*(string*)d->dp2).c_str());
 		break;
 		case MSG_END:
+			delete (string*)d->dp2;
 			delete [] (char*)d->dp3;
 		break;
 		case MSG_IDLE:
-			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var((char*)d->dp2).c_str());
+			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var(*(string*)d->dp2).c_str());
 		break;
 		case MSG_DRAW:
 			gui_textout_ex(gui_get_screen(), (char*)d->dp3, d->x, d->y, d->fg, d->bg, FALSE);
@@ -195,6 +218,81 @@ int r_box_proc(int msg, DIALOG *d, int c) {
 	return D_O_K;
 }
 
+int transp_bmp(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_START:
+			d->dp3 = (void*)imageloader.load((char*)d->dp);
+		break;
+		case MSG_END:
+			imageloader.destroy((BITMAP*)d->dp3);
+		break;
+		case MSG_DRAW:
+			if(d->dp3)
+				masked_blit((BITMAP*)d->dp3, gui_get_screen(), 0, 0, d->x, d->y, d->w, d->h);
+		break;
+	}
+	return D_O_K;
+}
+
+int ch_button(int msg, DIALOG *d, int c) {
+	BITMAP *scr = gui_get_screen();
+	Game *g = (Game*)d->dp;
+	string chars;
+	int offset;
+	BITMAP *ausw = NULL, *bg = NULL;
+	switch(msg) {
+		case MSG_START:
+			//ist an der position überhaupt ein character?
+			chars = g->get_var("CharactersInBattle");
+			for(int i = 0; i <= d->bg; i++) { //d->bg = 0…3 im Menü
+				int pos = chars.find_first_of(";");
+				if(pos == string::npos) {
+					//Position bleibt leer
+					d->flags |= D_DISABLED;
+					break;
+				}
+				chars.erase(0, pos+1);
+			}
+
+			d->dp2 = (void*)new BITMAP*[2];
+			((BITMAP**)d->dp2)[0] = ausw = imageloader.load("Images/auswahl.tga");
+			((BITMAP**)d->dp2)[1] = bg = NULL;
+			return D_O_K;
+		break;
+		case MSG_END:
+			imageloader.destroy(((BITMAP**)d->dp2)[0]);
+			imageloader.destroy(((BITMAP**)d->dp2)[1]);
+			delete [] (BITMAP*)d->dp2;
+			return D_O_K;
+		break;
+		case MSG_DRAW:
+			if(!((BITMAP**)d->dp2)[1]) {
+				((BITMAP**)d->dp2)[1] = bg = imageloader.create(((BITMAP**)d->dp2)[0]->w+10, ((BITMAP**)d->dp2)[0]->h);
+				blit(scr, bg, d->x-((BITMAP**)d->dp2)[0]->w+5, d->y+10, 0, 0, bg->w, bg->h);
+			}
+
+			if(!(d->flags & D_DISABLED)) {
+				ausw = ((BITMAP**)d->dp2)[0];
+				bg = ((BITMAP**)d->dp2)[1];
+				blit(bg, scr, 0, 0, d->x-ausw->w+5, d->y+10, bg->w, bg->h);
+				if(d->flags & D_GOTFOCUS) {
+					offset = 30*d->d1/GAME_TIMER_BPS;
+					if(offset < 0) offset *= -1;
+					masked_blit(ausw, scr, 0, 0, d->x-ausw->w-offset+10, d->y+10, ausw->w, ausw->h);
+				}
+			}
+			return D_O_K;
+		break;
+		case MSG_KEY:
+			if(d->flags & D_OPEN) {
+				g->set_var((char*)d->dp3, to_string(d->bg));
+			}
+			return ff6_button(msg,d,c);
+		break;
+	}
+	return ff6_button(msg,d,c);
+}
+
 int ff6_button(int msg, DIALOG *d, int c) {
 	BITMAP *scr = gui_get_screen();
 	int offset;
@@ -230,6 +328,17 @@ int ff6_button(int msg, DIALOG *d, int c) {
 		break;
 		default:
 			return d_button_proc(msg, d, c);
+	}
+	return D_O_K;
+}
+
+int dialog_cleanup(int msg, DIALOG *d, int c) {
+	if(msg == MSG_END) {
+		char **array = (char**)d->dp;
+		for(int i = 0; array[i] != NULL; i++) {
+			delete [] array[i];
+		}
+		delete [] array;
 	}
 	return D_O_K;
 }
