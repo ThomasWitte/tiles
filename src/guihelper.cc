@@ -34,14 +34,16 @@ int menu_bg_proc(int msg, DIALOG *d, int c) {
 int gvar_update(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_START:
+			d->dp2 = (void*)new string((char*)d->dp2);
 			d->dp3 = (void*)new char[50];
-			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var((char*)d->dp2).c_str());
+			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var(*(string*)d->dp2).c_str());
 		break;
 		case MSG_END:
+			delete (string*)d->dp2;
 			delete [] (char*)d->dp3;
 		break;
 		case MSG_IDLE:
-			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var((char*)d->dp2).c_str());
+			sprintf((char*)d->dp3, "%s", ((Game*)d->dp)->get_var(*(string*)d->dp2).c_str());
 		break;
 		case MSG_DRAW:
 			gui_textout_ex(gui_get_screen(), (char*)d->dp3, d->x, d->y, d->fg, d->bg, FALSE);
@@ -191,6 +193,21 @@ int r_box_proc(int msg, DIALOG *d, int c) {
 		break;
 		default:
 			return d_box_proc(msg, d, c);
+	}
+	return D_O_K;
+}
+
+int transp_bmp(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_START:
+			d->dp3 = (void*)imageloader.load((char*)d->dp);
+		break;
+		case MSG_END:
+			imageloader.destroy((BITMAP*)d->dp3);
+		break;
+		case MSG_DRAW:
+			masked_blit((BITMAP*)d->dp3, gui_get_screen(), 0, 0, d->x, d->y, d->w, d->h);
+		break;
 	}
 	return D_O_K;
 }

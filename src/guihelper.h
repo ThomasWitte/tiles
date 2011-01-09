@@ -25,6 +25,7 @@ int menu_bg_proc(int msg, DIALOG *d, int c);		//Farbverlauf als Menühintergrund
 int gvar_update(int msg, DIALOG *d, int c);			//angezeigter text wird ständig aktualisiert
 int char_select(int msg, DIALOG *d, int c);
 int r_box_proc(int msg, DIALOG *d, int c);			//abgerundete Box
+int transp_bmp(int msg, DIALOG *d, int c);			//masked_blit…
 int ff6_button(int msg, DIALOG *d, int c);			//button mit zeigender Hand
 int ch_button(int msg, DIALOG *d, int c);			//transparenter button mit zeigender Hand und Parameterübergabe
 
