@@ -32,13 +32,23 @@ class GameMenu {
 		void draw(BITMAP *buffer);
 		int update(); //liefert 0, wenn Menü geschlossen wurde
 	protected:
-		enum DIALOG_ID {MAIN_DIALOG, ITEM_DIALOG, SKILL_DIALOG, EQUIP_DIALOG, RELIC_DIALOG, STATUS_CH_DIALOG, STATUS_DIALOG};
+		enum DIALOG_ID {MAIN_DIALOG, ITEM_DIALOG, ITEM_SP_DIALOG, SKILL_DIALOG, SKILL_CH_DIALOG, EQUIP_DIALOG,
+						EQUIP_CH_DIALOG, RELIC_DIALOG, RELIC_CH_DIALOG, STATUS_CH_DIALOG, STATUS_DIALOG};
 		Game *parent;
 		int update_game_menu();
 		DIALOG *create_dialog(DIALOG_ID id);
 		DIALOG *create_main_dialog();
-		DIALOG *create_status_chooser();
+		DIALOG *create_ch_chooser(DIALOG_ID id);
 		DIALOG *create_status_dialog();
+		DIALOG *create_skill_dialog();
+		DIALOG *create_equip_dialog();
+		DIALOG *create_relic_dialog();
+		DIALOG *create_item_dialog();
+		DIALOG *create_item_sp_dialog();
+
+		void delete_last_dialog();
+		string get_chosen_player();
+
 		//DIALOG_PLAYER und DIALOG als Stack…
 		deque<DIALOG_PLAYER*> player;
 		deque<DIALOG*> dialog;

@@ -42,10 +42,7 @@ int GameMenu::update() {
 		if(player.size() <= 1) {
 			return 0; //zurück zur map
 		} else { //aktiven Dialog schließen
-			shutdown_dialog(player.back());
-			player.pop_back();
-			delete [] dialog.back();
-			dialog.pop_back();
+			delete_last_dialog();
 		}
 	} else if(player.back()->res & D_SPAWN) {
 		player.back()->res &= ~D_SPAWN;
@@ -59,22 +56,83 @@ int GameMenu::update() {
 DIALOG *GameMenu::create_dialog(DIALOG_ID id) {
 	DIALOG *ret = NULL;
 	switch(id) {
-		default:
 		case ITEM_DIALOG:
+			ret = create_item_dialog();
+		break;
+		case ITEM_SP_DIALOG:
+			ret = create_item_sp_dialog();
+		break;
+		case SKILL_CH_DIALOG:
+			ret = create_ch_chooser(SKILL_DIALOG);
+		break;
 		case SKILL_DIALOG:
+			ret = create_skill_dialog();
+		break;
+		case EQUIP_CH_DIALOG:
+			ret = create_ch_chooser(EQUIP_DIALOG);
+		break;
 		case EQUIP_DIALOG:
+			ret = create_equip_dialog();
+		break;
+		case RELIC_CH_DIALOG:
+			ret = create_ch_chooser(RELIC_DIALOG);
+		break;
 		case RELIC_DIALOG:
+			ret = create_relic_dialog();
 		break;
 		case STATUS_DIALOG:
 			ret = create_status_dialog();
 		break;
 		case STATUS_CH_DIALOG:
-			ret = create_status_chooser();
+			ret = create_ch_chooser(STATUS_DIALOG);
 		break;
+		default:
 		case MAIN_DIALOG:
 			ret = create_main_dialog();
 		break;
 	}
+	return ret;
+}
+
+DIALOG *GameMenu::create_item_dialog() {
+	DIALOG *ret = new DIALOG[10];
+	DIALOG menu[] =
+	{
+	   /* (proc)        (x)  (y) (w)  (h)  (fg)       (bg) (key) (flags) (d1) (d2) 				(dp)              (dp2) (dp3) */
+	   { menu_bg_proc,  0,   0,  320, 240, COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { ff6_button,    208, 12, 88,  16,  COL_WHITE, -1,  0,    D_OPEN, 0,   ITEM_SP_DIALOG,   (void*)"Special", NULL, NULL },
+	   { ff6_button,    120, 12, 88,  16,  COL_WHITE, -1,  0,    D_DISABLED,0, 0,   			(void*)"Sort",    NULL, NULL },
+	   { r_box_proc,    8,   8,  96,  16,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { r_box_proc,    104, 8,  208, 16,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { r_box_proc,    8,   24, 304, 48,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { r_box_proc,    8,   72, 304, 160, COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { d_text_proc,   16,  12, 48,  8,   COL_WHITE, -1,  0,    0,      0,   0,   				(void*)"Item",    NULL, NULL },
+	   { d_text_proc,   16,  28, 290, 40,  COL_WHITE, -1,  0,    0,      0,   0,   				(void*)"",        NULL, NULL },
+	   { NULL,          0,   0,  0,   0,   0,         0,   0,    0,      0,   0,   				NULL,             NULL, NULL }
+	};
+	memcpy(ret, menu, 10*sizeof(DIALOG));
+	cout << "item_dialog created" << endl;
+	return ret;
+}
+
+DIALOG *GameMenu::create_item_sp_dialog() {
+	DIALOG *ret = new DIALOG[10];
+	DIALOG menu[] =
+	{
+	   /* (proc)        (x)  (y) (w)  (h)  (fg)       (bg) (key) (flags) (d1) (d2) 				(dp)              (dp2) (dp3) */
+	   { menu_bg_proc,  0,   0,  320, 240, COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { ff6_button,    208, 12, 88,  16,  COL_WHITE, -1,  0,    D_EXIT, 0,   0,   				(void*)"Useable", NULL, NULL },
+	   { ff6_button,    120, 12, 88,  16,  COL_WHITE, -1,  0,    D_DISABLED,0, 0,   			(void*)"Sort",    NULL, NULL },
+	   { r_box_proc,    8,   8,  96,  16,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { r_box_proc,    104, 8,  208, 16,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { r_box_proc,    8,   24, 304, 48,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { r_box_proc,    8,   72, 304, 160, COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
+	   { d_text_proc,   16,  12, 48,  8,   COL_WHITE, -1,  0,    0,      0,   0,   				(void*)"Item",    NULL, NULL },
+	   { d_text_proc,   16,  28, 290, 40,  COL_WHITE, -1,  0,    0,      0,   0,   				(void*)"",        NULL, NULL },
+	   { NULL,          0,   0,  0,   0,   0,         0,   0,    0,      0,   0,   				NULL,             NULL, NULL }
+	};
+	memcpy(ret, menu, 10*sizeof(DIALOG));
+	cout << "item_sp_dialog created" << endl;
 	return ret;
 }
 
@@ -94,9 +152,9 @@ DIALOG *GameMenu::create_main_dialog() {
 	   { gvar_update,  248, 216, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"Game.Steps",    NULL },
 	   { gvar_update,  248, 160, 56,  8,   COL_WHITE, -1,  0,    0,          0,   0,             (void*)parent,      (void*)"gp",            NULL },
 	   { ff6_button,   240, 16,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   ITEM_DIALOG,   (void*)"Item",      NULL,                   NULL },
-	   { ff6_button,   240, 32,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   SKILL_DIALOG,  (void*)"Skills",    NULL,                   NULL },
-	   { ff6_button,   240, 48,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   EQUIP_DIALOG,  (void*)"Equip",     NULL,                   NULL },
-	   { ff6_button,   240, 64,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   RELIC_DIALOG,  (void*)"Relic",     NULL,                   NULL },
+	   { ff6_button,   240, 32,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   SKILL_CH_DIALOG,  (void*)"Skills",    NULL,                   NULL },
+	   { ff6_button,   240, 48,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   EQUIP_CH_DIALOG,  (void*)"Equip",     NULL,                   NULL },
+	   { ff6_button,   240, 64,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   RELIC_CH_DIALOG,  (void*)"Relic",     NULL,                   NULL },
 	   { ff6_button,   240, 80,  64,  16,  COL_WHITE, -1,  0,    D_OPEN,     0,   STATUS_CH_DIALOG, (void*)"Status",    NULL,                   NULL },
 	   { ff6_button,   240, 96,  64,  16,  COL_WHITE, -1,  0,    D_DISABLED, 0,   0,             (void*)"Save/Exit", NULL,                   NULL },
 	   { ff6_button,   240, 112, 64,  16,  COL_WHITE, -1,  0,    D_EXIT,     0,   0,             (void*)"Close",     NULL,                   NULL },
@@ -111,38 +169,109 @@ DIALOG *GameMenu::create_main_dialog() {
 	return ret;
 }
 
-DIALOG *GameMenu::create_status_chooser() {
-	DIALOG *ret = new DIALOG[5];
+DIALOG *GameMenu::create_ch_chooser(DIALOG_ID id) {
+	DIALOG *ret = new DIALOG[6];
 	DIALOG menu[] =
 	{
-	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)           (dp)                (dp2)                  (dp3) */
-	   { ch_button,    8,   8,   216, 56,  COL_WHITE, 0,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,      NULL,					(void*)"Internal.dlgID" },
-	   { ch_button,    8,   64,  216, 56,  COL_WHITE, 1,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,	     NULL,					(void*)"Internal.dlgID" },
-	   { ch_button,    8,   120, 216, 56,  COL_WHITE, 2,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,	     NULL,					(void*)"Internal.dlgID" },
-	   { ch_button,    8,   176, 216, 56,  COL_WHITE, 3,   0,    D_OPEN,     0,   STATUS_DIALOG, (void*)parent,	     NULL,					(void*)"Internal.dlgID" },
-	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                  NULL }
+	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2)  (dp)                (dp2)                  	(dp3) */
+	   { d_text_proc,  0,   0,   0,   0,   0,		  0,   0,    0,          0,   0,    (void*)"",      	NULL,                   NULL },
+	   { ch_button,    8,   8,   216, 56,  COL_WHITE, 0,   0,    D_OPEN,     0,   id,	(void*)parent,      NULL,					(void*)"Internal.dlgID" },
+	   { ch_button,    8,   64,  216, 56,  COL_WHITE, 1,   0,    D_OPEN,     0,   id, 	(void*)parent,	    NULL,					(void*)"Internal.dlgID" },
+	   { ch_button,    8,   120, 216, 56,  COL_WHITE, 2,   0,    D_OPEN,     0,   id,	(void*)parent,	    NULL,					(void*)"Internal.dlgID" },
+	   { ch_button,    8,   176, 216, 56,  COL_WHITE, 3,   0,    D_OPEN,     0,   id,	(void*)parent,	    NULL,					(void*)"Internal.dlgID" },
+	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,    NULL,               NULL,                  	NULL }
 	};
-	memcpy(ret, menu, 5*sizeof(DIALOG));
-	cout << "status_chooser created" << endl;
+	memcpy(ret, menu, 6*sizeof(DIALOG));
+	cout << "character_chooser created" << endl;
 	return ret;
 }
 
-DIALOG *GameMenu::create_status_dialog() {
-	shutdown_dialog(player.back()); //status chooser entfernen
-	player.pop_back();
-	delete [] dialog.back();
-	dialog.pop_back();
+DIALOG *GameMenu::create_skill_dialog() {
+	delete_last_dialog();
+	string pstr = get_chosen_player();
 
-	string pstr;
-	int player = atoi(parent->get_var("Internal.dlgID").c_str());
-	string chars = parent->get_var("CharactersInBattle");
-	for(int i = 0; i <= player; i++) {
-		int pos = chars.find_first_of(";");
-		if(pos == string::npos)
-			break;
-		pstr = chars.substr(0, pos);
-		chars.erase(0, pos+1);
-	}
+	DIALOG *ret = new DIALOG[3];
+	DIALOG menu[] =
+	{
+	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2) (dp)                     (dp2) (dp3) */
+	   { menu_bg_proc, 0,   0,   320, 240, COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { d_text_proc,  16,  12,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"Skill",         NULL, NULL },
+	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,   NULL,                    NULL, NULL }
+	};
+	
+	memcpy(ret, menu, 3*sizeof(DIALOG));
+	cout << "skill_dialog created" << endl;
+	return ret;
+}
+
+DIALOG *GameMenu::create_equip_dialog() {
+	delete_last_dialog();
+	string pstr = get_chosen_player();
+
+	char** strings = new char*[3];
+	strings[2] = NULL;
+
+	DIALOG *ret = new DIALOG[16];
+	DIALOG menu[] =
+	{
+	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2) (dp)                     (dp2) (dp3) */
+	   { menu_bg_proc, 0,   0,   320, 240, COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { ff6_button,   240, 12,  72,  16,  COL_WHITE, -1,  0,    D_DISABLED, 0,   0,   (void*)"Empty",          NULL, NULL },
+	   { ff6_button,   160, 12,  72,  16,  COL_WHITE, -1,  0,    D_DISABLED, 0,   0,   (void*)"Remove",         NULL, NULL },
+	   { ff6_button,   80,  12,  72,  16,  COL_WHITE, -1,  0,    D_DISABLED, 0,   0,   (void*)"Optimal",        NULL, NULL },
+	   { r_box_proc,   8,   8,   304, 16,  COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { r_box_proc,   8,   24,  304, 72,  COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { r_box_proc,   8,   96,  304, 136, COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { d_text_proc,  16,  12,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"Equip.",         NULL, NULL },
+	   { d_text_proc,  16,  32,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"R-Hand",         NULL, NULL },
+	   { d_text_proc,  16,  48,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"L-Hand",         NULL, NULL },
+	   { d_text_proc,  16,  64,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"Head",           NULL, NULL },
+	   { d_text_proc,  16,  80,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"Body",           NULL, NULL },
+	   { gvar_update,  232, 80,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)parent,      		(void*)(strings[0] = tochar(pstr+".name")), NULL },
+	   { transp_bmp,   256, 32,  48,  48,  0,         0,   0,    0,          0,   0,   (void*)(strings[1] = tochar("Fights/Fighters/" + pstr + "/face.tga")), NULL, NULL },
+	   { dialog_cleanup,0,  0,   0,   0,   0,         0,   0,    0,          0,   0,   (void*)strings,     		NULL,                  NULL },
+	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,   NULL,                    NULL, NULL }
+	};
+	
+	memcpy(ret, menu, 16*sizeof(DIALOG));
+	cout << "equip_dialog created" << endl;
+	return ret;
+}
+
+DIALOG *GameMenu::create_relic_dialog() {
+	delete_last_dialog();
+	string pstr = get_chosen_player();
+
+	char** strings = new char*[3];
+	strings[2] = NULL;
+
+	DIALOG *ret = new DIALOG[12];
+	DIALOG menu[] =
+	{
+	   /* (proc)       (x)  (y)  (w)  (h)  (fg)       (bg) (key) (flags)     (d1) (d2) (dp)                     (dp2) (dp3) */
+	   { menu_bg_proc, 0,   0,   320, 240, COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { ff6_button,   160, 12,  72,  16,  COL_WHITE, -1,  0,    D_DISABLED, 0,   0,   (void*)"Remove",         NULL, NULL },
+	   { r_box_proc,   8,   8,   304, 16,  COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { r_box_proc,   8,   24,  304, 72,  COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { r_box_proc,   8,   96,  304, 136, COL_WHITE, -1,  0,    0,          0,   0,   NULL,                    NULL, NULL },
+	   { d_text_proc,  16,  12,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"Equip.",         NULL, NULL },
+	   { d_text_proc,  16,  64,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"Relic",          NULL, NULL },
+	   { d_text_proc,  16,  80,  48,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)"Relic",          NULL, NULL },
+	   { gvar_update,  232, 80,  56,  8,   COL_WHITE, -1,  0,    0,          0,   0,   (void*)parent,      		(void*)(strings[0] = tochar(pstr+".name")), NULL },
+	   { transp_bmp,   256, 32,  48,  48,  0,         0,   0,    0,          0,   0,   (void*)(strings[1] = tochar("Fights/Fighters/" + pstr + "/face.tga")), NULL, NULL },
+	   { dialog_cleanup,0,  0,   0,   0,   0,         0,   0,    0,          0,   0,   (void*)strings,		    NULL,                  NULL },
+	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,   NULL,                    NULL, NULL }
+	};
+	
+	memcpy(ret, menu, 12*sizeof(DIALOG));
+	cout << "relic_dialog created" << endl;
+	return ret;
+}
+
+
+DIALOG *GameMenu::create_status_dialog() {
+	delete_last_dialog(); //status chooser entfernen
+	string pstr = get_chosen_player();
 
 	char** strings = new char*[20];
 	strings[19] = NULL;
@@ -196,6 +325,27 @@ DIALOG *GameMenu::create_status_dialog() {
 	memcpy(ret, menu, 40*sizeof(DIALOG));
 	cout << "status_dialog created" << endl;
 	return ret;
+}
+
+void GameMenu::delete_last_dialog() {
+	shutdown_dialog(player.back());
+	player.pop_back();
+	delete [] dialog.back();
+	dialog.pop_back();
+}
+
+string GameMenu::get_chosen_player() {
+	string pstr;
+	int player = atoi(parent->get_var("Internal.dlgID").c_str());
+	string chars = parent->get_var("CharactersInBattle");
+	for(int i = 0; i <= player; i++) {
+		int pos = chars.find_first_of(";");
+		if(pos == string::npos)
+			break;
+		pstr = chars.substr(0, pos);
+		chars.erase(0, pos+1);
+	}
+	return pstr;
 }
 
 #define MESSAGE(i, msg, c) {                       \
