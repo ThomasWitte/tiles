@@ -17,7 +17,13 @@
 #ifndef GUIHELPER_H
 #define GUIHELPER_H
 
-#include <allegro.h>
+#include "config.h"
+
+#ifdef ALLEGRO5
+	//include Allegro5 headers
+#else
+	#include "allegro4_compat.h"
+#endif
 
 #define D_SPAWN 128 	//neuen Dialog öffnen, ID im d2 feld der sendenden DIALOG-Struktur
 #define D_OPEN	D_USER 	//dieses objekt soll beim aktivieren einen neuen Dialog öffnen (D_SPAWN senden)

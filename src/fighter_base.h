@@ -18,7 +18,13 @@
 #define FIGHTER_BASE_H
 
 #include "config.h"
-#include <allegro.h>
+
+#ifdef ALLEGRO5
+	//include Allegro5 headers
+#else
+	#include "allegro4_compat.h"
+#endif
+
 #include <string>
 #include <deque>
 

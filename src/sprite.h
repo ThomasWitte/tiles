@@ -17,7 +17,14 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include <allegro.h>
+#include "config.h"
+
+#ifdef ALLEGRO5
+	//include Allegro5 headers
+#else
+	#include "allegro4_compat.h"
+#endif
+
 #include <vector>
 #include <string>
 #include "object.h"

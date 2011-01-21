@@ -17,11 +17,17 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <allegro.h>
+#include "config.h"
+
+#ifdef ALLEGRO5
+	//include Allegro5 headers
+#else
+	#include "allegro4_compat.h"
+#endif
+
 #include <string>
 #include "game.h"
 #include "menu.h"
-#include "config.h"
 #include <iostream>
 #include <ctime>
 
@@ -182,9 +188,12 @@ int main()
 #ifdef ENABLE_FRAME_COUNTER
 				drawn_frames++;
 #endif
-			} else {
+			} 
+#ifndef WINDOWS
+			else {
 				sched_yield();
 			}
+#endif
 
 			if(key[MENU_KEY]) {
 				switch(Menu::pause_menu()) {

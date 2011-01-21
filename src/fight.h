@@ -17,10 +17,16 @@
 #ifndef FIGHT_H
 #define FIGHT_H
 
-#include <allegro.h>
+#include "config.h"
+
+#ifdef ALLEGRO5
+	//include Allegro5 headers
+#else
+	#include "allegro4_compat.h"
+#endif
+
 #include <string>
 #include <deque>
-#include "config.h"
 #include "game.h"
 #include "command.h"
 #include "attacks.h"

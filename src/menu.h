@@ -17,7 +17,14 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <allegro.h>
+#include "config.h"
+
+#ifdef ALLEGRO5
+	//include Allegro5 headers
+#else
+	#include "allegro4_compat.h"
+#endif
+
 #include <string>
 
 using namespace std;

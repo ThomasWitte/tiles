@@ -30,6 +30,7 @@
 //Plattform
 //#define GP2X
 //#define WINDOWS
+//#define ALLEGRO5
 
 //interne Auflösung
 #define PC_RESOLUTION_X 320

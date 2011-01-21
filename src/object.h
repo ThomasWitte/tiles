@@ -17,10 +17,16 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <allegro.h>
+#include "config.h"
+
+#ifdef ALLEGRO5
+	//include Allegro5 headers
+#else
+	#include "allegro4_compat.h"
+#endif
+
 #include <string>
 #include <vector>
-#include "config.h"
 #include "map.h"
 
 using namespace std;
