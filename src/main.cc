@@ -182,6 +182,8 @@ int main()
 #ifdef ENABLE_FRAME_COUNTER
 				drawn_frames++;
 #endif
+			} else {
+				sched_yield();
 			}
 
 			if(key[MENU_KEY]) {
