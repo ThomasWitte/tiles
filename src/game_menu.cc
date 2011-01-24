@@ -24,36 +24,7 @@ GameMenu::GameMenu(Game *parent) {
 	player.push_back(init_dialog(dialog[0], 10));
 }
 
-GameMenu::~GameMenu() {
-	for(int i = 0; i < player.size(); i++) {
-		shutdown_dialog(player[i]);
-		delete [] dialog[i];
-	}
-}
-
-void GameMenu::draw(BITMAP *buffer) {
-	gui_set_screen(buffer);
-	dialog_message(dialog.back(), MSG_DRAW, 0, NULL);
-	gui_set_screen(NULL);
-}
-
-int GameMenu::update() {
-	if(!update_game_menu()) { //D_CLOSE erhalten!
-		if(player.size() <= 1) {
-			return 0; //zurück zur map
-		} else { //aktiven Dialog schließen
-			delete_last_dialog();
-		}
-	} else if(player.back()->res & D_SPAWN) {
-		player.back()->res &= ~D_SPAWN;
-		DIALOG_ID id = (DIALOG_ID)(player.back()->dialog + player.back()->obj)->d2;
-		dialog.push_back(create_dialog(id));
-		player.push_back(init_dialog(dialog.back(), 1));
-	}
-	return 1;
-}
-
-DIALOG *GameMenu::create_dialog(DIALOG_ID id) {
+DIALOG *GameMenu::create_dialog(int id) {
 	DIALOG *ret = NULL;
 	switch(id) {
 		case ITEM_DIALOG:
@@ -327,13 +298,6 @@ DIALOG *GameMenu::create_status_dialog() {
 	return ret;
 }
 
-void GameMenu::delete_last_dialog() {
-	shutdown_dialog(player.back());
-	player.pop_back();
-	delete [] dialog.back();
-	dialog.pop_back();
-}
-
 string GameMenu::get_chosen_player() {
 	string pstr;
 	int player = atoi(parent->get_var("Internal.dlgID").c_str());
@@ -346,89 +310,5 @@ string GameMenu::get_chosen_player() {
 		chars.erase(0, pos+1);
 	}
 	return pstr;
-}
-
-#define MESSAGE(i, msg, c) {                       \
-   r = object_message(player.back()->dialog+i, msg, c);   \
-   if (r != D_O_K) {                               \
-      player.back()->res |= r;                            \
-      player.back()->obj = i;                             \
-   }                                               \
-}
-
-int GameMenu::update_game_menu()
-{
-   int c, cascii, cscan, ccombo, r, ret, nowhere, z;
-   ASSERT(player.back());
-
-   /* need to give the input focus to someone? */
-   if (player.back()->res & D_WANTFOCUS) {
-      player.back()->res ^= D_WANTFOCUS;
-      player.back()->res |= offer_focus(player.back()->dialog, player.back()->obj, &player.back()->focus_obj, FALSE);
-   }
-
-   /* deal with keyboard input */
-   if ((cascii) || (cscan) || (keypressed())) {
-      if ((!cascii) && (!cscan))
-	 cascii = ureadkey(&cscan);
-
-      ccombo = (cscan<<8) | ((cascii <= 255) ? cascii : '^');
-
-      /* let object deal with the key */
-      if (player.back()->focus_obj >= 0) {
-	 MESSAGE(player.back()->focus_obj, MSG_CHAR, ccombo);
-	 if (player.back()->res & (D_USED_CHAR | D_CLOSE))
-	    goto getout;
-
-	 MESSAGE(player.back()->focus_obj, MSG_UCHAR, cascii);
-	 if (player.back()->res & (D_USED_CHAR | D_CLOSE))
-	    goto getout;
-      }
-
-      /* keyboard shortcut? */
-      for (c=0; player.back()->dialog[c].proc; c++) {
-	 if ((((cascii > 0) && (cascii <= 255) &&
-	       (utolower(player.back()->dialog[c].key) == utolower((cascii)))) ||
-	      ((!cascii) && (player.back()->dialog[c].key == (cscan<<8)))) &&
-	     (!(player.back()->dialog[c].flags & (D_HIDDEN | D_DISABLED)))) {
-	    MESSAGE(c, MSG_KEY, ccombo);
-	    goto getout;
-	 }
-      }
-
-      /* broadcast in case any other objects want it */
-      for (c=0; player.back()->dialog[c].proc; c++) {
-	 if (!(player.back()->dialog[c].flags & (D_HIDDEN | D_DISABLED))) {
-	    MESSAGE(c, MSG_XCHAR, ccombo);
-	    if (player.back()->res & D_USED_CHAR)
-	       goto getout;
-	 }
-      }
-
-      /* pass <CR> or <SPACE> to selected object */
-      if (key[ACTION_KEY] && (player.back()->focus_obj >= 0)) {
-		 MESSAGE(player.back()->focus_obj, MSG_KEY, ccombo);
-		 goto getout;
-      }
-
-      /* ESC closes dialog */
-      if (key[INGAME_MENU_KEY]) {
-	 player.back()->res |= D_CLOSE;
-	 player.back()->obj = -1;
-	 goto getout;
-      }
-
-      /* move focus around the dialog */
-      player.back()->res |= move_focus(player.back()->dialog, cascii, cscan, &player.back()->focus_obj);
-   }
-
-   /* send idle messages */
-   player.back()->res |= dialog_message(player.back()->dialog, MSG_IDLE, 0, &player.back()->obj);
-
-   getout:
-
-   ret = (!(player.back()->res & D_CLOSE));
-   player.back()->res &= ~D_CLOSE;
-   return ret;
 }
 

@@ -20,7 +20,7 @@ LDFLAGS	= `allegro-config --libs`
 LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
 DEBUGFLAGS = -g
 
-OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o command.o fighter.o game_menu.o guihelper.o
+OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o command.o fighter.o game_menu.o guihelper.o menu_base.o
 BIN =     tiles
 
 all: $(OBJ)

@@ -14,37 +14,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GAME_MENU_H
-#define GAME_MENU_H
+#ifndef MENU_BASE_H
+#define MENU_BASE_H
 
 #include <allegro.h>
-#include <string>
+#include <deque>
 #include "config.h"
-#include "menu_base.h"
-#include "game.h"
 
 using namespace std;
 
-class GameMenu : public MenuBase {
+class MenuBase {
 	public:
-		GameMenu(Game *parent);
-
+		~MenuBase();
+		void draw(BITMAP *buffer);
+		int update(); //liefert 0, wenn Menü geschlossen wurde
 	protected:
-		enum DIALOG_ID {MAIN_DIALOG, ITEM_DIALOG, ITEM_SP_DIALOG, SKILL_DIALOG, SKILL_CH_DIALOG, EQUIP_DIALOG,
-						EQUIP_CH_DIALOG, RELIC_DIALOG, RELIC_CH_DIALOG, STATUS_CH_DIALOG, STATUS_DIALOG};
-		Game *parent;
 
-		DIALOG *create_dialog(int id);
-		DIALOG *create_main_dialog();
-		DIALOG *create_ch_chooser(DIALOG_ID id);
-		DIALOG *create_status_dialog();
-		DIALOG *create_skill_dialog();
-		DIALOG *create_equip_dialog();
-		DIALOG *create_relic_dialog();
-		DIALOG *create_item_dialog();
-		DIALOG *create_item_sp_dialog();
+		virtual DIALOG *create_dialog(int id) = 0;
+		int update_game_menu(bool esc_possible);
 
-		string get_chosen_player();
+		void delete_last_dialog();
+
+		//DIALOG_PLAYER und DIALOG als Stack…
+		deque<DIALOG_PLAYER*> player;
+		deque<DIALOG*> dialog;
 };
 
 #endif
