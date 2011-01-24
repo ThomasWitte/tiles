@@ -25,15 +25,19 @@
 #include "command.h"
 #include "attacks.h"
 #include "fighter_base.h"
+#include "menu_base.h"
 
 using namespace std;
 
-class Fight {
+class Fight : public MenuBase {
 	public:
+		enum {FRIEND, ENEMY};
+
 		Fight(string dateiname = "defaultFight", Game *g = NULL);
 		~Fight();
-		int update();
-		void draw(BITMAP *buffer);
+
+		int fightarea(int msg, DIALOG *d, int c);
+
 		void enqueue_ready_fighter(FighterBase *f);
 		void enqueue_command(class Command c);
 		void block_comqueue(bool state) {command_is_executed = state;}
@@ -48,11 +52,18 @@ class Fight {
 		int get_team(int fighter, PlayerSide side);
 		void defeated_fighter(FighterBase*);
 		PlayerSide get_PlayerSide(FighterBase*);
-		enum {FRIEND, ENEMY};
+
+
 	private:
-		Game *parent;
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
 		enum FightState{FIGHT, MENU} state;
+
+
+		DIALOG *create_dialog(int id);
+		int update_fightarea();
+		void draw_fightarea(BITMAP *buffer);
+
+		Game *parent;
 		long time;
 		BITMAP *bg, *menu_bg, *auswahl;
 		deque<Command> comqueue;

@@ -13,11 +13,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <iostream>
+#include <sstream>
+
 #include "fight.h"
 #include "fighter.h"
 #include "iohelper.h"
-#include <iostream>
-#include <sstream>
+#include "guihelper.h"
+
+int fight_area_proc(int msg, DIALOG *d, int c) {
+	return ((Fight*)d->dp)->fightarea(msg, d, c);
+}
 
 Fight::Fight(string dateiname, Game *g) {
 	parent = g;
@@ -228,6 +234,10 @@ Fight::Fight(string dateiname, Game *g) {
 			pos = chars.find_first_of(";");
 		} 
 	}
+
+	//DIALOG erzeugen
+	dialog.push_back(create_dialog(0));
+	player.push_back(init_dialog(dialog[0], 1));
 }
 
 Fight::~Fight() {
@@ -288,7 +298,33 @@ Fight::~Fight() {
 		delete defeated_fighters[i];
 }
 
-void Fight::draw(BITMAP *buffer) {
+DIALOG *Fight::create_dialog(int id) { //es gibt denke ich nur einen DIALOG… also ist id egal
+	DIALOG *ret = new DIALOG[3];
+	DIALOG menu[] =
+	{
+	   /* (proc)        (x) (y)  (w)  (h)  (fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
+	   { menu_bg_proc,  0,  160, 320, 80,  COL_WHITE, -1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
+	   { fight_area_proc,0, 0,   320, 160, 0,         0,   0,    D_EXIT, 0,    0,   				this,             NULL, NULL },
+	   { NULL,          0,  0,   0,   0,   0,         0,   0,    0,      0,    0,   				NULL,             NULL, NULL }
+	};
+	memcpy(ret, menu, 3*sizeof(DIALOG));
+	cout << "Fight created" << endl;
+	return ret;
+}
+
+int Fight::fightarea(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_DRAW:
+			draw_fightarea(gui_get_screen());
+		break;
+		case MSG_IDLE:
+			if(update_fightarea() == 0) return D_CLOSE;
+		break;
+	}
+	return D_O_K;
+}
+
+void Fight::draw_fightarea(BITMAP *buffer) {
 	int x, y;
 	int sz[3]; for(int i = 0; i < 3; i++) sz[i] = 0;
 	int szd[3]; for(int i = 0; i < 3; i++) szd[i] = 0;
@@ -329,7 +365,7 @@ void Fight::draw(BITMAP *buffer) {
 		ready_fighters[current_menu]->draw_menu(buffer, 5, 2*PC_RESOLUTION_Y/3+5, PC_RESOLUTION_X/3-3, PC_RESOLUTION_Y/3-10);
 }
 
-int Fight::update() {
+int Fight::update_fightarea() {
 	switch(state) {
 	case FIGHT:
 		{
