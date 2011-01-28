@@ -348,6 +348,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 	menu_items = items;
 }
 
+//ausmisten!
 int Fighter::FighterMenu::update() {
 	switch(state) {
 	case START:

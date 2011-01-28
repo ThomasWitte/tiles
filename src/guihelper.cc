@@ -304,16 +304,16 @@ int ff6_button(int msg, DIALOG *d, int c) {
 			imageloader.destroy((BITMAP*)d->dp2);
 		break;
 		case MSG_DRAW:
-			if(d->flags & D_DISABLED) {
-				gui_textout_ex(scr, (char*)d->dp, d->x, d->y, makecol(128,128,128), d->bg, FALSE);
-			} else {
-				gui_textout_ex(scr, (char*)d->dp, d->x, d->y, d->fg, d->bg, FALSE);
-				if(d->flags & D_GOTFOCUS) {
-					offset = 30*d->d1/GAME_TIMER_BPS;
-					if(offset < 0) offset *= -1;
-					masked_blit((BITMAP*)d->dp2, scr, 0, 0, d->x-((BITMAP*)d->dp2)->w-offset, d->y, ((BITMAP*)d->dp2)->w, ((BITMAP*)d->dp2)->h);
+				if(d->flags & D_DISABLED) {
+					gui_textout_ex(scr, (char*)d->dp, d->x, d->y, makecol(128,128,128), d->bg, FALSE);
+				} else {
+					gui_textout_ex(scr, (char*)d->dp, d->x, d->y, d->fg, d->bg, FALSE);
+					if(d->flags & D_GOTFOCUS) {
+						offset = 30*d->d1/GAME_TIMER_BPS;
+						if(offset < 0) offset *= -1;
+						masked_blit((BITMAP*)d->dp2, scr, 0, 0, d->x-((BITMAP*)d->dp2)->w-offset, d->y, ((BITMAP*)d->dp2)->w, ((BITMAP*)d->dp2)->h);
+					}
 				}
-			}
 		break;
 		case MSG_KEY:
 			if(d->flags & D_OPEN)

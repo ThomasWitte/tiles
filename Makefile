@@ -15,13 +15,17 @@
 
 
 CC = g++
-CXXFLAGS = -O2 -march=native -pipe
+CXXFLAGS = -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
 LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
-DEBUGFLAGS = -g
+DEBUGFLAGS = -g3
+RELEASEFLAGS = -O3
 
 OBJ =     main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o command.o fighter.o game_menu.o guihelper.o menu_base.o
 BIN =     tiles
+
+release: CXXFLAGS += $(RELEASEFLAGS)
+release: all
 
 all: $(OBJ)
 	$(CC) $(CXXFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS)

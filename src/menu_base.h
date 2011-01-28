@@ -27,17 +27,16 @@ class MenuBase {
 	public:
 		~MenuBase();
 		void draw(BITMAP *buffer);
-		int update(); //liefert 0, wenn Menü geschlossen wurde
+		virtual int update(); //liefert 0, wenn Menü geschlossen wurde
 	protected:
-
-		virtual DIALOG *create_dialog(int id) = 0;
-		int update_game_menu(bool esc_possible);
-
-		void delete_last_dialog();
-
 		//DIALOG_PLAYER und DIALOG als Stack…
 		deque<DIALOG_PLAYER*> player;
 		deque<DIALOG*> dialog;
+
+		virtual DIALOG *create_dialog(int id) = 0;
+		int update_game_menu(bool esc_possible, DIALOG_PLAYER *player);
+
+		void delete_last_dialog();
 };
 
 #endif

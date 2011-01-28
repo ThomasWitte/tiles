@@ -36,7 +36,11 @@ class Fight : public MenuBase {
 		Fight(string dateiname = "defaultFight", Game *g = NULL);
 		~Fight();
 
-		int fightarea(int msg, DIALOG *d, int c);
+		int update();
+
+		inline int fightarea(int msg, DIALOG *d, int c);
+		inline int statusbox(int msg, DIALOG *d, int c);
+		inline int fightermenu(int msg, DIALOG *d, int c);
 
 		void enqueue_ready_fighter(FighterBase *f);
 		void enqueue_command(class Command c);
@@ -55,13 +59,14 @@ class Fight : public MenuBase {
 
 
 	private:
+		enum DIALOG_ID{MAIN_DLG};
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
 		enum FightState{FIGHT, MENU} state;
 
 
 		DIALOG *create_dialog(int id);
 		int update_fightarea();
-		void draw_fightarea(BITMAP *buffer);
+		void draw_fightarea(BITMAP *buffer, DIALOG *dlg);
 
 		Game *parent;
 		long time;

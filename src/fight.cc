@@ -21,8 +21,18 @@
 #include "iohelper.h"
 #include "guihelper.h"
 
+#define MSG_REBUILD_MENU MSG_USER+1
+
 int fight_area_proc(int msg, DIALOG *d, int c) {
 	return ((Fight*)d->dp)->fightarea(msg, d, c);
+}
+
+int status_box_proc(int msg, DIALOG *d, int c) {
+	return ((Fight*)d->dp)->statusbox(msg, d, c);
+}
+
+int fighter_menu_proc(int msg, DIALOG *d, int c) {
+	return ((Fight*)d->dp)->fightermenu(msg, d, c);
 }
 
 Fight::Fight(string dateiname, Game *g) {
@@ -236,7 +246,7 @@ Fight::Fight(string dateiname, Game *g) {
 	}
 
 	//DIALOG erzeugen
-	dialog.push_back(create_dialog(0));
+	dialog.push_back(create_dialog(MAIN_DLG));
 	player.push_back(init_dialog(dialog[0], 1));
 }
 
@@ -298,71 +308,193 @@ Fight::~Fight() {
 		delete defeated_fighters[i];
 }
 
-DIALOG *Fight::create_dialog(int id) { //es gibt denke ich nur einen DIALOG… also ist id egal
-	DIALOG *ret = new DIALOG[3];
-	DIALOG menu[] =
-	{
-	   /* (proc)        (x) (y)  (w)  (h)  (fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
-	   { menu_bg_proc,  0,  160, 320, 80,  COL_WHITE, -1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
-	   { fight_area_proc,0, 0,   320, 160, 0,         0,   0,    D_EXIT, 0,    0,   				this,             NULL, NULL },
-	   { NULL,          0,  0,   0,   0,   0,         0,   0,    0,      0,    0,   				NULL,             NULL, NULL }
-	};
-	memcpy(ret, menu, 3*sizeof(DIALOG));
-	cout << "Fight created" << endl;
+DIALOG *Fight::create_dialog(int id) {
+	DIALOG *ret = NULL;
+	switch(id) {
+		case MAIN_DLG:
+		{
+			ret = new DIALOG[7];
+			DIALOG menu[] = {
+				/* (proc)			(x)					(y)						(w)  					(h)					(fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
+				{ menu_bg_proc,		-8,					2*PC_RESOLUTION_Y/3-8,	PC_RESOLUTION_X+16,		PC_RESOLUTION_Y/3+16,COL_WHITE,-1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
+				{ fighter_menu_proc,8,					13+2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X/3-12,	PC_RESOLUTION_Y/3-16,COL_WHITE, -1,  0,    0,      0,    0,   				this,             NULL, NULL },
+				{ fight_area_proc,	0,					0,						PC_RESOLUTION_X,		2*PC_RESOLUTION_Y/3,0,         0,   0,    D_EXIT, 0,    0,   				this,             NULL, NULL },
+				{ r_box_proc,		4,					4+2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X/3-4,	PC_RESOLUTION_Y/3-8,COL_WHITE, -1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
+				{ r_box_proc,		PC_RESOLUTION_X/3,	4+2*PC_RESOLUTION_Y/3,	2*PC_RESOLUTION_X/3-4,	PC_RESOLUTION_Y/3-8,COL_WHITE, -1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
+				{ status_box_proc,	PC_RESOLUTION_X/3+4,8+2*PC_RESOLUTION_Y/3,	2*PC_RESOLUTION_X/3-12,	PC_RESOLUTION_Y/3-16,COL_WHITE, -1,  0,    0,      0,    0,   				this,             NULL, NULL },
+				{ NULL,				0,  				0,						0,   					0,					0,         0,   0,    0,      0,    0,   				NULL,             NULL, NULL }
+			};
+			memcpy(ret, menu, 7*sizeof(DIALOG));
+			cout << "Fight created" << endl;
+		}
+		break;
+	}
 	return ret;
 }
 
 int Fight::fightarea(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
-			draw_fightarea(gui_get_screen());
+			draw_fightarea(gui_get_screen(), d);
 		break;
+
 		case MSG_IDLE:
-			if(update_fightarea() == 0) return D_CLOSE;
+			if(update_fightarea() == 0 && d->flags & D_EXIT) return D_CLOSE;
 		break;
 	}
 	return D_O_K;
 }
 
-void Fight::draw_fightarea(BITMAP *buffer) {
-	int x, y;
+int Fight::statusbox(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_DRAW:
+			for(int i = 0; i < fighters[FRIEND].size(); i++) {
+				fighters[FRIEND][i]->draw_status(gui_get_screen(), d->x, d->y+i*((d->h)/fighters[FRIEND].size()), d->w, (d->h)/fighters[FRIEND].size());
+			}
+		break;
+	}
+	return D_O_K;
+}
+
+int Fight::fightermenu(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_START:
+			{
+			char** strings = new char*[5];
+			strings[4] = NULL;
+			d->dp2 = (void*) new DIALOG[6];
+			DIALOG menu[] = {
+				/* (proc)			(x)			(y)				(w)  		(h)			(fg)		(bg) (key) (flags) (d1)  (d2) 	(dp)    				(dp2)  (dp3) */
+				{ ff6_button,		d->x+16,	d->y,			d->w-8,		8,			COL_WHITE,	-1,  0,    0,      0,    0,   	(void*)(strings[0] = new char[25]),   NULL,  NULL },
+				{ ff6_button,		d->x+16,	d->y+1*d->h/4,	d->w-8,		8,			COL_WHITE,	-1,  0,    0,      0,    0,   	(void*)(strings[1] = new char[25]),   NULL,  NULL },
+				{ ff6_button,		d->x+16,	d->y+2*d->h/4,	d->w-8,		8,			COL_WHITE,	-1,  0,    0,      0,    0,   	(void*)(strings[2] = new char[25]),   NULL,  NULL },
+				{ ff6_button,		d->x+16,	d->y+3*d->h/4,	d->w-8,		8,			COL_WHITE,	-1,  0,    0,      0,    0,   	(void*)(strings[3] = new char[25]),   NULL,  NULL },
+				{ dialog_cleanup,	0,  		0,  			0,			0,			0,	        0,   0,    0,      0,    0,     (void*)strings,     	NULL,                  NULL },
+				{ NULL,				0,  		0,				0,   		0,			0,			0,   0,    0,      0,    0,   	NULL,   NULL,  NULL }
+			};
+			memcpy((DIALOG*)d->dp2, menu, 6*sizeof(DIALOG));
+
+			d->dp3 = (void*)init_dialog((DIALOG*)d->dp2, 0);
+			d->d1 = -1;
+			fightermenu(MSG_REBUILD_MENU, d, c);
+			}
+		return D_O_K;
+		break;
+
+		case MSG_END:
+			shutdown_dialog((DIALOG_PLAYER*)d->dp3);
+			delete [] (DIALOG*)d->dp2;
+		return D_O_K;
+		break;
+
+		case MSG_CHAR:
+			d->bg = c; //letzter tastendruck wird in d->bg gespeichert bis zur idle message
+		return D_USED_CHAR;
+
+		case MSG_DRAW:
+			dialog_message((DIALOG*)d->dp2, MSG_DRAW, 0, NULL);
+		return D_O_K;
+		break;
+
+		case MSG_REBUILD_MENU:
+			if(d->d1 >= 0) {
+				for(int i = 0; i < 4; i++) {
+					strcpy((char*)((DIALOG*)d->dp2)[i].dp, "test");
+					((DIALOG*)d->dp2)[i].flags &= ~D_HIDDEN;
+				}
+			} else {
+				for(int i = 0; i < 4; i++) {
+					((DIALOG*)d->dp2)[i].flags |= D_HIDDEN;
+				}
+			}
+		return D_O_K;
+		break;
+
+		case MSG_IDLE:
+		{
+			//Aktuell aktives Menü neu bestimmen
+			int current_menu = -1;
+			for(int i = 0; i < ready_fighters.size(); i++) {
+				bool end = false;
+				for(int j = 0; j < fighters[FRIEND].size(); j++) {
+					if(ready_fighters[i] == fighters[FRIEND][j]) {
+						current_menu = i;
+						end = true;
+						break;
+					}
+				}
+				if(end) break;
+			}
+
+			//neues Menü?, dann Strings updaten
+			if(current_menu != d->d1) {
+				d->d1 = current_menu;
+				fightermenu(MSG_REBUILD_MENU, d, c);
+			}
+
+			//keyboard-input wieder in buffer schreiben	
+			if(d->bg >= 0) {
+				cout << "key" << endl;
+				simulate_keypress(c);
+				if(keypressed()) {
+					c = readkey();
+					printf("%s %i %s %i\n", scancode_to_name(KEY_SPACE), KEY_SPACE, scancode_to_name(c >> 8), c);
+				}
+				d->bg = -1;
+			}
+
+			//nested menu updaten und bei bedarf dialog spawnen
+			if(!update_game_menu(true, (DIALOG_PLAYER*)d->dp3) && d->d1 >= 0) {
+				ready_fighters.erase(ready_fighters.begin()+current_menu);
+				fightermenu(MSG_REBUILD_MENU, d, c);
+				//D_CLOSE erhalten -> nächstes ready_fighter menü
+			} else if(((DIALOG_PLAYER*)d->dp3)->res & D_SPAWN && d->d1 >= 0) {
+				((DIALOG_PLAYER*)d->dp3)->res &= ~D_SPAWN;
+				d->d2 = (((DIALOG_PLAYER*)d->dp3)->dialog + ((DIALOG_PLAYER*)d->dp3)->obj)->d2;
+				ready_fighters.erase(ready_fighters.begin()+current_menu);
+				fightermenu(MSG_REBUILD_MENU, d, c);
+				return D_SPAWN;
+			}
+
+			//Kampf beendet
+			if(fighters[ENEMY].size() == 0) {
+				state = MENU;
+			}
+
+		}
+		return D_O_K;
+		break;
+	}
+	return d_button_proc(msg,d,c);
+}
+
+void Fight::draw_fightarea(BITMAP *buffer, DIALOG *dlg) {
+	//Hintergrund
+	stretch_blit(bg, buffer, 0, 0, bg->w, bg->h, dlg->x, dlg->y, dlg->w, dlg->h);
+
+	//Fighter pro Seite zählen
 	int sz[3]; for(int i = 0; i < 3; i++) sz[i] = 0;
 	int szd[3]; for(int i = 0; i < 3; i++) szd[i] = 0;
-	stretch_blit(bg, buffer, 0, 0, bg->w, bg->h, 0, 0, buffer->w, buffer->h);
 	for(int i = 0; i < 2; i++)
 		for(int j = 0; j < fighters[i].size(); j++) {
 			sz[fighters[i][j]->get_side()]++;
 		}
+
+	int x, y;
 	for(int i = 0; i < 2; i++)
 		for(int j = 0; j < fighters[i].size(); j++) {
-			x = PC_RESOLUTION_X/8 + PC_RESOLUTION_X/8 * 3 * fighters[i][j]->get_side();
-			y = (2*PC_RESOLUTION_Y/3) / (sz[fighters[i][j]->get_side()]+1) * (szd[fighters[i][j]->get_side()]+1);
+
+			//Fighter platzieren
+			x = dlg->w/8 + dlg->w/8 * 3 * fighters[i][j]->get_side();
+			y = dlg->h / (sz[fighters[i][j]->get_side()]+1) * (szd[fighters[i][j]->get_side()]+1);
 			szd[fighters[i][j]->get_side()]++;
 			
+			//Fighter zeichnen
 			fighters[i][j]->draw(buffer, x, y);
 			if(marked_fighters[i][j])
 				masked_blit(auswahl, buffer, 0, 0, x, y-25, auswahl->w, auswahl->h);
-		}
-	blit(menu_bg, buffer, 0, 0, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 
-	for(int i = 0; i < fighters[FRIEND].size(); i++) {
-		fighters[FRIEND][i]->draw_status(buffer, PC_RESOLUTION_X/3+2, 2*PC_RESOLUTION_Y/3+i*((PC_RESOLUTION_Y/3)/fighters[FRIEND].size()), 2*PC_RESOLUTION_X/3-4, (PC_RESOLUTION_Y/3)/fighters[FRIEND].size());
-	}
-
-	int current_menu = -1;
-	for(int i = 0; i < ready_fighters.size(); i++) {
-		bool end = false;
-		for(int j = 0; j < fighters[FRIEND].size(); j++) {
-			if(ready_fighters[i] == fighters[FRIEND][j]) {
-				current_menu = i;
-				end = true;
-				break;
-			}
 		}
-		if(end) break;
-	}
-	if(current_menu >= 0)
-		ready_fighters[current_menu]->draw_menu(buffer, 5, 2*PC_RESOLUTION_Y/3+5, PC_RESOLUTION_X/3-3, PC_RESOLUTION_Y/3-10);
 }
 
 int Fight::update_fightarea() {
@@ -375,34 +507,12 @@ int Fight::update_fightarea() {
 			comqueue[0].execute();
 			comqueue.pop_front();
 		}
+
+		//Fighter updaten
 		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < fighters[i].size(); j++) {
 				fighters[i][j]->update();
 			}
-
-		int current_menu = -1;
-		for(int i = 0; i < ready_fighters.size(); i++) {
-			bool end = false;
-			for(int j = 0; j < fighters[FRIEND].size(); j++) {
-				if(ready_fighters[i] == fighters[FRIEND][j]) {
-					current_menu = i;
-					end = true;
-					break;
-				}
-			}
-			if(end) break;
-		}
-		int ret = -1;
-		if(current_menu >= 0)
-			ret = ready_fighters[current_menu]->update_menu();
-
-		if(ret == 0) {
-			ready_fighters.erase(ready_fighters.begin()+current_menu);
-		}
-
-		if(fighters[ENEMY].size() == 0) {
-			state = MENU;
-		}
 		}
 	break;
 	case MENU:
@@ -439,6 +549,22 @@ int Fight::update_fightarea() {
 	}
 	return 1; //0 = Kampfende
 };
+
+int Fight::update() {
+	if(!update_game_menu(false, player.back())) { //D_CLOSE erhalten! false: esc beendet Kampf nicht
+		if(player.size() <= 1) {
+			return 0; //zurück zur map
+		} else { //aktiven Dialog schließen
+			delete_last_dialog();
+		}
+	} else if(player.back()->res & D_SPAWN) {
+		player.back()->res &= ~D_SPAWN;
+		int id = (player.back()->dialog + player.back()->obj)->d2;
+		dialog.push_back(create_dialog(id));
+		player.push_back(init_dialog(dialog.back(), 1));
+	}
+	return 1;
+}
 
 void Fight::enqueue_command(Command c) {
 	comqueue.push_back(c);

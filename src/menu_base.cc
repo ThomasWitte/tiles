@@ -31,7 +31,7 @@ void MenuBase::draw(BITMAP *buffer) {
 }
 
 int MenuBase::update() {
-	if(!update_game_menu(true)) { //D_CLOSE erhalten! true: esc schließt dialog
+	if(!update_game_menu(true, player.back())) { //D_CLOSE erhalten! true: esc schließt dialog
 		if(player.size() <= 1) {
 			return 0; //zurück zur map
 		} else { //aktiven Dialog schließen
@@ -54,22 +54,21 @@ void MenuBase::delete_last_dialog() {
 }
 
 #define MESSAGE(i, msg, c) {                       \
-   r = object_message(player.back()->dialog+i, msg, c);   \
+   r = object_message(p->dialog+i, msg, c);   \
    if (r != D_O_K) {                               \
-      player.back()->res |= r;                            \
-      player.back()->obj = i;                             \
+      p->res |= r;                            \
+      p->obj = i;                             \
    }                                               \
 }
 
-int MenuBase::update_game_menu(bool esc_possible)
-{
-   int c, cascii, cscan, ccombo, r, ret, nowhere, z;
-   ASSERT(player.back());
+int MenuBase::update_game_menu(bool esc_possible, DIALOG_PLAYER *p) {
+   int c, cascii = 0, cscan = 0, ccombo, r, ret, nowhere, z;
+   ASSERT(p);
 
    /* need to give the input focus to someone? */
-   if (player.back()->res & D_WANTFOCUS) {
-      player.back()->res ^= D_WANTFOCUS;
-      player.back()->res |= offer_focus(player.back()->dialog, player.back()->obj, &player.back()->focus_obj, FALSE);
+   if (p->res & D_WANTFOCUS) {
+      p->res ^= D_WANTFOCUS;
+      p->res |= offer_focus(p->dialog, p->obj, &p->focus_obj, FALSE);
    }
 
    /* deal with keyboard input */
@@ -80,60 +79,60 @@ int MenuBase::update_game_menu(bool esc_possible)
       ccombo = (cscan<<8) | ((cascii <= 255) ? cascii : '^');
 
       /* let object deal with the key */
-      if (player.back()->focus_obj >= 0) {
-	 MESSAGE(player.back()->focus_obj, MSG_CHAR, ccombo);
-	 if (player.back()->res & (D_USED_CHAR | D_CLOSE))
+      if (p->focus_obj >= 0) {
+	 MESSAGE(p->focus_obj, MSG_CHAR, ccombo);
+	 if (p->res & (D_USED_CHAR | D_CLOSE))
 	    goto getout;
 
-	 MESSAGE(player.back()->focus_obj, MSG_UCHAR, cascii);
-	 if (player.back()->res & (D_USED_CHAR | D_CLOSE))
+	 MESSAGE(p->focus_obj, MSG_UCHAR, cascii);
+	 if (p->res & (D_USED_CHAR | D_CLOSE))
 	    goto getout;
       }
 
       /* keyboard shortcut? */
-      for (c=0; player.back()->dialog[c].proc; c++) {
+      for (c=0; p->dialog[c].proc; c++) {
 	 if ((((cascii > 0) && (cascii <= 255) &&
-	       (utolower(player.back()->dialog[c].key) == utolower((cascii)))) ||
-	      ((!cascii) && (player.back()->dialog[c].key == (cscan<<8)))) &&
-	     (!(player.back()->dialog[c].flags & (D_HIDDEN | D_DISABLED)))) {
+	       (utolower(p->dialog[c].key) == utolower((cascii)))) ||
+	      ((!cascii) && (p->dialog[c].key == (cscan<<8)))) &&
+	     (!(p->dialog[c].flags & (D_HIDDEN | D_DISABLED)))) {
 	    MESSAGE(c, MSG_KEY, ccombo);
 	    goto getout;
 	 }
       }
 
       /* broadcast in case any other objects want it */
-      for (c=0; player.back()->dialog[c].proc; c++) {
-	 if (!(player.back()->dialog[c].flags & (D_HIDDEN | D_DISABLED))) {
+      for (c=0; p->dialog[c].proc; c++) {
+	 if (!(p->dialog[c].flags & (D_HIDDEN | D_DISABLED))) {
 	    MESSAGE(c, MSG_XCHAR, ccombo);
-	    if (player.back()->res & D_USED_CHAR)
+	    if (p->res & D_USED_CHAR)
 	       goto getout;
 	 }
       }
 
       /* pass <CR> or <SPACE> to selected object */
-      if (key[ACTION_KEY] && (player.back()->focus_obj >= 0)) {
-		 MESSAGE(player.back()->focus_obj, MSG_KEY, ccombo);
+      if (key[ACTION_KEY] && (p->focus_obj >= 0)) {
+		 MESSAGE(p->focus_obj, MSG_KEY, ccombo);
 		 goto getout;
       }
 
       /* ESC closes dialog */
       if (key[INGAME_MENU_KEY] && esc_possible) {
-	 player.back()->res |= D_CLOSE;
-	 player.back()->obj = -1;
+	 p->res |= D_CLOSE;
+	 p->obj = -1;
 	 goto getout;
       }
 
       /* move focus around the dialog */
-      player.back()->res |= move_focus(player.back()->dialog, cascii, cscan, &player.back()->focus_obj);
+      p->res |= move_focus(p->dialog, cascii, cscan, &p->focus_obj);
    }
 
    /* send idle messages */
-   player.back()->res |= dialog_message(player.back()->dialog, MSG_IDLE, 0, &player.back()->obj);
+   p->res |= dialog_message(p->dialog, MSG_IDLE, 0, &p->obj);
 
    getout:
 
-   ret = (!(player.back()->res & D_CLOSE));
-   player.back()->res &= ~D_CLOSE;
+   ret = (!(p->res & D_CLOSE));
+   p->res &= ~D_CLOSE;
    return ret;
 }
 
