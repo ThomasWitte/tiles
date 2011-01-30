@@ -398,9 +398,15 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 
 		case MSG_REBUILD_MENU:
 			if(d->d1 >= 0) {
+				deque< deque<string> > menu_items = ready_fighters[d->d1]->get_menu_items();
+
 				for(int i = 0; i < 4; i++) {
-					strcpy((char*)((DIALOG*)d->dp2)[i].dp, "test");
-					((DIALOG*)d->dp2)[i].flags &= ~D_HIDDEN;
+					if(menu_items.size() > i) {
+						strcpy((char*)((DIALOG*)d->dp2)[i].dp, menu_items[i][0].c_str());
+						((DIALOG*)d->dp2)[i].flags &= ~D_HIDDEN;
+					} else {
+						((DIALOG*)d->dp2)[i].flags |= D_HIDDEN;
+					}
 				}
 			} else {
 				for(int i = 0; i < 4; i++) {
@@ -434,17 +440,13 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 
 			//keyboard-input wieder in buffer schreiben	
 			if(d->bg >= 0) {
-				cout << "key" << endl;
-				simulate_keypress(c);
-				if(keypressed()) {
-					c = readkey();
-					printf("%s %i %s %i\n", scancode_to_name(KEY_SPACE), KEY_SPACE, scancode_to_name(c >> 8), c);
-				}
+				simulate_ukeypress(d->bg%256, d->bg/256);
 				d->bg = -1;
 			}
 
 			//nested menu updaten und bei bedarf dialog spawnen
 			if(!update_game_menu(true, (DIALOG_PLAYER*)d->dp3) && d->d1 >= 0) {
+				ready_fighters.push_back(ready_fighters[current_menu]);
 				ready_fighters.erase(ready_fighters.begin()+current_menu);
 				fightermenu(MSG_REBUILD_MENU, d, c);
 				//D_CLOSE erhalten -> nächstes ready_fighter menü

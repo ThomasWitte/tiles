@@ -76,6 +76,7 @@ class FighterBase {
 		virtual int get_status(int status) = 0;
 		virtual void set_status(int status, int state) = 0;
 		virtual string get_spritename() = 0;
+		virtual deque< deque<string> > get_menu_items() = 0;
 };
 
 #include "fight.h"

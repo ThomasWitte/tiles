@@ -50,6 +50,7 @@ class Fighter : public FighterBase {
 		int get_status(int status);
 		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING
 		string get_spritename() {return spritename;}
+		deque< deque<string> > get_menu_items() {return menu.menu_items;}
 	protected:
 		Fight *parent;
 		friend Fight *get_parent(Fighter&);
@@ -71,6 +72,8 @@ class Fighter : public FighterBase {
 
 		class FighterMenu {
 			public:
+				deque< deque<string> > menu_items;
+
 				FighterMenu();
 				~FighterMenu();
 				void set_parent(Fighter *fighter);
@@ -86,7 +89,6 @@ class Fighter : public FighterBase {
 				int pointer_delta;
 				int sub_auswahl;
 				bool sub_open;
-				deque< deque<string> > menu_items;
 
 				class Command *c;
 				class AttackLib::Attack a;
