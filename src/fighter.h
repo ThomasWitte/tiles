@@ -34,10 +34,9 @@ class Fighter : public FighterBase {
 		~Fighter();
 		virtual void laden(string name);
 		virtual void update();
-		inline virtual int update_menu();
+		virtual inline void animate();
 		virtual void draw(BITMAP *buffer, int x, int y);
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
-		inline virtual void draw_menu(BITMAP *buffer, int x, int y, int w, int h);
 		virtual PlayerSide get_side() {return side;}
 		int get_dir() {return direction;}
 		virtual void get_ready();
@@ -50,7 +49,8 @@ class Fighter : public FighterBase {
 		int get_status(int status);
 		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING
 		string get_spritename() {return spritename;}
-		deque< deque<string> > get_menu_items() {return menu.menu_items;}
+		virtual MenuEntry *get_menu_entry(string name) {return menu.get_menu_entry(name, NULL);}
+
 	protected:
 		Fight *parent;
 		friend Fight *get_parent(Fighter&);
@@ -72,30 +72,21 @@ class Fighter : public FighterBase {
 
 		class FighterMenu {
 			public:
-				deque< deque<string> > menu_items;
-
 				FighterMenu();
 				~FighterMenu();
 				void set_parent(Fighter *fighter);
 				void set_items(deque< deque<string> > items);
-				void draw(BITMAP *buffer, int x, int y, int w, int h);
-				int update();
+				MenuEntry *get_menu_entry(string name, MenuEntry *e);
 			protected:
 				enum State {START, MENU, CHOOSE_TARGET, TARGETS_BY_ATTACK} state; 
 				Fighter *fighter;
-				BITMAP *pointer, *sub_bg;
-				int auswahl;
-				int pointer_position;
-				int pointer_delta;
-				int sub_auswahl;
-				bool sub_open;
-
+	
+				MenuEntry menu;
 				class Command *c;
 				class AttackLib::Attack a;
 				PlayerSide target_side;
 				int cur_target;
 				int multitarget;
-				static int mpause;
 		} menu;
 };
 

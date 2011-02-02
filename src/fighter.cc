@@ -18,8 +18,6 @@
 #include <iostream>
 #include <sstream>
 
-int Fighter::FighterMenu::mpause = 0;
-
 Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	parent = f;
 	this->c = c;
@@ -174,12 +172,10 @@ void Fighter::update() {
 			//hp durch regen
 		}
 	}
-
-	step++;
 }
 
-int Fighter::update_menu() {
-	return menu.update();
+void Fighter::animate() {
+	step++;
 }
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
@@ -222,10 +218,6 @@ void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
 	}
 
 	rectfill(buffer, x+w*2/3+4, y+h/2-2, x+w*2/3+4+(atb*(w/3-8))/65536, y+h/2+1, color);
-}
-
-void Fighter::draw_menu(BITMAP *buffer, int x, int y, int w, int h) {
-	menu.draw(buffer, x, y, w, h);
 }
 
 void Fighter::get_ready() {
@@ -313,20 +305,23 @@ void Fighter::set_status(int status, int state) {
 	c.status[status] = state;
 }
 
-Fighter::FighterMenu::FighterMenu() {
-	pointer = imageloader.load("Images/auswahl.tga");
-	if(!pointer)
-		cout << "Images/auswahl.tga konnte nicht geladen werden" << endl;
-	sub_bg = imageloader.load("Images/sub_bg.tga");
-	if(!sub_bg)
-		cout << "Images/sub_bg.tga konnte nicht geladen werden" << endl;
+FighterBase::MenuEntry* Fighter::FighterMenu::get_menu_entry(string name, MenuEntry *e) {
+	if(!e) e = &menu;
+	if(e->text == name)
+		return e;
 
-	pointer_position = 0;
-	pointer_delta = 1;
-	auswahl = 0;
+	for(int i = 0; i < e->submenu.size(); i++) {
+		MenuEntry *ret = NULL;
+		ret = get_menu_entry(name, &e->submenu[i]);
+		if(ret)
+			return ret;
+	}
+
+	return NULL;
+}
+
+Fighter::FighterMenu::FighterMenu() {
 	fighter = NULL;
-	sub_auswahl = 0;
-	sub_open = false;
 	state = START;
 	multitarget = AttackLib::SINGLE;
 }
@@ -340,16 +335,26 @@ void Fighter::FighterMenu::set_parent(Fighter *fighter) {
 }
 
 Fighter::FighterMenu::~FighterMenu() {
-	imageloader.destroy(pointer);
-	imageloader.destroy(sub_bg);
 }
 
 void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
-	menu_items = items;
+	//Das Speicherformat gefällt mir überhaupt nicht (nur einfach verschachtelt)…
+	//bei gelegenheit ändern
+	MenuEntry e, e2;
+	menu.text = "Menu";
+	for(int i = 0; i < items.size(); i++) {
+		e.submenu.resize(0);
+		e.text = items[i][0];
+		for(int j = 0; j < items[i].size(); j++) {
+			e2.text = items[i][j];
+			e.submenu.push_back(e2);
+		}
+		menu.submenu.push_back(e);
+	}
 }
 
 //ausmisten!
-int Fighter::FighterMenu::update() {
+/*int Fighter::FighterMenu::update() {
 	switch(state) {
 	case START:
 		c = new Command(fighter);
@@ -525,23 +530,7 @@ int Fighter::FighterMenu::update() {
 	break;
 	}
 	return 1; //0 = schließen
-}
-
-void Fighter::FighterMenu::draw(BITMAP *buffer, int x, int y, int w, int h) {
-	for(int i = 0; i < menu_items.size(); i++) {
-		textout_ex(buffer, font, menu_items[i][0].c_str(), x+26, y+(i*h/4)+5, makecol(255,255,255), -1);
-	}
-	
-	if(sub_open) {
-		masked_blit(sub_bg, buffer, 0, 0, x+w-5, y+h-sub_bg->h, sub_bg->w, sub_bg->h);
-		masked_blit(pointer, buffer, 0, 0, x+5, y+auswahl*h/4+5, pointer->w, pointer->h);
-		masked_blit(pointer, buffer, 0, 0, x+w+pointer_position, y+h-sub_bg->h+5+(sub_auswahl-1)*sub_bg->h/15, pointer->w, pointer->h);
-		for(int i = 1; i < menu_items[auswahl].size(); i++)
-			textout_ex(buffer, font, menu_items[auswahl][i].c_str(), x+w-5+26, y+h-sub_bg->h+5+(i-1)*sub_bg->h/15, makecol(255,255,255), -1);
-	} else {
-		masked_blit(pointer, buffer, 0, 0, x+5+pointer_position, y+auswahl*h/4+5, pointer->w, pointer->h);
-	}
-}
+}*/
 
 Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)
 	: Fighter(f, c, name, side, dir) {

@@ -41,6 +41,7 @@ class Fight : public MenuBase {
 		inline int fightarea(int msg, DIALOG *d, int c);
 		inline int statusbox(int msg, DIALOG *d, int c);
 		inline int fightermenu(int msg, DIALOG *d, int c);
+		inline int nestedmenu(int msg, DIALOG *d, int c);
 
 		void enqueue_ready_fighter(FighterBase *f);
 		void enqueue_command(class Command c);
