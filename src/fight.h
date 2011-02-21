@@ -60,7 +60,7 @@ class Fight : public MenuBase {
 
 
 	private:
-		enum DIALOG_ID{MAIN_DLG};
+		enum DIALOG_ID{MAIN_DLG, LIST_WIN};
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
 		enum FightState{FIGHT, MENU} state;
 

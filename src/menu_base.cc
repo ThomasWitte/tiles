@@ -126,10 +126,10 @@ int MenuBase::update_game_menu(bool esc_possible, DIALOG_PLAYER *p) {
       p->res |= move_focus(p->dialog, cascii, cscan, &p->focus_obj);
    }
 
+   getout:
+
    /* send idle messages */
    p->res |= dialog_message(p->dialog, MSG_IDLE, 0, &p->obj);
-
-   getout:
 
    ret = (!(p->res & D_CLOSE));
    p->res &= ~D_CLOSE;

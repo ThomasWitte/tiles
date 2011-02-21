@@ -33,36 +33,8 @@ int fighter_menu_proc(int msg, DIALOG *d, int c) {
 	return ((Fight*)d->dp)->fightermenu(msg, d, c);
 }
 
-int nested_menu_proc(int msg, DIALOG *d, int c) {
-	return ((Fight*)d->dp)->nestedmenu(msg, d, c);
-}
-
-void replace_dialog(DIALOG *d, DIALOG *e) {
-	int (*procptr)(int, DIALOG*, int);
-	void *ptr;
-	int val;
-
-	procptr = d->proc; d->proc = e->proc; e->proc = procptr;
-	val = d->x; d->x = e->x; e->x = val;
-	val = d->y; d->y = e->y; e->y = val;
-	val = d->w; d->w = e->w; e->w = val;
-	val = d->h; d->h = e->h; e->h = val;
-	val = d->fg; d->fg = e->fg; e->fg = val;
-	val = d->bg; d->bg = e->bg; e->bg = val;
-	val = d->key; d->key = e->key; e->key = val;
-	val = d->flags; d->flags = e->flags; e->flags = val;
-	val = d->d1; d->d1 = e->d1; e->d1 = val;
-	val = d->d2; d->d2 = e->d2; e->d2 = val;
-	ptr = d->dp; d->dp = e->dp; e->dp = ptr;
-	ptr = d->dp2; d->dp2 = e->dp2; e->dp2 = ptr;
-	ptr = d->dp3; d->dp3 = e->dp3; e->dp3 = ptr;
-}
-
-int restore_proc(int msg, DIALOG *d, int c) {
-	if(msg == MSG_END) {
-		replace_dialog((DIALOG*)d->dp, d);
-	}
-	return D_O_K;
+int ret_d_close() {
+	return D_CLOSE;
 }
 
 Fight::Fight(string dateiname, Game *g) {
@@ -343,21 +315,44 @@ DIALOG *Fight::create_dialog(int id) {
 	switch(id) {
 		case MAIN_DLG:
 		{
-			ret = new DIALOG[7];
+			ret = new DIALOG[8];
 			DIALOG menu[] = {
 				/* (proc)			(x)					(y)						(w)  					(h)					(fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
 				{ menu_bg_proc,		-8,					2*PC_RESOLUTION_Y/3-8,	PC_RESOLUTION_X+16,		PC_RESOLUTION_Y/3+16,COL_WHITE,-1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
 				{ fight_area_proc,	0,					0,						PC_RESOLUTION_X,		2*PC_RESOLUTION_Y/3,0,         0,   0,    D_EXIT, 0,    0,   				this,             NULL, NULL },
 				{ r_box_proc,		4,					4+2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X/3-4,	PC_RESOLUTION_Y/3-8,COL_WHITE, -1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
 				{ r_box_proc,		PC_RESOLUTION_X/3,	4+2*PC_RESOLUTION_Y/3,	2*PC_RESOLUTION_X/3-4,	PC_RESOLUTION_Y/3-8,COL_WHITE, -1,  0,    0,      0,    0,   				NULL,             NULL, NULL },
-				{ status_box_proc,	PC_RESOLUTION_X/3+4,8+2*PC_RESOLUTION_Y/3,	2*PC_RESOLUTION_X/3-12,	PC_RESOLUTION_Y/3-16,COL_WHITE, -1,  0,    0,      0,    0,   				this,             NULL, NULL },
-				{ fighter_menu_proc,8,					13+2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X/3-12,	PC_RESOLUTION_Y/3-16,COL_WHITE, -1,  0,    0,      0,    0,   				this,             NULL, NULL },
+				{ status_box_proc,	PC_RESOLUTION_X/3+4,8+2*PC_RESOLUTION_Y/3,	2*PC_RESOLUTION_X/3-12,	PC_RESOLUTION_Y/3-16,COL_WHITE, -1,  0,   0,      0,    0,   				this,             NULL, NULL },
+				{ fighter_menu_proc,8,					13+2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X/3-12,	PC_RESOLUTION_Y/3-16,COL_WHITE, -1,  0,   0,      0,    0,   				this,             NULL, NULL },
 				{ NULL,				0,  				0,						0,   					0,					0,         0,   0,    0,      0,    0,   				NULL,             NULL, NULL }
 			};
-			memcpy(ret, menu, 7*sizeof(DIALOG));
+			memcpy(ret, menu, 8*sizeof(DIALOG));
 			cout << "Fight created" << endl;
 		}
 		break;
+
+		case LIST_WIN:
+		{
+			//FighterBase::MenuEntry *menu;
+			//menu = ready_fighters[d->d1]->get_menu_entry((char*)((DIALOG*)d->dp2)[c].dp) //c enthält das auslösende widget
+
+			//DIALOG *dialog = new DIALOG[menu->submenu.size()+3];
+			//DIALOG bg = {menu_bg_proc, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y/3, COL_WHITE, -1, 0, 0, 0, 0, NULL, NULL, NULL};
+			//DIALOG restore = {restore_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (void*)copy_dialog(d), NULL, NULL};
+			//DIALOG null = {NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL};
+	
+
+			ret = new DIALOG[3];
+			DIALOG test[] = {
+				/* (proc)			(x)					(y)						(w)  					(h)					(fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
+				{menu_bg_proc,		0,					2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X,		PC_RESOLUTION_Y/3,	COL_WHITE, -1,	0,	  0, 0, 0, NULL, NULL, NULL},
+				{d_keyboard_proc,	0,					0,						0,						0,					0,		   0,	0,	  0, INGAME_MENU_KEY, 0, (void*)&ret_d_close, NULL, NULL},
+				{NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL}
+			};
+			memcpy(ret, test, 3*sizeof(DIALOG));
+		}
+		break;
+
 	}
 	return ret;
 }
@@ -427,7 +422,6 @@ int Fight::nestedmenu(int msg, DIALOG *d, int c) {
 }
 
 #define MSG_REBUILD_MENU MSG_USER+1
-#define MSG_SPAWN_SUBMENU MSG_USER+2
 
 int Fight::fightermenu(int msg, DIALOG *d, int c) {
 	switch(msg) {
@@ -479,36 +473,6 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 		return D_O_K;
 		break;
 
-		case MSG_SPAWN_SUBMENU:
-		{
-			//FighterBase::MenuEntry *menu;
-			//menu = ready_fighters[d->d1]->get_menu_entry((char*)((DIALOG*)d->dp2)[c].dp) //c enthält das auslösende widget
-
-			//DIALOG *dialog = new DIALOG[menu->submenu.size()+3];
-			//DIALOG bg = {menu_bg_proc, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y/3, COL_WHITE, -1, 0, 0, 0, 0, NULL, NULL, NULL};
-			//DIALOG restore = {restore_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (void*)copy_dialog(d), NULL, NULL};
-			//DIALOG null = {NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL};
-	
-
-			DIALOG *nested = new DIALOG;
-
-			DIALOG *dialog = new DIALOG[3];
-			DIALOG test[] = {{menu_bg_proc, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y/3, COL_WHITE, -1, 0, 0, 0, 0, NULL, NULL, NULL},
-							{restore_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (void*)nested, NULL, NULL},
-							{NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL}};
-			memcpy(dialog, test, 3*sizeof(DIALOG));
-
-			DIALOG carrier = {nested_menu_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (void*)this, (void*)dialog, NULL};
-			memcpy(nested, &carrier, sizeof(DIALOG));
-
-			replace_dialog(nested, d); //Dialoge tauschen
-			nestedmenu(MSG_START, d, c); //neues Menü starten
-
-			//menu anstatt des derzeitigen in den Dialog einfügen
-		}
-		return D_O_K;
-		break;
-
 		case MSG_IDLE:
 		{
 			//Fighter updaten
@@ -547,13 +511,17 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 			if(!update_game_menu(true, (DIALOG_PLAYER*)d->dp3) && d->d1 >= 0) {
 				ready_fighters.push_back(ready_fighters[current_menu]);
 				ready_fighters.erase(ready_fighters.begin()+current_menu);
-				fightermenu(MSG_REBUILD_MENU, d, c);
+				d->d1 = -1;
+				//fightermenu(MSG_REBUILD_MENU, d, c);
 				//D_CLOSE erhalten -> nächstes ready_fighter menü
 			} else if(((DIALOG_PLAYER*)d->dp3)->res & D_SPAWN && d->d1 >= 0) {
 				((DIALOG_PLAYER*)d->dp3)->res &= ~D_SPAWN;
 				ready_fighters.erase(ready_fighters.begin()+current_menu);
-				fightermenu(MSG_REBUILD_MENU, d, c);
-				fightermenu(MSG_SPAWN_SUBMENU, d, ((DIALOG_PLAYER*)d->dp3)->obj);
+				d->d1 = -1;
+				//fightermenu(MSG_REBUILD_MENU, d, c);
+				//fightermenu(MSG_SPAWN_SUBMENU, d, ((DIALOG_PLAYER*)d->dp3)->obj);
+				dialog.push_back(create_dialog(LIST_WIN));
+				player.push_back(init_dialog(dialog.back(), 0));
 			}
 
 		}
@@ -570,7 +538,6 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 }
 
 #undef MSG_REBUILD_MENU
-#undef MSG_SPAWN_SUBMENU
 
 void Fight::draw_fightarea(BITMAP *buffer, DIALOG *dlg) {
 	//Hintergrund
