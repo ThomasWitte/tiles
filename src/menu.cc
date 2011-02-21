@@ -49,27 +49,27 @@ int Menu::main_menu() {
 	{
 	   /* (proc)        (x) (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                    (dp2) (dp3) */
 	   { menu_bg_proc,  0,  0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL },
-	   { ff6_button,	56, 132, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Spiel starten", NULL, NULL },
-	   { ff6_button,	56, 176, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",       NULL, NULL },
+	   { ff6_button,	76, 150, 212, 8,   0,   0,   0,    D_EXIT, 0,   0,   (void*)"Spiel starten", NULL, NULL },
+	   { ff6_button,	76, 170, 212, 8,   0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",       NULL, NULL },
 	   { d_bitmap_proc, 56, 36,  212, 80,  0,   0,   0,    0,      0,   0,   NULL,				     NULL, NULL },
 	   { NULL,          0,  0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL }
 	};
 
 	for(int i = 0; menu[i].proc; i++) {
 		menu[i].fg = makecol(255,255,255);
-		menu[i].bg = makecol(0,0,255);
+		menu[i].bg = -1;
 	} 
 
-	resize_menu(PC_RESOLUTION_X*PC_STRETCH_FACTOR, PC_RESOLUTION_Y*PC_STRETCH_FACTOR, menu);
+	resize_menu(PC_RESOLUTION_X, PC_RESOLUTION_Y, menu);
 
 	BITMAP *logo = imageloader.load("Images/title.tga");
 	BITMAP *st_logo = imageloader.create(menu[3].w, menu[3].h);
 	stretch_blit(logo, st_logo, 0, 0, logo->w, logo->h, 0, 0, st_logo->w, st_logo->h);
+	imageloader.destroy(logo);
 	menu[3].dp = (void*) st_logo;
 
 	int ret = animated_dialog(menu, 2);
 
-	imageloader.destroy(logo);
 	imageloader.destroy(st_logo);
 
 	if(ret == 1) ret = GAME;
@@ -110,22 +110,22 @@ string Menu::load_menu() {
 	DIALOG menu[] =
 	{
 	   /* (proc)        (x)  (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                      (dp2) (dp3) */
-	   { menu_bg_proc,    0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
-	   { d_list_proc,   32,  44,  256, 148, 0,   0,   0,    D_EXIT, 0,   0,   (void*)filelist_getter,   NULL, NULL },
-	   { d_button_proc, 192, 200, 96,  20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Laden",           NULL, NULL },
+	   { menu_bg_proc,  0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
 	   { d_ctext_proc,  32,  16,  256, 12,  0,   0,   0,    0,      0,   0,   (void*)"Spiel auswählen", NULL, NULL },
+	   { r_box_proc,    32,  44,  256, 148, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
+	   { ff6_list,      32,  48,  256, 144, 0,   0,   0,    D_EXIT, 0,   0,   (void*)filelist_getter,   NULL, NULL },
 	   { NULL,          0,   0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL }
 	};
 
 	for(int i = 0; menu[i].proc; i++) {
 		menu[i].fg = makecol(255,255,255);
-		menu[i].bg = makecol(0,0,255);
+		menu[i].bg = -1;
 	}
 
-	resize_menu(SCREEN_W, SCREEN_H, menu);
+	resize_menu(PC_RESOLUTION_X, PC_RESOLUTION_Y, menu);
 
-	do_dialog(menu, 1);
-	string s = filelist_getter(menu[1].d1, NULL);
+	animated_dialog(menu, 3);
+	string s = filelist_getter(menu[3].d1, NULL);
 
 	return s;
 }
@@ -151,26 +151,26 @@ string Menu::save_menu() {
 	DIALOG menu[] =
 	{
 	   /* (proc)        (x)  (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                      (dp2) (dp3) */
-	   { menu_bg_proc,    0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
-	   { d_box_proc,    32,  200, 140, 20, 	0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
-	   { d_list_proc,   32,  44,  256, 148, 0,   0,   0,    D_EXIT, 0,   0,   (void*)filelist_getter,   NULL, NULL },
+	   { menu_bg_proc,  0,   0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
+	   { r_box_proc,    32,  44,  256, 148, 0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL },
+	   { ff6_list,      32,  48,  256, 144, 0,   0,   0,    D_EXIT, 0,   0,   (void*)filelist_getter,   NULL, NULL },
 	   { d_edit_proc,   34,  202, 136, 16,  0,   0,   0,    0,      100, 0,   (void*)text,				NULL, NULL },
-	   { d_button_proc, 192, 200, 96,  20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Speichern",       NULL, NULL },
+	   { ff6_button,    192, 200, 96,  20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Speichern",       NULL, NULL },
 	   { d_ctext_proc,  32,  16,  256, 12,  0,   0,   0,    0,      0,   0,   (void*)"Spiel auswählen", NULL, NULL },
 	   { NULL,          0,   0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                     NULL, NULL }
 	};
 
 	for(int i = 0; menu[i].proc; i++) {
 		menu[i].fg = makecol(255,255,255);
-		menu[i].bg = makecol(0,0,255);
+		menu[i].bg = -1;
 	}
 
-	resize_menu(SCREEN_W, SCREEN_H, menu);
+	resize_menu(PC_RESOLUTION_X, PC_RESOLUTION_Y, menu);
 
-	do_dialog(menu, 2);
+	animated_dialog(menu, 2);
 
 	string s;
-	if(!strcmp(text, ""))
+	if(strcmp(text, "") == 0)
 		s = filelist_getter(menu[2].d1, NULL);
 	else
 		s = text;
@@ -183,25 +183,33 @@ int Menu::pause_menu() {
 	{
 	   /* (proc)        (x)  (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                     (dp2) (dp3) */
 	   { d_text_proc,   0,   0,   320, 240, -1, -1,   0,    0,      0,   0,   (void*)"",               NULL, NULL },
-	   { menu_bg_proc,    32,  44,  252, 152, 0,   0,   0,    0,      0,   0,   NULL,                    NULL, NULL },
+	   { menu_bg_proc,  32,  44,  252, 152, 0,   0,   0,    0,      0,   0,   NULL,                    NULL, NULL },
 	   { d_ctext_proc,  44,  52,  228, 12,  0,   0,   0,    0,      0,   0,   (void*)"PAUSE",          NULL, NULL },
-	   { d_button_proc, 48,  76,  132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"zurück", 		   NULL, NULL },
-	   { d_button_proc, 48,  101, 132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Speichern",      NULL, NULL },
-	   { d_button_proc, 48,  126, 132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Hauptmenü",      NULL, NULL },
-	   { d_button_proc, 48,  151, 132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",        NULL, NULL },
-	   { d_text_proc,   188, 76,  84,  95,  0,   0,   0,    0,      0,   0,   (void*)"image: zahnrad", NULL, NULL },
+	   { ff6_button,    68,  76,  132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"zurück", 		   NULL, NULL },
+	   { ff6_button,    68,  101, 132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Speichern",      NULL, NULL },
+	   { ff6_button,    68,  126, 132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Hauptmenü",      NULL, NULL },
+	   { ff6_button,    68,  151, 132, 20,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",        NULL, NULL },
+	   { d_bitmap_proc, 188, 76,  60,  92,  0,   0,   0,    0,      0,   0,   NULL,	                   NULL, NULL },
 	   { NULL,          0,   0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                    NULL, NULL }
 	};
 
 	for(int i = 2; menu[i].proc; i++) {
 		menu[i].fg = makecol(255,255,255);
-		menu[i].bg = makecol(0,0,255);
+		menu[i].bg = -1;
 	}
 
-	resize_menu(SCREEN_W, SCREEN_H, menu);
+	resize_menu(PC_RESOLUTION_X, PC_RESOLUTION_Y, menu);
+
+	BITMAP *gears = imageloader.load("Images/gears.tga");
+	BITMAP *st_gears = imageloader.create(menu[7].w, menu[7].h);
+	stretch_blit(gears, st_gears, 0, 0, gears->w, gears->h, 0, 0, st_gears->w, st_gears->h);
+	imageloader.destroy(gears);
+	menu[7].dp = (void*) st_gears;
 
 	clear_keybuf();
-	int ret = do_dialog(menu, 3);
+	int ret = animated_dialog(menu, 3);
+
+	imageloader.destroy(st_gears);
 
 	int ret2 = CANCEL;
 

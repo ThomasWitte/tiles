@@ -19,6 +19,62 @@
 #include "iohelper.h"
 #include "config.h"
 
+void rounded_rect(BITMAP *scr, int x, int y, int x2, int y2, int radius, int color) {
+	vline(scr, x, y+radius, y2-radius, color);
+	vline(scr, x2, y+radius, y2-radius, color);
+	hline(scr, x+radius, y, x2-radius, color);
+	hline(scr, x+radius, y2, x2-radius, color);
+	arc(scr, x+radius, y+radius, itofix(64), itofix(128), radius, color);
+	arc(scr, x2-radius, y+radius, itofix(0), itofix(64), radius, color);
+	arc(scr, x2-radius, y2-radius, itofix(-64), itofix(0), radius, color);
+	arc(scr, x+radius, y2-radius, itofix(128), itofix(192), radius, color);
+}
+
+int ff6_list(int msg, DIALOG *d, int c) {
+	//d1, d2, dp, dp2 sind durch d_list_proc belegt
+	//d->bg wird für den zeigeroffset missbraucht
+	switch(msg) {
+		case MSG_START:
+			d->dp3 = (void*)imageloader.load("Images/auswahl.tga");
+		break;
+
+		case MSG_END:
+			imageloader.destroy((BITMAP*)d->dp3);
+		break;
+
+		case MSG_DRAW:
+		{
+			BITMAP *scr = gui_get_screen();
+			char* (*list_item) (int, int*) = (char*(*)(int,int*))d->dp; //void* auf Funktionspointer zurückcasten
+			int listsize;
+			list_item(-1, &listsize); //Länge der liste herausfinden
+			int col = d->fg;
+			if(d->flags & D_DISABLED)
+				col = makecol(128,128,128);
+
+			for(int i = 0; i < d->h/16; i++) {
+				if(d->d2+i < listsize) {
+					gui_textout_ex(scr, list_item(d->d2+i, NULL), d->x+10, d->y+i*16, col, -1, FALSE);
+				}
+
+				if(d->flags & D_GOTFOCUS && d->d1 == i) {
+					int offset = 30*d->bg/GAME_TIMER_BPS;
+					if(offset < 0) offset *= -1;
+						masked_blit((BITMAP*)d->dp3, scr, 0, 0, d->x-((BITMAP*)d->dp3)->w-offset+10, d->y+i*16, ((BITMAP*)d->dp3)->w, ((BITMAP*)d->dp3)->h);
+				}
+			}
+		}
+		return D_O_K;
+
+		case MSG_IDLE:
+			d->bg--;
+			if(d->bg < -GAME_TIMER_BPS/6)
+				d->bg = GAME_TIMER_BPS/6;
+		break;
+	}
+	return d_list_proc(msg, d, c);
+}
+
 int menu_items(int msg, DIALOG *d, int c) {
 	if(msg == MSG_START) {
 		string name((char*)d->dp);
@@ -43,10 +99,10 @@ int menu_items(int msg, DIALOG *d, int c) {
 int menu_bg_proc(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
-			for(int i = d->y, x = 0; i < d->h+d->y; i+=d->h/80, x++) {
-				rectfill(gui_get_screen(), d->x, i, d->x+d->w, i+d->h/80, makecol(x, x, 255-x));
+			for(int x = 0; x < 80; x++) {
+				rectfill(gui_get_screen(), d->x, d->y+x*d->h/80, d->x+d->w, d->y+(x+1)*d->h/80, makecol(x, x, 255-x));
 			}
-			rect(gui_get_screen(), d->x+3, d->y+3, d->x+d->w-4, d->y+d->h-4, makecol(255, 255, 255));
+			rounded_rect(gui_get_screen(), d->x+3, d->y+3, d->x+d->w-4, d->y+d->h-4, 4, makecol(255, 255, 255));
 		break;
 	}
 	return D_O_K;
@@ -202,14 +258,7 @@ int r_box_proc(int msg, DIALOG *d, int c) {
 				rectfill(scr, d->x, d->y+4, d->x+d->w, d->y+d->h-4, d->bg);
 			}
 			if(d->fg != -1) {
-				vline(scr, d->x, d->y+4, d->y+d->h-4, d->fg);
-				vline(scr, d->x+d->w, d->y+4, d->y+d->h-4, d->fg);
-				hline(scr, d->x+4, d->y, d->x+d->w-4, d->fg);
-				hline(scr, d->x+4, d->y+d->h, d->x+d->w-4, d->fg);
-				arc(scr, d->x+4, d->y+4, itofix(64), itofix(128), 4, d->fg);
-				arc(scr, d->x+d->w-4, d->y+4, itofix(0), itofix(64), 4, d->fg);
-				arc(scr, d->x+d->w-4, d->y+d->h-4, itofix(-64), itofix(0), 4, d->fg);
-				arc(scr, d->x+4, d->y+d->h-4, itofix(128), itofix(192), 4, d->fg);
+				rounded_rect(scr, d->x, d->y, d->x+d->w, d->y+d->h, 4, d->fg);
 			}
 		break;
 		default:
@@ -345,20 +394,27 @@ int dialog_cleanup(int msg, DIALOG *d, int c) {
 
 int animated_dialog(DIALOG *dlg, int active) {
 	DIALOG_PLAYER *player = init_dialog(dlg, active);
+	BITMAP *buffer = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	clear_to_color(buffer, makecol(255,0,255));
 	bool ende = false;
 	while(!ende) {
 		if(timecounter > 0) {
 			if(timecounter > 4)
 				timecounter = 0;
 			timecounter--;
+			gui_set_screen(buffer);
 			if(update_dialog(player) == 0)
 				ende = true;
 			dialog_message(dlg, MSG_DRAW, 0, NULL);
+			gui_set_screen(NULL);
+			masked_stretch_blit(buffer, screen, 0, 0, buffer->w, buffer->h, 0, 0, PC_RESOLUTION_X*PC_STRETCH_FACTOR, PC_RESOLUTION_Y*PC_STRETCH_FACTOR);
 		} else {
 			sched_yield();
 		}
 	}
-	shutdown_dialog(player);
+	int ret = shutdown_dialog(player);
+	imageloader.destroy(buffer);
+	return ret;
 }
 
 //Aus Allegro Quellcode kopiert:

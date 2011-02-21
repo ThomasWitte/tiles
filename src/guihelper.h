@@ -21,6 +21,8 @@
 
 #define D_SPAWN 128 	//neuen Dialog öffnen, ID im d2 feld der sendenden DIALOG-Struktur
 #define D_OPEN	D_USER 	//dieses objekt soll beim aktivieren einen neuen Dialog öffnen (D_SPAWN senden)
+
+int ff6_list(int msg, DIALOG *d, int c);
 int menu_bg_proc(int msg, DIALOG *d, int c);		//Farbverlauf als Menühintergrund
 int gvar_update(int msg, DIALOG *d, int c);			//angezeigter text wird ständig aktualisiert
 int char_select(int msg, DIALOG *d, int c);
