@@ -310,6 +310,24 @@ Fight::~Fight() {
 		delete defeated_fighters[i];
 }
 
+//Liefert die Einträge für die Attackenliste
+FighterBase::MenuEntry *menu = NULL;
+const char* get_list_win_entries(int index, int *size) {
+	if(!menu)
+		return "<Error>";
+
+	if(index < 0) {
+		*size = menu->submenu.size();
+		return NULL;
+	}
+
+	if(index < menu->submenu.size()) {
+		return menu->submenu[index].text.c_str();
+	}
+
+	return "<Error>";
+}
+
 DIALOG *Fight::create_dialog(int id) {
 	DIALOG *ret = NULL;
 	switch(id) {
@@ -333,23 +351,15 @@ DIALOG *Fight::create_dialog(int id) {
 
 		case LIST_WIN:
 		{
-			//FighterBase::MenuEntry *menu;
-			//menu = ready_fighters[d->d1]->get_menu_entry((char*)((DIALOG*)d->dp2)[c].dp) //c enthält das auslösende widget
-
-			//DIALOG *dialog = new DIALOG[menu->submenu.size()+3];
-			//DIALOG bg = {menu_bg_proc, 0, 2*PC_RESOLUTION_Y/3, PC_RESOLUTION_X, PC_RESOLUTION_Y/3, COL_WHITE, -1, 0, 0, 0, 0, NULL, NULL, NULL};
-			//DIALOG restore = {restore_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (void*)copy_dialog(d), NULL, NULL};
-			//DIALOG null = {NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL};
-	
-
-			ret = new DIALOG[3];
+			ret = new DIALOG[4];
 			DIALOG test[] = {
 				/* (proc)			(x)					(y)						(w)  					(h)					(fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
 				{menu_bg_proc,		0,					2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X,		PC_RESOLUTION_Y/3,	COL_WHITE, -1,	0,	  0, 0, 0, NULL, NULL, NULL},
+				{ff6_list,			10,					2*PC_RESOLUTION_Y/3+8,	2*PC_RESOLUTION_X/3,	PC_RESOLUTION_Y/3-12,COL_WHITE, -1,	0,    D_EXIT, 0, 0, (void*)get_list_win_entries, NULL, NULL},
 				{d_keyboard_proc,	0,					0,						0,						0,					0,		   0,	0,	  0, INGAME_MENU_KEY, 0, (void*)&ret_d_close, NULL, NULL},
 				{NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL}
 			};
-			memcpy(ret, test, 3*sizeof(DIALOG));
+			memcpy(ret, test, 4*sizeof(DIALOG));
 		}
 		break;
 
@@ -516,12 +526,14 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 				//D_CLOSE erhalten -> nächstes ready_fighter menü
 			} else if(((DIALOG_PLAYER*)d->dp3)->res & D_SPAWN && d->d1 >= 0) {
 				((DIALOG_PLAYER*)d->dp3)->res &= ~D_SPAWN;
+
+				int c = ((DIALOG_PLAYER*)d->dp3)->obj;
+				menu = ready_fighters[d->d1]->get_menu_entry((char*)((DIALOG*)d->dp2)[c].dp); //c enthält das auslösende widget
+				dialog.push_back(create_dialog(LIST_WIN));
+				player.push_back(init_dialog(dialog.back(), 1));
+
 				ready_fighters.erase(ready_fighters.begin()+current_menu);
 				d->d1 = -1;
-				//fightermenu(MSG_REBUILD_MENU, d, c);
-				//fightermenu(MSG_SPAWN_SUBMENU, d, ((DIALOG_PLAYER*)d->dp3)->obj);
-				dialog.push_back(create_dialog(LIST_WIN));
-				player.push_back(init_dialog(dialog.back(), 0));
 			}
 
 		}

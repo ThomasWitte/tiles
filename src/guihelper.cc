@@ -53,11 +53,13 @@ int ff6_list(int msg, DIALOG *d, int c) {
 				col = makecol(128,128,128);
 
 			for(int i = 0; i < d->h/16; i++) {
+				//Menüeinträge
 				if(d->d2+i < listsize) {
 					gui_textout_ex(scr, list_item(d->d2+i, NULL), d->x+10, d->y+i*16, col, -1, FALSE);
 				}
 
-				if(d->flags & D_GOTFOCUS && d->d1 == i) {
+				//Zeiger zeichnen
+				if(d->flags & D_GOTFOCUS && d->d1 == d->d2+i) {
 					int offset = 30*d->bg/GAME_TIMER_BPS;
 					if(offset < 0) offset *= -1;
 						masked_blit((BITMAP*)d->dp3, scr, 0, 0, d->x-((BITMAP*)d->dp3)->w-offset+10, d->y+i*16, ((BITMAP*)d->dp3)->w, ((BITMAP*)d->dp3)->h);
@@ -67,12 +69,24 @@ int ff6_list(int msg, DIALOG *d, int c) {
 		return D_O_K;
 
 		case MSG_IDLE:
+			//Zeiger bewegen
 			d->bg--;
 			if(d->bg < -GAME_TIMER_BPS/6)
 				d->bg = GAME_TIMER_BPS/6;
+
+			//Ist der gewählte Eintrag überhaupt im Bild?
+			if(d->d2+d->h/16 <= d->d1) {
+				d->d2++;
+			} else if(d->d2 > d->d1) {
+				d->d2--;
+			}
 		break;
 	}
-	return d_list_proc(msg, d, c);
+	//Für alle anderen Signale die Allegro-Liste benutzen
+	int d2 = d->d2;
+	int ret = d_list_proc(msg, d, c);
+	d->d2 = d2; //d_list_proc darf d->d2 nicht verändern
+	return ret;
 }
 
 int menu_items(int msg, DIALOG *d, int c) {

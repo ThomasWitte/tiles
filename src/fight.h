@@ -58,7 +58,6 @@ class Fight : public MenuBase {
 		void defeated_fighter(FighterBase*);
 		PlayerSide get_PlayerSide(FighterBase*);
 
-
 	private:
 		enum DIALOG_ID{MAIN_DLG, LIST_WIN};
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;

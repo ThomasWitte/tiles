@@ -345,7 +345,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 	for(int i = 0; i < items.size(); i++) {
 		e.submenu.resize(0);
 		e.text = items[i][0];
-		for(int j = 0; j < items[i].size(); j++) {
+		for(int j = 1; j < items[i].size(); j++) {
 			e2.text = items[i][j];
 			e.submenu.push_back(e2);
 		}
