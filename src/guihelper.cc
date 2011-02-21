@@ -343,6 +343,24 @@ int dialog_cleanup(int msg, DIALOG *d, int c) {
 	return D_O_K;
 }
 
+int animated_dialog(DIALOG *dlg, int active) {
+	DIALOG_PLAYER *player = init_dialog(dlg, active);
+	bool ende = false;
+	while(!ende) {
+		if(timecounter > 0) {
+			if(timecounter > 4)
+				timecounter = 0;
+			timecounter--;
+			if(update_dialog(player) == 0)
+				ende = true;
+			dialog_message(dlg, MSG_DRAW, 0, NULL);
+		} else {
+			sched_yield();
+		}
+	}
+	shutdown_dialog(player);
+}
+
 //Aus Allegro Quellcode kopiert:
 
 #define MAX_OBJECTS     512

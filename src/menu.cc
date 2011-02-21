@@ -49,8 +49,8 @@ int Menu::main_menu() {
 	{
 	   /* (proc)        (x) (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)                    (dp2) (dp3) */
 	   { menu_bg_proc,  0,  0,   320, 240, 0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL },
-	   { d_button_proc, 56, 132, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Spiel starten", NULL, NULL },
-	   { d_button_proc, 56, 176, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",       NULL, NULL },
+	   { ff6_button,	56, 132, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Spiel starten", NULL, NULL },
+	   { ff6_button,	56, 176, 212, 28,  0,   0,   0,    D_EXIT, 0,   0,   (void*)"Beenden",       NULL, NULL },
 	   { d_bitmap_proc, 56, 36,  212, 80,  0,   0,   0,    0,      0,   0,   NULL,				     NULL, NULL },
 	   { NULL,          0,  0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL,                   NULL, NULL }
 	};
@@ -60,14 +60,14 @@ int Menu::main_menu() {
 		menu[i].bg = makecol(0,0,255);
 	} 
 
-	resize_menu(SCREEN_W, SCREEN_H, menu);
+	resize_menu(PC_RESOLUTION_X*PC_STRETCH_FACTOR, PC_RESOLUTION_Y*PC_STRETCH_FACTOR, menu);
 
 	BITMAP *logo = imageloader.load("Images/title.tga");
 	BITMAP *st_logo = imageloader.create(menu[3].w, menu[3].h);
 	stretch_blit(logo, st_logo, 0, 0, logo->w, logo->h, 0, 0, st_logo->w, st_logo->h);
 	menu[3].dp = (void*) st_logo;
 
-	int ret = do_dialog(menu, 2);
+	int ret = animated_dialog(menu, 2);
 
 	imageloader.destroy(logo);
 	imageloader.destroy(st_logo);
