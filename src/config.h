@@ -58,6 +58,8 @@
 #define INGAME_MENU_KEY KEY_ESC
 #define MENU_KEY KEY_F12
 #define ACTION_KEY KEY_SPACE
+#define BACK_KEY KEY_BACKSPACE
+#define SWITCH_KEY KEY_ENTER
 
 //Farben
 #define COL_WHITE makecol(255,255,255)

@@ -361,7 +361,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 		state = MENU;
 	case MENU:
 	if(mpause < 0) {
-		if(key[KEY_UP]) {
+		if(key[DIR_UP]) {
 			if(sub_open) {
 				sub_auswahl--;
 				if(sub_auswahl <= 0) sub_auswahl = menu_items[auswahl].size()-1;
@@ -370,7 +370,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 				auswahl = auswahl%menu_items.size();
 			}
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_DOWN]) {
+		} else if(key[DIR_DOWN]) {
 			if(sub_open) {
 				sub_auswahl++;
 				if(sub_auswahl >= menu_items[auswahl].size()) sub_auswahl = 1;
@@ -379,7 +379,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 				auswahl = auswahl%menu_items.size();
 			}
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_ENTER]) {
+		} else if(key[ACTION_KEY]) {
 			mpause = GAME_TIMER_BPS/10;
 			if(menu_items[auswahl].size() > 1 && !sub_open) {
 				//Submenü öffnen
@@ -397,7 +397,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 				state = TARGETS_BY_ATTACK;
 				sub_open = false;
 			}
-		} else if(key[KEY_BACKSPACE]) {
+		} else if(key[BACK_KEY]) {
 			if(sub_open) sub_open = false;
 			mpause = GAME_TIMER_BPS/10;
 		}
@@ -442,19 +442,19 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 	case CHOOSE_TARGET:
 	if(mpause < 0) {
 		int fc = get_parent(*fighter)->get_fighter_count(target_side);
-		if(key[KEY_UP]) {
+		if(key[DIR_UP]) {
 			if((a.possible_targets & AttackLib::FRIEND) || (a.possible_targets & AttackLib::ENEMY)) {
 				cur_target--;
 				if(cur_target < 0) cur_target = fc-1;
 			}
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_DOWN]) {
+		} else if(key[DIR_DOWN]) {
 			if((a.possible_targets & AttackLib::FRIEND) || (a.possible_targets & AttackLib::ENEMY)) {
 				cur_target++;
 				if(cur_target >= fc) cur_target = 0;
 			}
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_LEFT]) {
+		} else if(key[DIR_LEFT]) {
 			int i = target_side;
 			do {
 				i--;
@@ -466,7 +466,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 					((get_parent(*fighter)->get_team(cur_target, target_side) == Fight::ENEMY) && !(a.possible_targets & AttackLib::ENEMY))
 					);
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_RIGHT]) {
+		} else if(key[DIR_RIGHT]) {
 			int i = target_side;
 			do {
 				i++;
@@ -477,7 +477,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 					((get_parent(*fighter)->get_team(cur_target, target_side) == Fight::ENEMY) && !(a.possible_targets & AttackLib::ENEMY))
 					);
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_SPACE]) { // Multi/Singletarget wechseln
+		} else if(key[SWITCH_KEY]) { // Multi/Singletarget wechseln
 			if(multitarget == AttackLib::SINGLE) {
 				if(a.possible_targets & AttackLib::MULTI) {
 					multitarget = AttackLib::MULTI;
@@ -488,7 +488,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 				}
 			}
 			mpause = GAME_TIMER_BPS/10;
-		} else if(key[KEY_ENTER]) { //Enter gedrückt, Befehl ausführen
+		} else if(key[ACTION_KEY]) { //Enter gedrückt, Befehl ausführen
 			if(multitarget == AttackLib::SINGLE) {
 				get_parent(*fighter)->add_fighter_target(*c, cur_target, target_side);
 			} else {
@@ -508,7 +508,7 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 					get_parent(*fighter)->mark_fighter(i, h, false);
 			return 0;
 
-		} else if(key[KEY_BACKSPACE]) {
+		} else if(key[BACK_KEY]) {
 			state = MENU;
 			mpause = GAME_TIMER_BPS/10;
 			for(int h = 0; h < 2; h++)

@@ -550,7 +550,7 @@ static int cmp_right(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
    /* Wrap around if d2 is not fully contained in the half-plan
       delimited by d1's right edge and not containing it. */
    if (d2->x < d1->x + d1->w)
-      bias = +SCREEN_W;
+      bias = +PC_RESOLUTION_X;
    else
       bias = 0;
 
@@ -569,7 +569,7 @@ static int cmp_left(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
    /* Wrap around if d2 is not fully contained in the half-plan
       delimited by d1's left edge and not containing it. */
    if (d2->x + d2->w > d1->x)
-      bias = -SCREEN_W;
+      bias = -PC_RESOLUTION_X;
    else
       bias = 0;
 
@@ -588,7 +588,7 @@ static int cmp_down(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
    /* Wrap around if d2 is not fully contained in the half-plan
       delimited by d1's bottom edge and not containing it. */
    if (d2->y < d1->y + d1->h)
-      bias = +SCREEN_H;
+      bias = +PC_RESOLUTION_Y;
    else
       bias = 0;
 
@@ -607,7 +607,7 @@ static int cmp_up(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
    /* Wrap around if d2 is not fully contained in the half-plan
       delimited by d1's top edge and not containing it. */
    if (d2->y + d2->h > d1->y)
-      bias = -SCREEN_H;
+      bias = -PC_RESOLUTION_Y;
    else
       bias = 0;
 
@@ -628,11 +628,11 @@ int move_focus(DIALOG *d, int ascii, int scan, int *focus_obj)
 
    /* choose a comparison function */
    switch (scan) {
-      case KEY_TAB:   cmp = (ascii == '\t') ? cmp_tab : cmp_shift_tab; break;
-      case KEY_RIGHT: cmp = cmp_right; break;
-      case KEY_LEFT:  cmp = cmp_left;  break;
-      case KEY_DOWN:  cmp = cmp_down;  break;
-      case KEY_UP:    cmp = cmp_up;    break;
+      case SWITCH_KEY:   cmp = cmp_tab; break;
+      case DIR_RIGHT: cmp = cmp_right; break;
+      case DIR_LEFT:  cmp = cmp_left;  break;
+      case DIR_DOWN:  cmp = cmp_down;  break;
+      case DIR_UP:    cmp = cmp_up;    break;
       default:        return D_O_K;
    }
 

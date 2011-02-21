@@ -81,10 +81,10 @@ BITMAP* SpriteSet::get_sprite(int direction, bool walking, int frame) {
 Sprite::BaseSteuerung::CMD Sprite::PlayerSteuerung::command() {
 	CMD ret = WAIT;
 
-	if(key[KEY_UP]) ret = UP;
-	else if (key[KEY_DOWN]) ret = DOWN;
-	else if (key[KEY_LEFT]) ret = LEFT;
-	else if (key[KEY_RIGHT]) ret = RIGHT;
+	if(key[DIR_UP]) ret = UP;
+	else if (key[DIR_DOWN]) ret = DOWN;
+	else if (key[DIR_LEFT]) ret = LEFT;
+	else if (key[DIR_RIGHT]) ret = RIGHT;
 	else if (key[ACTION_KEY]) ret = ACTION;
 
 	return ret;

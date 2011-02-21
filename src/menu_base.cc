@@ -116,7 +116,7 @@ int MenuBase::update_game_menu(bool esc_possible, DIALOG_PLAYER *p) {
       }
 
       /* ESC closes dialog */
-      if (key[INGAME_MENU_KEY] && esc_possible) {
+      if (key[BACK_KEY] && esc_possible) {
 	 p->res |= D_CLOSE;
 	 p->obj = -1;
 	 goto getout;
