@@ -23,20 +23,9 @@
 #include <string>
 #include "config.h"
 #include "object.h"
+#include "tileset.h"
 
 using namespace std;
-
-class Tileset {
-		BITMAP *tiles[MAX_TILES_PER_TILESET];
-		int walk[MAX_TILES_PER_TILESET];
-	public:
-		Tileset();
-		~Tileset();
-		void load(string dateiname);
-		int is_walkable(int index);
-		int get_tilesize();
-		BITMAP* get_tile(int index);
-};
 
 struct Dlg {
 	BITMAP *dlg;

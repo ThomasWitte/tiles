@@ -18,62 +18,6 @@
 #include "iohelper.h"
 #include <iostream>
 
-Tileset::Tileset() {
-	for(int i = 0; i < MAX_TILES_PER_TILESET; i++) {
-		tiles[i] = NULL;
-		walk[i] = 0;
-	}
-	load("defaultTileset");
-}
-
-Tileset::~Tileset() {
-	for(int i = 0; i < MAX_TILES_PER_TILESET; i++)
-		if(tiles[i])
-			imageloader.destroy(tiles[i]);
-}
-
-void Tileset::load(string name) {
-	for(int i = 0; i < MAX_TILES_PER_TILESET; i++) {
-		if(tiles[i])
-			imageloader.destroy(tiles[i]);
-		tiles[i] = NULL;
-		walk[i] = 0;
-	}
-
-	string prefix = string("Tilesets/") + name + string("/");
-
-	FileParser parser(prefix + name, "Tileset");
-
-	deque<deque<string> > ret = parser.getsection("Tileset");
-	
-	int index;
-	for(int i = 0; i < ret.size(); i++) {
-		index = atoi(ret[i][0].c_str());
-		if(index < MAX_TILES_PER_TILESET && index > -1) {
-			tiles[index] = imageloader.load(prefix + ret[i][1]);
-			walk[index] = atoi(ret[i][2].c_str());
-		}
-	}
-
-	if(!tiles[0]) {
-		tiles[0] = imageloader.create(16, 16);
-		cout << name << ": [Fehler] Tileset konnte nicht geladen werden." << endl;
-	} else
-		cout << name << ": [Information] Tileset geladen" << endl;
-}
-
-int Tileset::is_walkable(int index) {
-	return walk[index];
-}
-
-int Tileset::get_tilesize() {
-	return tiles[0]->w;
-}
-
-BITMAP* Tileset::get_tile(int index) {
-	return tiles[index];
-}
-
 Map::Map() : tilesx(0), tilesy(0) {
 	tilemap = NULL;
 	walkable = NULL;

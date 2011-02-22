@@ -1,10 +1,10 @@
 < tiles 1.0 Savefile >
 [Level]
-Level keller ;;
+Level narshe_level ;;
 [Userdata]
 CharactersInBattle Terra; ;;
-Game.Playtime 0: 0:38 ;;
-Game.Steps 5 ;;
+Game.Playtime 0: 0: 4 ;;
+Game.Steps 64 ;;
 Map.DefaultSprite Terra ;;
 Terra.ablock 15 ;;
 Terra.adefense 97 ;;
@@ -64,6 +64,6 @@ Terra.xp 122 ;;
 gp 108 ;;
 last_map großes_level ;;
 name default ;;
-position_x 7 ;;
-position_y 2 ;;
+position_x 36 ;;
+position_y 51 ;;
 [eof]

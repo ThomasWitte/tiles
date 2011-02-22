@@ -17,19 +17,21 @@
 CC = g++
 CXXFLAGS = -O2 -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
-LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
 
-OBJ =     extract_tileset.o
-BIN =     extract_tileset
+BIN = extract_tileset mapedit
 
-all: $(OBJ)
-	$(CC) $(CXXFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS)
+all: $(BIN)
 
-fedora: $(OBJ)
-	$(CC) $(CXXFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS_FEDORA)
+extract_tileset: extract_tileset.o
+	$(CC) $(CXXFLAGS) -o extract_tileset extract_tileset.o $(LDFLAGS)
+
+mapedit: mapedit.o
+	$(CC) $(CXXFLAGS) -c ../src/iohelper.cc
+	$(CC) $(CXXFLAGS) -c ../src/tileset.cc
+	$(CC) $(CXXFLAGS) -o mapedit mapedit.o iohelper.o tileset.o $(LDFLAGS)
 
 %.o: src/%.cc
 	$(CC) $(CXXFLAGS) -c $<
 
 clean:
-	rm -rf $(BIN) $(OBJ) *~
+	rm -rf $(BIN) *.o *~
