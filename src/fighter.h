@@ -78,15 +78,9 @@ class Fighter : public FighterBase {
 				void set_items(deque< deque<string> > items);
 				MenuEntry *get_menu_entry(string name, MenuEntry *e);
 			protected:
-				enum State {START, MENU, CHOOSE_TARGET, TARGETS_BY_ATTACK} state; 
 				Fighter *fighter;
 	
 				MenuEntry menu;
-				class Command *c;
-				class AttackLib::Attack a;
-				PlayerSide target_side;
-				int cur_target;
-				int multitarget;
 		} menu;
 };
 

@@ -42,6 +42,8 @@ class Fight : public MenuBase {
 		inline int statusbox(int msg, DIALOG *d, int c);
 		inline int fightermenu(int msg, DIALOG *d, int c);
 		inline int nestedmenu(int msg, DIALOG *d, int c);
+		inline int target_choose(int msg, DIALOG *d, int c);
+		inline int listwin(int msg, DIALOG *d, int c);
 
 		void enqueue_ready_fighter(FighterBase *f);
 		void enqueue_command(class Command c);
@@ -59,7 +61,7 @@ class Fight : public MenuBase {
 		PlayerSide get_PlayerSide(FighterBase*);
 
 	private:
-		enum DIALOG_ID{MAIN_DLG, LIST_WIN};
+		enum DIALOG_ID{MAIN_DLG, LIST_WIN, TARGET_CHOOSER};
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
 		enum FightState{FIGHT, MENU} state;
 
@@ -67,7 +69,9 @@ class Fight : public MenuBase {
 		DIALOG *create_dialog(int id);
 		int update_fightarea();
 		void draw_fightarea(BITMAP *buffer, DIALOG *dlg);
+		int get_active_menu_fighter(int defval = -1);
 
+		Command *cur_cmd;
 		Game *parent;
 		long time;
 		BITMAP *bg, *menu_bg, *auswahl;

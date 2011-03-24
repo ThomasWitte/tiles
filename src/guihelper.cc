@@ -42,6 +42,25 @@ int ff6_list(int msg, DIALOG *d, int c) {
 			imageloader.destroy((BITMAP*)d->dp3);
 		break;
 
+		case MSG_CHAR:
+		{
+			char* (*list_item) (int, int*) = (char*(*)(int,int*))d->dp;
+			int max_index;
+			list_item(-1, &max_index);
+			switch(c >> 8) {
+				case DIR_UP:
+					d->d1--;
+					if(d->d1 < 0) d->d1 = max_index-1;
+				return D_USED_CHAR;
+
+				case DIR_DOWN:
+					d->d1++;
+					if(d->d1 >= max_index) d->d1 = 0;
+				return D_USED_CHAR;
+			}
+		}
+		return D_O_K;
+
 		case MSG_DRAW:
 		{
 			BITMAP *scr = gui_get_screen();
@@ -367,6 +386,7 @@ int ff6_button(int msg, DIALOG *d, int c) {
 			imageloader.destroy((BITMAP*)d->dp2);
 		break;
 		case MSG_DRAW:
+			if(~d->flags & D_HIDDEN)
 				if(d->flags & D_DISABLED) {
 					gui_textout_ex(scr, (char*)d->dp, d->x, d->y, makecol(128,128,128), d->bg, FALSE);
 				} else {

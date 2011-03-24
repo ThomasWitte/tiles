@@ -31,6 +31,9 @@ void Command::set_attack(string attack_name) {
 }
 
 void Command::execute() {
+cout << "caster: " << caster->get_spritename() << endl;
+cout << "attack: " << attack_name << endl;
+
 	for(int i = 0; i < target.size(); i++) {
 		target[i]->lose_health(calc_damage(i));
 	}

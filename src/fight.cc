@@ -33,8 +33,12 @@ int fighter_menu_proc(int msg, DIALOG *d, int c) {
 	return ((Fight*)d->dp)->fightermenu(msg, d, c);
 }
 
-int ret_d_close() {
-	return D_CLOSE;
+int target_choose_proc(int msg, DIALOG *d, int c) {
+	return ((Fight*)d->dp)->target_choose(msg, d, c);
+}
+
+int listwin_proc(int msg, DIALOG *d, int c) {
+	return ((Fight*)d->dp)->listwin(msg, d, c);
 }
 
 Fight::Fight(string dateiname, Game *g) {
@@ -44,6 +48,7 @@ Fight::Fight(string dateiname, Game *g) {
 	ifstream datei;
 	string input;
 	state = FIGHT;
+	cur_cmd = NULL;
 	
 	FileParser parser(string("Fights/") + dateiname, "Fight");
 
@@ -250,6 +255,7 @@ Fight::Fight(string dateiname, Game *g) {
 	//DIALOG erzeugen
 	dialog.push_back(create_dialog(MAIN_DLG));
 	player.push_back(init_dialog(dialog[0], 1));
+
 }
 
 Fight::~Fight() {
@@ -308,6 +314,12 @@ Fight::~Fight() {
 		}
 	for(int i = 0; i < defeated_fighters.size(); i++)
 		delete defeated_fighters[i];
+
+	ready_fighters.resize(0);
+
+	if(cur_cmd)
+		delete cur_cmd;
+	cur_cmd = NULL;
 }
 
 //Liefert die Einträge für die Attackenliste
@@ -351,20 +363,238 @@ DIALOG *Fight::create_dialog(int id) {
 
 		case LIST_WIN:
 		{
-			ret = new DIALOG[4];
+			ret = new DIALOG[5];
 			DIALOG test[] = {
 				/* (proc)			(x)					(y)						(w)  					(h)					(fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
 				{menu_bg_proc,		0,					2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X,		PC_RESOLUTION_Y/3,	COL_WHITE, -1,	0,	  0, 0, 0, NULL, NULL, NULL},
 				{ff6_list,			10,					2*PC_RESOLUTION_Y/3+8,	2*PC_RESOLUTION_X/3,	PC_RESOLUTION_Y/3-12,COL_WHITE, -1,	0,    D_EXIT, 0, 0, (void*)get_list_win_entries, NULL, NULL},
-				{d_keyboard_proc,	0,					0,						0,						0,					0,		   0,	0,	  0, INGAME_MENU_KEY, 0, (void*)&ret_d_close, NULL, NULL},
+				{ fight_area_proc,	0,					0,						PC_RESOLUTION_X,		2*PC_RESOLUTION_Y/3,0,         0,   0,    D_EXIT, 0,    0,   				this,             NULL, NULL },
+				{listwin_proc,		0,					0,						0,						0,					0,		   0,	0,	  D_EXIT, BACK_KEY, 0, this, NULL, NULL},
 				{NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL}
 			};
-			memcpy(ret, test, 4*sizeof(DIALOG));
+			memcpy(ret, test, 5*sizeof(DIALOG));
+		}
+		break;
+
+		case TARGET_CHOOSER:
+		{
+			ret = new DIALOG[3];
+			DIALOG test[] = {
+				/* (proc)			(x)					(y)						(w)  					(h)					(fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
+				{fight_area_proc,	0,					0,						PC_RESOLUTION_X,		2*PC_RESOLUTION_Y/3,0,         0,   0,    D_EXIT, 0,    0,   				this,             NULL, NULL },
+				{target_choose_proc,0,					0,						PC_RESOLUTION_X,		2*PC_RESOLUTION_Y/3,0,			0,	0,		D_EXIT,0,	0,					this,				NULL,NULL},
+				{NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL}
+			};
+			memcpy(ret, test, 3*sizeof(DIALOG));
 		}
 		break;
 
 	}
 	return ret;
+}
+
+int Fight::listwin(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_START:
+			d->d2 = 0;
+		break;
+
+		case MSG_IDLE: //MSG_XCHAR funktioniert nicht.
+			if(key[d->d1] && d->flags & D_EXIT) {
+				//Markieren, dass Menü ohne Auswahl geschlossen wurde
+				d->d2 = 1;
+				return D_CLOSE;
+			}
+		break;
+
+		case MSG_END:
+		{
+			int current_menu = get_active_menu_fighter(0);
+
+			if(d->d2 == 0) {
+				//DIALOG wird durch Auswahl geschlossen
+				//Target_chooser spawnen
+				if(ready_fighters.size() > current_menu && ready_fighters[current_menu]) {
+					if(cur_cmd) delete cur_cmd;
+					cur_cmd = new Command(ready_fighters[current_menu]);
+					int close_obj = dialog.back()[1].d1; //gewählter index aus der Liste
+					cur_cmd->set_attack(get_list_win_entries(close_obj, NULL));
+
+					//sich selber löschen
+					player.pop_back();
+					delete [] dialog.back();
+					dialog.pop_back();
+
+					//neuer Dialog
+					dialog.push_back(create_dialog(TARGET_CHOOSER));
+					player.push_back(init_dialog(dialog.back(), 1));
+
+					//dies wird von delete_last_dialog wieder gelöscht
+					player.push_back(NULL);
+					dialog.push_back(create_dialog(TARGET_CHOOSER));
+
+					ready_fighters.erase(ready_fighters.begin()+current_menu);
+				}
+			}
+		}
+		break;
+	}
+	return D_O_K;
+}
+
+int Fight::target_choose(int msg, DIALOG *d, int c) {
+	//d->d1: cur_target
+	//d->d2: multitarget
+	//d->bg: (PlayerSide)target_side
+	//d->dp2: fighter
+	AttackLib::Attack a = AttackLib::get_attack(cur_cmd->get_attack());
+
+	switch(msg) {
+		case MSG_START:
+		{
+			//aktives Menü bestimmen
+			int current_menu = get_active_menu_fighter(0);
+
+			//Starttargets werden anhand der gewählten Attacke ausgesucht…
+			d->dp2 = (void*)ready_fighters[current_menu];
+			d->d2 = AttackLib::MULTI;
+			if(a.possible_targets & AttackLib::SINGLE) {
+				d->d2 = AttackLib::SINGLE;
+			}
+
+			//bestmögliches Ziel auswählen
+			if(a.element == AttackLib::HEAL && (a.possible_targets & AttackLib::FRIEND)) {
+				d->bg = ((Fighter*)d->dp2)->get_side();
+				d->d1 = 0;
+			} else if(a.possible_targets & AttackLib::ENEMY) {
+				d->bg = ((Fighter*)d->dp2)->get_side();
+				d->d1 = 0;
+				for(int i = LEFT; i <= RIGHT; i++) {
+					if((((Fighter*)d->dp2)->get_side() != i) && get_fighter_count((PlayerSide)i)) {
+						d->bg = i;
+						d->d1 = 0;
+					}
+				}
+			} else if(a.possible_targets & AttackLib::FRIEND) {
+				d->bg = ((Fighter*)d->dp2)->get_side();
+				d->d1 = 0;
+			} else { //SELF einziges mögliches ziel
+				d->bg = ((Fighter*)d->dp2)->get_side();
+				d->d1 = get_index_of_fighter(((Fighter*)d->dp2), (PlayerSide)d->bg);
+			}
+			
+		}
+		break;
+
+		//Fokus akzeptieren
+		case MSG_WANTFOCUS:
+		return D_WANTFOCUS;
+
+		case MSG_CHAR:
+		{
+			int fc = get_fighter_count((PlayerSide)d->bg);
+			switch(c >> 8) {
+				case DIR_UP:
+					if((a.possible_targets & AttackLib::FRIEND) || (a.possible_targets & AttackLib::ENEMY)) {
+						d->d1--;
+						if(d->d1 < 0) d->d1 = fc-1;
+					}
+				return D_USED_CHAR;
+
+				case DIR_DOWN:
+					if((a.possible_targets & AttackLib::FRIEND) || (a.possible_targets & AttackLib::ENEMY)) {
+						d->d1++;
+						if(d->d1 >= fc) d->d1 = 0;
+					}
+				return D_USED_CHAR;
+
+				case DIR_LEFT:
+				{
+					int i = d->bg;
+					do {
+						i--;
+						if(i < 0) i = RIGHT;
+						d->d1 = 0;
+						d->bg = i;
+					} while(get_fighter_count((PlayerSide)d->bg) == 0 ||
+							((get_team(d->d1, (PlayerSide)d->bg) == Fight::FRIEND) && !(a.possible_targets & AttackLib::FRIEND)) || 
+							((get_team(d->d1, (PlayerSide)d->bg) == Fight::ENEMY) && !(a.possible_targets & AttackLib::ENEMY))
+							);
+				}
+				return D_USED_CHAR;
+
+				case DIR_RIGHT:
+				{
+					int i = d->bg;
+					do {
+						i++;
+						d->d1 = 0;
+						d->bg = i%3;
+					} while(get_fighter_count((PlayerSide)d->bg) == 0 ||
+							((get_team(d->d1, (PlayerSide)d->bg) == Fight::FRIEND) && !(a.possible_targets & AttackLib::FRIEND)) || 
+							((get_team(d->d1, (PlayerSide)d->bg) == Fight::ENEMY) && !(a.possible_targets & AttackLib::ENEMY))
+							);
+				}
+				return D_USED_CHAR;
+
+				case SWITCH_KEY:
+				{
+					if(d->d2 == AttackLib::SINGLE) {
+						if(a.possible_targets & AttackLib::MULTI) {
+							d->d2 = AttackLib::MULTI;
+						}
+					} else if (d->d2 == AttackLib::MULTI) {
+						if(a.possible_targets & AttackLib::SINGLE) {
+							d->d2 = AttackLib::SINGLE;
+						}
+					}
+				}
+				return D_USED_CHAR;
+
+				case ACTION_KEY:
+					if(d->d2 == AttackLib::SINGLE) {
+						add_fighter_target(*cur_cmd, d->d1, (PlayerSide)d->bg);
+					} else {
+						for(int i = 0; i < get_fighter_count((PlayerSide)d->bg); i++)
+							add_fighter_target(*cur_cmd, i, (PlayerSide)d->bg);
+					}
+
+					//Befehl in Comqueue aufnehemen
+					if(cur_cmd != NULL) {
+						enqueue_command(*cur_cmd);
+					}
+				return D_CLOSE;
+			}
+		}
+		break;
+
+		case MSG_IDLE:
+			//Alle Markierungen entfernen
+			for(int h = 0; h < 2; h++)
+				for(int i = 0; i < get_fighter_count(h); i++)
+					mark_fighter(i, h, false);
+
+			//aktuelle Markierungen hinzufügen
+			if(d->d2 == AttackLib::SINGLE) {
+				mark_fighter(d->d1, (PlayerSide)d->bg, true);
+			} else {
+				for(int i = 0; i < get_fighter_count((PlayerSide)d->bg); i++)
+					mark_fighter(i, (PlayerSide)d->bg, true);
+			}
+		break;
+
+		case MSG_END:
+			for(int h = 0; h < 2; h++)
+				for(int i = 0; i < get_fighter_count(h); i++)
+					mark_fighter(i, h, false);
+
+			if(cur_cmd) {
+				delete cur_cmd;
+				cur_cmd = NULL;
+			}
+		break;
+	}
+	return D_O_K;
 }
 
 int Fight::fightarea(int msg, DIALOG *d, int c) {
@@ -464,20 +694,25 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 				if(!menu_items) break;
 
 				for(int i = 0; i < 4; i++) {
+					((DIALOG*)d->dp2)[i].flags &= ~D_OPEN;
+					((DIALOG*)d->dp2)[i].flags &= ~D_EXIT;
+						
 					if(menu_items->submenu.size() > i) {
 						strcpy((char*)((DIALOG*)d->dp2)[i].dp, menu_items->submenu[i].text.c_str());
 						((DIALOG*)d->dp2)[i].flags &= ~D_HIDDEN;
-						if(ready_fighters[d->d1]->get_menu_entry(menu_items->submenu[i].text)) //der aktuelle Eintrag besitzt ein Submenü
+						if(menu_items->submenu[i].submenu.size() > 0) //der aktuelle Eintrag besitzt ein Submenü
 							((DIALOG*)d->dp2)[i].flags |= D_OPEN; //schickt beim aktivieren ein D_SPAWN
+						else
+							((DIALOG*)d->dp2)[i].flags |= D_EXIT; //Eintrag ist schon ein Command -> Menü schließen etc…
 					} else {
 						((DIALOG*)d->dp2)[i].flags |= D_HIDDEN;
-						((DIALOG*)d->dp2)[i].flags &= ~D_OPEN;
 					}
 				}
 			} else {
 				for(int i = 0; i < 4; i++) {
 					((DIALOG*)d->dp2)[i].flags |= D_HIDDEN;
 					((DIALOG*)d->dp2)[i].flags &= ~D_OPEN;
+					((DIALOG*)d->dp2)[i].flags &= ~D_EXIT;
 				}
 			}
 		return D_O_K;
@@ -492,18 +727,7 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 				}
 
 			//Aktuell aktives Menü neu bestimmen
-			int current_menu = -1;
-			for(int i = 0; i < ready_fighters.size(); i++) {
-				bool end = false;
-				for(int j = 0; j < fighters[FRIEND].size(); j++) {
-					if(ready_fighters[i] == fighters[FRIEND][j]) {
-						current_menu = i;
-						end = true;
-						break;
-					}
-				}
-				if(end) break;
-			}
+			int current_menu = get_active_menu_fighter(-1);
 
 			//neues Menü?, dann Strings updaten
 			if(current_menu != d->d1) {
@@ -519,11 +743,23 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 
 			//nested menu updaten und bei bedarf dialog spawnen
 			if(!update_game_menu(true, (DIALOG_PLAYER*)d->dp3) && d->d1 >= 0) {
-				ready_fighters.push_back(ready_fighters[current_menu]);
-				ready_fighters.erase(ready_fighters.begin()+current_menu);
-				d->d1 = -1;
-				//fightermenu(MSG_REBUILD_MENU, d, c);
-				//D_CLOSE erhalten -> nächstes ready_fighter menü
+				//wurde Dialog durch auswahl eines Eintrags geschlossen?
+				int close_obj = ((DIALOG_PLAYER*)d->dp3)->obj;
+				if(close_obj >= 0) {
+					//TargetChoose Dialog spawnen
+					if(cur_cmd) delete cur_cmd;
+					cur_cmd = new Command(ready_fighters[current_menu]);
+					FighterBase::MenuEntry *menu_items = ready_fighters[d->d1]->get_menu_entry("Menu");
+					cur_cmd->set_attack(menu_items->submenu[close_obj].text.c_str());
+
+					dialog.push_back(create_dialog(TARGET_CHOOSER));
+					player.push_back(init_dialog(dialog.back(), 1));
+
+					ready_fighters.erase(ready_fighters.begin()+current_menu);
+				} else {
+					ready_fighters.push_back(ready_fighters[current_menu]);
+					ready_fighters.erase(ready_fighters.begin()+current_menu);
+				}
 			} else if(((DIALOG_PLAYER*)d->dp3)->res & D_SPAWN && d->d1 >= 0) {
 				((DIALOG_PLAYER*)d->dp3)->res &= ~D_SPAWN;
 
@@ -531,9 +767,6 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 				menu = ready_fighters[d->d1]->get_menu_entry((char*)((DIALOG*)d->dp2)[c].dp); //c enthält das auslösende widget
 				dialog.push_back(create_dialog(LIST_WIN));
 				player.push_back(init_dialog(dialog.back(), 1));
-
-				ready_fighters.erase(ready_fighters.begin()+current_menu);
-				d->d1 = -1;
 			}
 
 		}
@@ -758,4 +991,20 @@ void Fight::defeated_fighter(FighterBase *f) {
 				defeated_fighters.push_back(f);
 			}
 		}
+}
+
+int Fight::get_active_menu_fighter(int defval) {
+	int current_menu = defval;
+	for(int i = 0; i < ready_fighters.size(); i++) {
+		bool end = false;
+		for(int j = 0; j < fighters[FRIEND].size(); j++) {
+			if(ready_fighters[i] == fighters[FRIEND][j]) {
+				current_menu = i;
+				end = true;
+				break;
+			}
+		}
+		if(end) break;
+	}
+	return current_menu;
 }
