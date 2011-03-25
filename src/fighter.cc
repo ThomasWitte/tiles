@@ -18,6 +18,49 @@
 #include <iostream>
 #include <sstream>
 
+//Tabellen für Levelup
+int xptable[] = {
+	0,		0,		32,		96,		208,	400,	672,	1056,	1552,	2184,
+	2976,	3936,	5080,	6432,	7992,	9784,	11840,	14152,	16736,	19616,
+	22832,	26360,	30232,	34456,	39056,	44072,	49464,	55288,	61568,	68304,
+	75496,	83184,	91384,	100088,	109344,	119136,	129504,	140464,	152008,	164184,
+	176976,	190416,	204520,	219320,	234808,	251000,	267936,	285600,	304040,	323248,
+	343248,	364064,	385696,	408160,	431488,	455680,	480776,	506760,	533680,	561528,
+	590320,	620096,	650840,	682600,	715368,	749160,	784016,	819920,	856920,	895016,
+	934208,	974536,	1016000,1058640,1102456,1147456,1193648,1241080,1289744,1339672,
+	1390872,1443368,1497160,1552264,1608712,1666512,1725688,1786240,1848184,1911552,
+	1976352,2042608,2110320,2179504,2250192,2322392,2396128,2471400,2548224,2637112,
+	2637112
+};
+
+int hptable[] = {
+	0,		11,		12,		14,		17,		20,		22,		24,		26,		27,
+	28,		30,		35,		39,		44,		50,		54,		57,		61,		65,
+	67,		69,		72,		76,		79,		82,		86,		90,		95,		99,
+	100,	101,	102,	102,	103,	104,	106,	107,	108,	110,
+	111,	113,	114,	116,	117,	119,	120,	122,	125,	128,
+	130,	131,	133,	134,	136,	137,	139,	142,	144,	145,
+	147,	148,	150,	152,	153,	155,	156,	158,	160,	162,
+	160,	155,	151,	145,	140,	136,	132,	126,	120,	117,
+	113,	110,	108,	105,	102,	100,	98,		95,		92,		90,
+	88,		87,		85,		83,		82,		80,		83,		86,		88,		0
+};
+
+int mptable[] = {
+	0,		0,		0,		5,		5,		6,		6,		7,		8,		8,
+	9,		9,		10,		10,		10,		10,		10,		11,		11,		11,
+	11,		11,		12,		12,		12,		12,		12,		13,		13,		13,
+	13,		13,		14,		14,		14,		14,		14,		15,		15,		15,
+	15,		15,		16,		16,		16,		16,		16,		17,		17,		17,
+	16,		15,		14,		13,		12,		11,		10,		9,		8,		7,
+	6,		5,		5,		6,		6,		7,		7,		7,		8,		8,
+	8,		8,		8,		7,		7,		7,		6,		6,		6,		6,
+	5,		5,		5,		5,		5,		5,		5,		6,		6,		6,
+	6,		6,		7,		8,		9,		10,		11,		12,		13,		0
+};
+
+//ende
+
 Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	parent = f;
 	this->c = c;
@@ -30,7 +73,8 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	texttoshow = "";
 	textremframes = 0;
 	textcol = 0;
-	
+	current_animation = NORMAL;
+
 	spritename = name;
 	laden(name);
 
@@ -358,13 +402,31 @@ Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)
 int Hero::get_xp(int xp) {
 	c.xp += xp;
 	c.levelupxp -= xp;
-	while(c.levelupxp <= 0) {
+	while(c.levelupxp <= 0 && c.level < 100) {
 		c.level++;
-		c.levelupxp += (XP_FACTOR*c.level*c.level) + ((14-XP_FACTOR)*c.level) + 18;
+		c.levelupxp += xptable[c.level]-xptable[c.level-1];
+
 		//HP etc steigern…
+		c.hp += hptable[c.level-1];
+		if(c.hp > MAX_HP) c.hp = MAX_HP;
+		c.mp += mptable[c.level-1];
+		if(c.mp > MAX_MP) c.mp = MAX_MP;
 		return 1;
 	}
 	return 0;
+}
+
+void Hero::draw(BITMAP *buffer, int x, int y) {
+	switch(current_animation) {
+		case ATTACK:
+			x -= (get_side()-1)*(step*3*PC_RESOLUTION_X/8)/GAME_TIMER_BPS;
+		break;
+		case RETURN:
+			x -= (get_side()-1)*((GAME_TIMER_BPS/3-step)*3*PC_RESOLUTION_X/8)/GAME_TIMER_BPS;
+		break;
+	}
+
+	Fighter::draw(buffer, x, y);
 }
 
 Monster::Monster(Fight *f, Character c, string name, PlayerSide side, int dir)
@@ -375,9 +437,43 @@ Monster::Monster(Fight *f, Character c, string name, PlayerSide side, int dir)
 void Monster::update() {
 	Fighter::update();
 	if(c.status[Character::WOUND] == Character::SUFFERING) {
-		//Auflöseanimation fehlt noch…
-		parent->defeated_fighter(this);
+		if(current_animation != DIE) {
+			set_animation(DIE);
+		} else if(step > GAME_TIMER_BPS/3) {
+			parent->defeated_fighter(this);
+		}
 	}
+}
+
+void Monster::draw(BITMAP *buffer, int x, int y) {
+	switch(current_animation) {
+		case HURT:
+			x += step%3-1;
+		break;
+	
+		case DIE:
+		{
+			set_trans_blender(200, 128, 255, 0);
+			int index = (step/SPRITE_ANIMATION_SPEED)%ts.normal.size();
+
+			//spiegeln, wenn direction = 0(links)
+			if(direction == 0) {
+				BITMAP *temp = create_bitmap(ts.normal[index]->w, ts.normal[index]->h);
+				draw_sprite_h_flip(temp, ts.normal[index], 0, 0);
+				draw_lit_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2, 100+step*300/GAME_TIMER_BPS);
+				destroy_bitmap(temp);
+			} else {
+				draw_lit_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2, 100+step*300/GAME_TIMER_BPS);
+			}
+			if(textremframes) {
+				textremframes--;
+				textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes/2, textcol, -1);
+			}
+		}
+		return;
+	}
+
+	Fighter::draw(buffer, x, y);
 }
 
 void Monster::laden(string name) {

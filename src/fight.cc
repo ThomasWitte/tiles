@@ -44,11 +44,12 @@ int listwin_proc(int msg, DIALOG *d, int c) {
 Fight::Fight(string dateiname, Game *g) {
 	parent = g;
 	bg = NULL;
-	command_is_executed = false;
+	command_is_executed = 0;
 	ifstream datei;
 	string input;
 	state = FIGHT;
 	cur_cmd = NULL;
+	fightarea_message_timeout = 0;
 	
 	FileParser parser(string("Fights/") + dateiname, "Fight");
 
@@ -140,8 +141,7 @@ Fight::Fight(string dateiname, Game *g) {
 		c.vigor = random()%8 + 56;
 		fighters[ENEMY].push_back(new Monster(this, c, ret[i][0], side, dir));
 	}
-	time = 0;
-
+	
 	menu_bg = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
 	for(int i = 0; i < menu_bg->h; i++) {
 		line(menu_bg, 0, i, menu_bg->w, i, makecol(i, i, 255-i));
@@ -559,6 +559,12 @@ int Fight::target_choose(int msg, DIALOG *d, int c) {
 							add_fighter_target(*cur_cmd, i, (PlayerSide)d->bg);
 					}
 
+					//Fighter in richtige Richtung drehen
+					if(((Fighter*)d->dp2)->get_side() < d->bg)
+						((Fighter*)d->dp2)->set_dir(1);
+					else if(((Fighter*)d->dp2)->get_side() > d->bg)
+						((Fighter*)d->dp2)->set_dir(0);
+
 					//Befehl in Comqueue aufnehemen
 					if(cur_cmd != NULL) {
 						enqueue_command(*cur_cmd);
@@ -804,22 +810,74 @@ void Fight::draw_fightarea(BITMAP *buffer, DIALOG *dlg) {
 			x = dlg->w/8 + dlg->w/8 * 3 * fighters[i][j]->get_side();
 			y = dlg->h / (sz[fighters[i][j]->get_side()]+1) * (szd[fighters[i][j]->get_side()]+1);
 			szd[fighters[i][j]->get_side()]++;
-			
+
 			//Fighter zeichnen
 			fighters[i][j]->draw(buffer, x, y);
 			if(marked_fighters[i][j])
 				masked_blit(auswahl, buffer, 0, 0, x, y-25, auswahl->w, auswahl->h);
 
 		}
+
+	if(fightarea_message_timeout > 0) {
+		DIALOG pos = { NULL, dlg->x, dlg->y, dlg->w, 24, COL_WHITE, -1, 0, 0, 0, 0, NULL, NULL, NULL };
+		menu_bg_proc(MSG_DRAW, &pos, 0);
+		gui_textout_ex(buffer, fightarea_message.c_str(), dlg->w/2, 8, COL_WHITE, -1, TRUE);
+	}
 }
 
 int Fight::update_fightarea() {
+	if(fightarea_message_timeout > 0) {
+		fightarea_message_timeout--;
+	}
+
 	switch(state) {
 	case FIGHT:
 	{
-		if(comqueue.size() && !command_is_executed) {
-			comqueue[0].execute();
-			comqueue.pop_front();
+
+		if(command_is_executed > 0) {
+			if(command_is_executed > 3000) {
+
+				for(int i = 0; i < 2; i++)
+				for(int j = 0; j < fighters[i].size(); j++) {
+					fighters[i][j]->set_animation(Fighter::NORMAL);
+				}
+
+				comqueue[0].execute();
+				if(comqueue[0].get_attack() != "Fight")
+					set_fightarea_message(GAME_TIMER_BPS, comqueue[0].get_attack());
+				comqueue.pop_front();
+				command_is_executed = -1;
+
+			} else if(command_is_executed == 1) {
+				//falls eigener Kämpfer -> laufanimation
+				for(int i = 0; i < fighters[FRIEND].size(); i++) {
+					if(comqueue[0].is_caster(fighters[FRIEND][i]))
+						fighters[FRIEND][i]->set_animation(Fighter::ATTACK);
+				}
+
+			} else if(command_is_executed == 2000) {
+				for(int i = 0; i < 2; i++)
+				for(int j = 0; j < fighters[i].size(); j++) {
+					//Treffer und zurück bewegen
+					if(comqueue[0].is_target(fighters[i][j])) {
+						fighters[i][j]->set_animation(Fighter::HURT);
+					}
+					if(comqueue[0].is_caster(fighters[i][j])) {
+						fighters[i][j]->set_animation(Fighter::RETURN);
+					}
+				}
+
+			} else if(command_is_executed == GAME_TIMER_BPS/3) {
+				command_is_executed = 1999; //Direkt zur hit animation springen
+
+			} else if(command_is_executed == 2000+GAME_TIMER_BPS/3) {
+				command_is_executed = 3000; //zum execute()
+			}
+			command_is_executed++;
+		}
+
+		if(comqueue.size() > 0 && command_is_executed == 0) {
+			command_is_executed = 1;
 		}
 
 		//Fighter animieren
@@ -829,7 +887,7 @@ int Fight::update_fightarea() {
 			}
 
 		//Kampf beendet?
-		if(fighters[ENEMY].size() == 0) {
+		if(fighters[ENEMY].size() == 0 && fightarea_message_timeout <= 0) {
 			state = MENU;
 		}
 	}
@@ -1007,4 +1065,9 @@ int Fight::get_active_menu_fighter(int defval) {
 		if(end) break;
 	}
 	return current_menu;
+}
+
+void Fight::set_fightarea_message(int timeout, string text) {
+	fightarea_message_timeout = timeout;
+	fightarea_message = text;
 }

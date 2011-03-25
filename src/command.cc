@@ -30,6 +30,18 @@ void Command::set_attack(string attack_name) {
 	this->attack_name = attack_name;
 }
 
+bool Command::is_target(FighterBase *tgt) {
+	for(int i = 0; i < target.size(); i++) {
+		if(tgt == target[i])
+			return true;
+	}
+	return false;
+}
+
+bool Command::is_caster(FighterBase *c) {
+	return (c == caster);
+}
+
 void Command::execute() {
 cout << "caster: " << caster->get_spritename() << endl;
 cout << "attack: " << attack_name << endl;

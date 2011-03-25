@@ -25,27 +25,22 @@
 
 using namespace std;
 
-enum AnimationType {WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, CAST_SPELL, HURT, DIE, EVADE};
-
 class Command {
 	public:
 		Command(class FighterBase *caster = NULL);
-		virtual void add_target(FighterBase *tg);
-		virtual void set_attack(string attack_name);
-		virtual string get_attack() {return attack_name;}
-		virtual void execute();
+		void add_target(FighterBase *tg);
+		void set_attack(string attack_name);
+		string get_attack() {return attack_name;}
+		bool is_target(FighterBase *tgt);
+		bool is_caster(FighterBase *c);
+		
+		void execute();
 	protected:
 		FighterBase *caster;
 		deque<FighterBase*> target;
 
 		string attack_name;
 		int calc_damage(int target_index); //MAX_DAMAGE + 1: MISS; MAX_DAMAGE + 2: BLOCK
-		/*AnimationType wait_animation; //WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK oder DEFEND
-		AnimationType exec_animation; //CAST_SPELL oder ATTACK
-		//Target führt entweder HURT, DIE oder EVADE aus
-		//attack_animation <- Animation die die Attacke zeigt (zB Feuerball oder Esper)
-
-		void(*damage_function)(FighterBase*, FighterBase*); <- kann alles aus attack_name gewonnen werden*/
 };
 
 #endif

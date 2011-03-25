@@ -55,6 +55,8 @@ struct Character {
 
 class FighterBase {
 	public:
+		enum AnimationType {NORMAL, WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, CAST_SPELL, RETURN, HURT, DIE, EVADE};
+
 		struct MenuEntry {
 			string text;
 			deque<MenuEntry> submenu; 
@@ -70,6 +72,7 @@ class FighterBase {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h) = 0;
 		virtual PlayerSide get_side() = 0;
 		virtual int get_dir() = 0;
+		virtual int set_dir(int dir) = 0;
 		virtual void get_ready() = 0;
 		virtual bool is_monster() = 0;
 		virtual bool is_friend() = 0;
@@ -80,6 +83,7 @@ class FighterBase {
 		virtual int get_status(int status) = 0;
 		virtual void set_status(int status, int state) = 0;
 		virtual string get_spritename() = 0;
+		virtual void set_animation(AnimationType) = 0;
 		virtual MenuEntry* get_menu_entry(string name) = 0;
 };
 

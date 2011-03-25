@@ -39,6 +39,7 @@ class Fighter : public FighterBase {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
 		virtual PlayerSide get_side() {return side;}
 		int get_dir() {return direction;}
+		int set_dir(int dir) {direction = dir%2;}
 		virtual void get_ready();
 		virtual bool is_monster() {return !is_friend();}; // nicht final
 		virtual bool is_friend();
@@ -50,10 +51,12 @@ class Fighter : public FighterBase {
 		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING
 		string get_spritename() {return spritename;}
 		virtual MenuEntry *get_menu_entry(string name) {return menu.get_menu_entry(name, NULL);}
+		virtual void set_animation(AnimationType type) {current_animation = type; step = 0;}
 
 	protected:
 		Fight *parent;
 		friend Fight *get_parent(Fighter&);
+		AnimationType current_animation;
 		Character c;
 		int atb;
 		int itc;
@@ -89,6 +92,7 @@ class Hero : public Fighter {
 		Hero(class Fight *f, Character c, string name, PlayerSide side, int dir);
 		virtual bool is_monster() {return false;}
 		virtual int get_xp(int);
+		virtual void draw(BITMAP *buffer, int x, int y);
 };
 
 class Monster : public Fighter {
@@ -96,6 +100,7 @@ class Monster : public Fighter {
 		Monster(class Fight *f, Character c, string name, PlayerSide side, int dir);
 		virtual bool is_monster() {return true;}
 		virtual void update();
+		virtual void draw(BITMAP *buffer, int x, int y);
 		virtual void laden(string name);
 
 		struct Treasure {

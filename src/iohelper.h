@@ -63,6 +63,7 @@ class ImageLoader {
 		void destroy(BITMAP *bmp);
 		void destroy_all(string name);
 		void clear();
+		BITMAP* copy(BITMAP *bmp);
 	protected:
 		class Image {
 			public:

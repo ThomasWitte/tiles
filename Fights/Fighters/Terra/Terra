@@ -1,19 +1,22 @@
 < tiles 1.0 Fighter >
 [Fighter]
 	name Terra ;;
-	level 3 ;;
-	mp 24 ;;
-	hp 63 ;;
+	level 1 ;;
+	mp 16 ;;
+	hp 40 ;;
 	vigor 31 ;;
 	stamina 28 ;;
 	mpower 39 ;;
-	ablock 15 ;;
+	ablock 5 ;;
 	mblock 7 ;;
 	defensive 0 ;;
-	apower 42 ;;
-	mdefense 69 ;;
-	adefense 97 ;;
+	apower 12 ;;
+	mdefense 33 ;;
+	adefense 42 ;;
 	hitrate 254 ;;
+	speed 33 ;;
+	levelupxp 32 ;;
+	xp 0 ;;
 [Elements]
 	Heal absorb ;;
 [Status]

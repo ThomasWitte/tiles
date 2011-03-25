@@ -203,6 +203,15 @@ BITMAP* ImageLoader::create(int w, int h) {
 	return imgs[name].bmp;
 }
 
+BITMAP* ImageLoader::copy(BITMAP *bmp) {
+	if(!bmp) return NULL;
+
+	BITMAP *ret = create(bmp->w, bmp->h);
+	blit(bmp, ret, 0, 0, 0, 0, bmp->w, bmp->h);
+
+	return ret;
+}
+
 void ImageLoader::destroy(string name) {
 	if(imgs.find(name) != imgs.end()) {
 		imgs[name].count--;
@@ -221,6 +230,7 @@ void ImageLoader::destroy(BITMAP *b) {
 			if(i->second.count < 1) {
 				if(b) destroy_bitmap(b);
 				imgs.erase(i);
+				b = NULL;
 			}
 			return;
 		} 

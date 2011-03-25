@@ -17,9 +17,6 @@
 #include "menu_base.h"
 #include "guihelper.h"
 
-#include <iostream>
-using namespace std;
-
 MenuBase::~MenuBase() {
 	for(int i = 0; i < player.size(); i++) {
 		shutdown_dialog(player[i]);
