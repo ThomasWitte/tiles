@@ -20,6 +20,7 @@
 Command::Command(FighterBase *caster) {
 	this->caster = caster;
 	attack_name = "Verteid.";
+	preparation_time = 0;
 }
 
 void Command::add_target(FighterBase *tg) {
@@ -28,10 +29,15 @@ void Command::add_target(FighterBase *tg) {
 
 void Command::set_attack(string attack_name) {
 	this->attack_name = attack_name;
+	preparation_time = GAME_TIMER_BPS; //Normale Attacken werden 1s vorbereitet
+
+	AttackLib::Attack a = AttackLib::get_attack(attack_name);
+	if(a.vulnerable_to_runic) //Alle Zauber werden 2s vorbereitet
+		preparation_time = 2*GAME_TIMER_BPS;
 }
 
 bool Command::is_target(FighterBase *tgt) {
-	for(int i = 0; i < target.size(); i++) {
+	for(unsigned int i = 0; i < target.size(); i++) {
 		if(tgt == target[i])
 			return true;
 	}
@@ -46,10 +52,21 @@ void Command::execute() {
 cout << "caster: " << caster->get_spritename() << endl;
 cout << "attack: " << attack_name << endl;
 
-	for(int i = 0; i < target.size(); i++) {
+	for(unsigned int i = 0; i < target.size(); i++) {
 		target[i]->lose_health(calc_damage(i));
 	}
 	caster->get_ready();
+}
+
+void Command::prepare() {
+	if(preparation_time > 0)
+		preparation_time--;
+}
+
+bool Command::is_prepared() {
+	if(preparation_time <= 0)
+		return true;
+	return false;
 }
 
 int Command::calc_damage(int target_index) {

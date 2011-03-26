@@ -33,6 +33,8 @@ class Command {
 		string get_attack() {return attack_name;}
 		bool is_target(FighterBase *tgt);
 		bool is_caster(FighterBase *c);
+		void prepare();
+		bool is_prepared();
 		
 		void execute();
 	protected:
@@ -41,6 +43,7 @@ class Command {
 
 		string attack_name;
 		int calc_damage(int target_index); //MAX_DAMAGE + 1: MISS; MAX_DAMAGE + 2: BLOCK
+		int preparation_time;
 };
 
 #endif

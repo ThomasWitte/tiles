@@ -114,7 +114,7 @@ int menu_items(int msg, DIALOG *d, int c) {
 		FileParser parser(("Fights/Fighters/") + name + ("/") + name, "Fighter");
 		deque< deque<string> > menu_items = parser.getsection("Menu");
 		d->dp3 = (void*)new char*[4];
-		for(int i = 0; i < 4; i++)
+		for(unsigned int i = 0; i < 4; i++)
 			if(i >= menu_items.size())
 				((char**)d->dp3)[i] = tochar("");
 			else
@@ -174,7 +174,7 @@ int char_select(int msg, DIALOG *d, int c) {
 			//eigenen namen herausfinden
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
-				int pos = chars.find_first_of(";");
+				unsigned int pos = chars.find_first_of(";");
 				if(pos == string::npos) {
 					//Position bleibt leer
 					d->dp2 = NULL;
@@ -243,7 +243,7 @@ int char_select(int msg, DIALOG *d, int c) {
 			name = new string("empty");
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
-				int pos = chars.find_first_of(";");
+				unsigned int pos = chars.find_first_of(";");
 				if(pos == string::npos) {
 					break;
 				}
@@ -327,7 +327,7 @@ int ch_button(int msg, DIALOG *d, int c) {
 			//ist an der position überhaupt ein character?
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->bg; i++) { //d->bg = 0…3 im Menü
-				int pos = chars.find_first_of(";");
+				unsigned int pos = chars.find_first_of(";");
 				if(pos == string::npos) {
 					//Position bleibt leer
 					d->flags |= D_DISABLED;
@@ -386,7 +386,7 @@ int ff6_button(int msg, DIALOG *d, int c) {
 			imageloader.destroy((BITMAP*)d->dp2);
 		break;
 		case MSG_DRAW:
-			if(~d->flags & D_HIDDEN)
+			if(~d->flags & D_HIDDEN) {
 				if(d->flags & D_DISABLED) {
 					gui_textout_ex(scr, (char*)d->dp, d->x, d->y, makecol(128,128,128), d->bg, FALSE);
 				} else {
@@ -397,6 +397,7 @@ int ff6_button(int msg, DIALOG *d, int c) {
 						masked_blit((BITMAP*)d->dp2, scr, 0, 0, d->x-((BITMAP*)d->dp2)->w-offset, d->y, ((BITMAP*)d->dp2)->w, ((BITMAP*)d->dp2)->h);
 					}
 				}
+			}
 		break;
 		case MSG_KEY:
 			if(d->flags & D_OPEN)
@@ -486,22 +487,6 @@ static int cmp_tab(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
    int ret = (int)((AL_CONST unsigned long)d2 - (AL_CONST unsigned long)d1);
 
    /* Wrap around if d2 is before d1 in the dialog array. */
-   if (ret < 0)
-      ret += MAX_SIZE;
-
-   return ret;
-}
-
-
-
-/* cmp_shift_tab:
- *  Comparison function for shift+tab key movement.
- */
-static int cmp_shift_tab(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
-{
-   int ret = (int)((AL_CONST unsigned long)d1 - (AL_CONST unsigned long)d2);
-
-   /* Wrap around if d2 is after d1 in the dialog array. */
    if (ret < 0)
       ret += MAX_SIZE;
 

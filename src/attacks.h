@@ -24,16 +24,20 @@ using namespace std;
 
 class AttackLib {
 	public:
-		enum {SELF = 1, FRIEND = 2, ENEMY = 4, MULTI = 8, SINGLE = 16, MULTI_BOTH_SIDES = 32, DEAD = 64};
+		enum {SELF = 1, FRIEND = 2, ENEMY = 4, MULTI = 8, SINGLE = 16, MULTI_BOTH_SIDES = 32, DEAD = 64, RANDOM = 128};
 		enum Element {NONE, HEAL, DEATH, BOLT, ICE, FIRE, WATER, WIND, EARTH, POISON, PEARL};
 		struct Attack {
 			string name;
 			int (*effect_function)(class FighterBase*, FighterBase*);
+			int (*animation)(int step, int caster_x, int caster_y, vector<int> *target_x, vector<int> *target_y);
 			int power;
 			bool physical;
 			bool ign_def;
 			bool unblock;
 			bool block_by_stamina;
+			bool retarget_if_dead;
+			bool vulnerable_to_runic;
+			bool cast_outside_battle;
 			int hit_rate;
 			Element element;
 			int possible_targets;

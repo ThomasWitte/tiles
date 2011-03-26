@@ -82,7 +82,7 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 }
 
 Fighter::~Fighter() {
-	for(int i = 0; i < ts.normal.size(); i++)
+	for(unsigned int i = 0; i < ts.normal.size(); i++)
 		imageloader.destroy(ts.normal[i]);
 }
 
@@ -93,7 +93,7 @@ void Fighter::laden(string name) {
 	FileParser parser(path + name, "Fighter");
 
 	deque< deque<string> > ret = parser.getsection("normal");
-	for(int i = 0; i < ret.size(); i++)
+	for(unsigned int i = 0; i < ret.size(); i++)
 		ts.normal.push_back(imageloader.load(path + ret[i][0]));
 
 	//alle anderen bilder auch mit normal belegen
@@ -156,7 +156,7 @@ void Fighter::update() {
 		c.status[Character::SLEEP] != Character::SUFFERING &&
 		c.status[Character::PETRIFY] != Character::SUFFERING)
 
-		if(atb < 65536)
+		if(atb < 65536) {
 			if(is_monster()) {
 				if(c.status[Character::HASTE] == Character::SUFFERING) // Berechnungen in der Algorithms FAQ sind offensichtlich falsch…
 					atb += 63*(c.speed+20) / 16;
@@ -172,6 +172,7 @@ void Fighter::update() {
 				else
 					atb += 3*(c.speed+20);
 			}
+		}
 	if(atb > 65536) {
 		atb = 65536;
 		parent->enqueue_ready_fighter(this);
@@ -354,7 +355,7 @@ FighterBase::MenuEntry* Fighter::FighterMenu::get_menu_entry(string name, MenuEn
 	if(e->text == name)
 		return e;
 
-	for(int i = 0; i < e->submenu.size(); i++) {
+	for(unsigned int i = 0; i < e->submenu.size(); i++) {
 		MenuEntry *ret = NULL;
 		ret = get_menu_entry(name, &e->submenu[i]);
 		if(ret)
@@ -384,10 +385,10 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 	//bei gelegenheit ändern
 	MenuEntry e, e2;
 	menu.text = "Menu";
-	for(int i = 0; i < items.size(); i++) {
+	for(unsigned int i = 0; i < items.size(); i++) {
 		e.submenu.resize(0);
 		e.text = items[i][0];
-		for(int j = 1; j < items[i].size(); j++) {
+		for(unsigned int j = 1; j < items[i].size(); j++) {
 			e2.text = items[i][j];
 			e.submenu.push_back(e2);
 		}
@@ -423,6 +424,8 @@ void Hero::draw(BITMAP *buffer, int x, int y) {
 		break;
 		case RETURN:
 			x -= (get_side()-1)*((GAME_TIMER_BPS/3-step)*3*PC_RESOLUTION_X/8)/GAME_TIMER_BPS;
+		break;
+		default:
 		break;
 	}
 
@@ -471,9 +474,50 @@ void Monster::draw(BITMAP *buffer, int x, int y) {
 			}
 		}
 		return;
+
+		default:
+		break;
 	}
 
 	Fighter::draw(buffer, x, y);
+}
+
+Command Monster::get_command() {
+	Command c(this);
+	if(com_script.size() == 0) {
+		c.set_attack("Fight");
+		return c;
+	}
+
+	int index = 0;
+
+	while(true) {
+		if(com_script[comcounter][index] == "if") {
+			//Stimmt zwar nicht, aber das Skriptsystem muss sowieso überarbeitet werden
+			if(com_script[comcounter][index+1] == "var") {
+				index++;
+			}
+			if(com_script[comcounter][index+3] == "var") {
+				index++;
+			}
+			index += 5;
+			for(unsigned int i = 0; i < com_script[comcounter].size(); i++) {
+				if(com_script[comcounter][i] == "else")
+					com_script[comcounter].erase(com_script[comcounter].begin()+i);
+			}
+
+		} if(com_script[comcounter][index] == "rand") {
+			c.set_attack(com_script[comcounter][index + 1 + random()%(com_script[comcounter].size()-index-1)]);
+			break;
+		} else {
+			c.set_attack(com_script[comcounter][index]);
+			break;
+		}
+	}
+
+	comcounter++;
+	if(comcounter >= com_script.size()) comcounter = 0;
+	return c;
 }
 
 void Monster::laden(string name) {
@@ -487,6 +531,9 @@ void Monster::laden(string name) {
 	t.stolen_items = parser.get("Treasure", "Stolen");
 	t.morph_items = parser.get("Treasure", "MorphItems");
 	t.morph = parser.getvalue("Treasure", "Morph", 0);
+
+	com_script = parser.getsection("Script");
+	comcounter = 0;
 }
 
 Monster::Treasure Monster::treasure() {

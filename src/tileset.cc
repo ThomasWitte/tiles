@@ -47,7 +47,7 @@ void Tileset::load(string name) {
 	deque<deque<string> > ret = parser.getsection("Tileset");
 	
 	int index;
-	for(int i = 0; i < ret.size(); i++) {
+	for(unsigned int i = 0; i < ret.size(); i++) {
 		index = atoi(ret[i][0].c_str());
 		if(index < MAX_TILES_PER_TILESET && index > -1) {
 			tiles[index] = imageloader.load(prefix + ret[i][1]);

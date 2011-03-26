@@ -22,17 +22,19 @@ AttackLib::Attack AttackLib::get_attack(string name) {
 		// hitr = 1000: trifft immer
 		// hitr = -1: Trefferrate wird durch Waffe oder Characterwert bestimmt
 
-		//name			effect_func,		pow,phys, ignd, unbl, bbst, hitr,	elem, Target
-		{"Fight",		NULL,				-1,	true, false,false,false,-1,		NONE,	SELF + FRIEND + ENEMY + SINGLE},
-		{"BoltBeam",	NULL,				62,	false,false,true, false,0,		BOLT,	SELF + FRIEND + ENEMY + SINGLE},
-		{"BioBlast",	&poiseiz,			60,	false,false,true, false,0,		POISON,	SELF + FRIEND + ENEMY + MULTI},
-		{"Confuser",	&muddle,			0,	false,false,false,false,128,	NONE,	SELF + FRIEND + ENEMY + MULTI},
-		{"FireBeam",	NULL,				60,	false,false,true, false,0,		FIRE,	SELF + FRIEND + ENEMY + SINGLE},
-		{"HealForce",	NULL,				50,	false,true, true, false,0,		HEAL,	SELF + FRIEND + ENEMY + SINGLE},
-		{"IceBeam",		NULL,				61, false,false,true, false,0,		ICE,	SELF + FRIEND + ENEMY + SINGLE},
-		{"TekMissile",	&seizure,			58, false,true, true, false,0,		NONE,	SELF + FRIEND + ENEMY + SINGLE},
-		{"X-Fer",		&death,				0,	false,false,false,true, 120,	DEATH,	SELF + FRIEND + ENEMY + SINGLE},
-		{"NULL",		NULL,				0,	false,false,false,false,0,		NONE,	0}
+		//name			effect_func,	animation,		pow,	phys, 	ignd, 	unbl, 	bbst, 	rid,	vtr,	cob,	hitr,	elem, 	Target
+		{"Fight",		NULL,			NULL,			-1,		true, 	false,	false,	false,	true,	false,	false,	-1,		NONE,	SELF + FRIEND + ENEMY + SINGLE},
+		{"Critical",	NULL,			NULL,			24,		true,	false,	false,	false,	true,	false,	false,	-1,		NONE,	SELF + FRIEND + ENEMY + SINGLE},
+		{"Tusk",		NULL,			NULL,			30,		true,	false,	false,	false,	true,	false,	false,	-1,		NONE,	SELF + FRIEND + ENEMY + SINGLE},
+		{"BoltBeam",	NULL,			NULL,			62,		false,	false,	true, 	false,	true,	false,	false,	0,		BOLT,	SELF + FRIEND + ENEMY + SINGLE},
+		{"BioBlast",	&poiseiz,		NULL,			60,		false,	false,	true, 	false,	true,	false,	false,	0,		POISON,	SELF + FRIEND + ENEMY + MULTI},
+		{"Confuser",	&muddle,		NULL,			0,		false,	false,	false,	false,	true,	false,	false,	128,	NONE,	SELF + FRIEND + ENEMY + MULTI},
+		{"FireBeam",	NULL,			NULL,			60,		false,	false,	true, 	false,	true,	false,	false,	0,		FIRE,	SELF + FRIEND + ENEMY + SINGLE},
+		{"HealForce",	NULL,			NULL,			50,		false,	true, 	true, 	false,	false,	false,	false,	0,		HEAL,	SELF + FRIEND + ENEMY + SINGLE},
+		{"IceBeam",		NULL,			NULL,			61, 	false,	false,	true, 	false,	true,	false,	false,	0,		ICE,	SELF + FRIEND + ENEMY + SINGLE},
+		{"TekMissile",	&seizure,		NULL,			58, 	false,	true, 	true, 	false,	true,	false,	false,	0,		NONE,	SELF + FRIEND + ENEMY + SINGLE},
+		{"X-Fer",		&death,			NULL,			0,		false,	false,	false,	true, 	false,	false,	false,	120,	DEATH,	SELF + FRIEND + ENEMY + SINGLE},
+		{"NULL",		NULL,			NULL,			0,		false,	false,	false,	false,	false,	false,	false,	0,		NONE,	0}
 	};
 
 	for(int i = 0; lib[i].name != "NULL"; i++)

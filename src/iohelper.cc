@@ -118,8 +118,8 @@ void FileParser::laden(string dateiname, string type) {
 }
 
 void FileParser::dump() {
-	for(int i = 0; i < daten.size(); i++) {
-		for(int j = 0; j < daten[i].size(); j++)
+	for(unsigned int i = 0; i < daten.size(); i++) {
+		for(unsigned int j = 0; j < daten[i].size(); j++)
 			cout << daten[i][j] << " ";
 		cout << endl;
 	}
@@ -129,14 +129,14 @@ FileParser::~FileParser() {
 }
 
 string FileParser::getstring(string section, string element, string def) {
-	for(int i = 0; i < daten.size(); i++)
+	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element)
 			return daten[i][2];
 	return def;
 }
 
 double FileParser::getvalue(string section, string element, double def) {
-	for(int i = 0; i < daten.size(); i++)
+	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element)
 			return atof(daten[i][2].c_str());
 	return def;
@@ -144,7 +144,7 @@ double FileParser::getvalue(string section, string element, double def) {
 
 deque<string> FileParser::get(string section, string element) {
 	deque<string> temp;
-	for(int i = 0; i < daten.size(); i++)
+	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element) {
 			temp = daten[i];
 			temp.pop_front(); //section und element entfernen
@@ -156,7 +156,7 @@ deque<string> FileParser::get(string section, string element) {
 
 deque<deque<string> > FileParser::getall(string section, string element) {
 	deque<deque<string> > temp;
-	for(int i = 0; i < daten.size(); i++)
+	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element) {
 			temp.push_back(daten[i]);
 			temp[temp.size()-1].pop_front();
@@ -167,7 +167,7 @@ deque<deque<string> > FileParser::getall(string section, string element) {
 
 deque<deque<string> > FileParser::getsection(string section) {
 	deque<deque<string> > temp;
-	for(int i = 0; i < daten.size(); i++)
+	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section) {
 			temp.push_back(daten[i]);
 			temp[temp.size()-1].pop_front();
@@ -196,7 +196,7 @@ BITMAP* ImageLoader::load(string name) {
 BITMAP* ImageLoader::create(int w, int h) {
 	char name[25];
 	do {
-		sprintf(name, "%i", random());
+		sprintf(name, "%i", (int)random());
 	} while(imgs.find(name) != imgs.end());
 	imgs[name].bmp = create_bitmap(w,h);
 	imgs[name].count = 1;

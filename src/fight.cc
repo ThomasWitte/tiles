@@ -108,7 +108,7 @@ Fight::Fight(string dateiname, Game *g) {
 	PlayerSide side;
 	int dir;
 
-	for(int i = 0; i < ret.size(); i++) {
+	for(unsigned int i = 0; i < ret.size(); i++) {
 		Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		for(int j = 0; j < 11; j++)
 			c.elements[j] = Character::NORMAL;
@@ -152,7 +152,7 @@ Fight::Fight(string dateiname, Game *g) {
 	//Party hinzufügen (noch nicht final) am ende sollte ein fighter.override_character(c) stehen…
 	if(parent) {
 		string chars = parent->get_var("CharactersInBattle");
-		int pos = chars.find_first_of(";");
+		unsigned int pos = chars.find_first_of(";");
 		while(pos != string::npos) {
 			string curchar = chars.substr(0, pos);
 
@@ -260,7 +260,7 @@ Fight::Fight(string dateiname, Game *g) {
 
 Fight::~Fight() {
 	for(int j = 0; j < 2; j++)
-	for(int i = 0; i < fighters[j].size(); i++)
+	for(unsigned int i = 0; i < fighters[j].size(); i++)
 	if(!fighters[j][i]->is_monster()) {
 		Character c = fighters[j][i]->get_character();
 		string curchar = fighters[j][i]->get_spritename();
@@ -309,10 +309,10 @@ Fight::~Fight() {
 	imageloader.destroy(menu_bg);
 	imageloader.destroy(auswahl);
 	for(int i = 0; i < 2; i++) 
-		for(int j = 0; j < fighters[i].size(); j++) {
+		for(unsigned int j = 0; j < fighters[i].size(); j++) {
 			delete fighters[i][j];
 		}
-	for(int i = 0; i < defeated_fighters.size(); i++)
+	for(unsigned int i = 0; i < defeated_fighters.size(); i++)
 		delete defeated_fighters[i];
 
 	ready_fighters.resize(0);
@@ -333,7 +333,7 @@ const char* get_list_win_entries(int index, int *size) {
 		return NULL;
 	}
 
-	if(index < menu->submenu.size()) {
+	if(index < (int)menu->submenu.size()) {
 		return menu->submenu[index].text.c_str();
 	}
 
@@ -414,7 +414,7 @@ int Fight::listwin(int msg, DIALOG *d, int c) {
 			if(d->d2 == 0) {
 				//DIALOG wird durch Auswahl geschlossen
 				//Target_chooser spawnen
-				if(ready_fighters.size() > current_menu && ready_fighters[current_menu]) {
+				if((int)ready_fighters.size() > current_menu && ready_fighters[current_menu]) {
 					if(cur_cmd) delete cur_cmd;
 					cur_cmd = new Command(ready_fighters[current_menu]);
 					int close_obj = dialog.back()[1].d1; //gewählter index aus der Liste
@@ -619,7 +619,7 @@ int Fight::fightarea(int msg, DIALOG *d, int c) {
 int Fight::statusbox(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
-			for(int i = 0; i < fighters[FRIEND].size(); i++) {
+			for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
 				fighters[FRIEND][i]->draw_status(gui_get_screen(), d->x, d->y+i*((d->h)/fighters[FRIEND].size()), d->w, (d->h)/fighters[FRIEND].size());
 			}
 		break;
@@ -699,7 +699,7 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 				FighterBase::MenuEntry *menu_items = ready_fighters[d->d1]->get_menu_entry("Menu");
 				if(!menu_items) break;
 
-				for(int i = 0; i < 4; i++) {
+				for(unsigned int i = 0; i < 4; i++) {
 					((DIALOG*)d->dp2)[i].flags &= ~D_OPEN;
 					((DIALOG*)d->dp2)[i].flags &= ~D_EXIT;
 						
@@ -728,7 +728,7 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 		{
 			//Fighter updaten
 			for(int i = 0; i < 2; i++)
-				for(int j = 0; j < fighters[i].size(); j++) {
+				for(unsigned int j = 0; j < fighters[i].size(); j++) {
 					fighters[i][j]->update();
 				}
 
@@ -798,13 +798,13 @@ void Fight::draw_fightarea(BITMAP *buffer, DIALOG *dlg) {
 	int sz[3]; for(int i = 0; i < 3; i++) sz[i] = 0;
 	int szd[3]; for(int i = 0; i < 3; i++) szd[i] = 0;
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++) {
+		for(unsigned int j = 0; j < fighters[i].size(); j++) {
 			sz[fighters[i][j]->get_side()]++;
 		}
 
 	int x, y;
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++) {
+		for(unsigned int j = 0; j < fighters[i].size(); j++) {
 
 			//Fighter platzieren
 			x = dlg->w/8 + dlg->w/8 * 3 * fighters[i][j]->get_side();
@@ -833,56 +833,82 @@ int Fight::update_fightarea() {
 	switch(state) {
 	case FIGHT:
 	{
-
+		/******************************************************************
+		wenn command_is_executed > 0 ist wird eine attacke ausgeführt, alle
+		anderen Attacken werden zurückgehalten.
+		Es startet eine 1/3s lange Laufanimation und der Attackenname wird
+		angezeigt. (0 < command_is_executed < GAME_TIMER_BPS/3)
+		Danach startet die Attackenanimation
+		(1000 < command_is_executed < 2000).
+		Die Trefferanzeige und Character zurückbewegen 1/3s
+		(2000 < command_is_executed < 2000+GAME_TIMER_BPS/3)
+		Danach wird der Schaden berechnet und 1s pausiert
+		(3000 < command_is_executed < 3000+GAME_TIMER_BPS)		
+		******************************************************************/
 		if(command_is_executed > 0) {
-			if(command_is_executed > 3000) {
+			switch(command_is_executed) {
+				case 1:
+					if(comqueue[0].get_attack() != "Fight")
+						set_fightarea_message(GAME_TIMER_BPS, comqueue[0].get_attack());
 
-				for(int i = 0; i < 2; i++)
-				for(int j = 0; j < fighters[i].size(); j++) {
-					fighters[i][j]->set_animation(Fighter::NORMAL);
-				}
-
-				comqueue[0].execute();
-				if(comqueue[0].get_attack() != "Fight")
-					set_fightarea_message(GAME_TIMER_BPS, comqueue[0].get_attack());
-				comqueue.pop_front();
-				command_is_executed = -1;
-
-			} else if(command_is_executed == 1) {
-				//falls eigener Kämpfer -> laufanimation
-				for(int i = 0; i < fighters[FRIEND].size(); i++) {
-					if(comqueue[0].is_caster(fighters[FRIEND][i]))
-						fighters[FRIEND][i]->set_animation(Fighter::ATTACK);
-				}
-
-			} else if(command_is_executed == 2000) {
-				for(int i = 0; i < 2; i++)
-				for(int j = 0; j < fighters[i].size(); j++) {
-					//Treffer und zurück bewegen
-					if(comqueue[0].is_target(fighters[i][j])) {
-						fighters[i][j]->set_animation(Fighter::HURT);
+					//falls eigener Kämpfer -> laufanimation
+					for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
+						if(comqueue[0].is_caster(fighters[FRIEND][i]))
+							fighters[FRIEND][i]->set_animation(Fighter::ATTACK);
 					}
-					if(comqueue[0].is_caster(fighters[i][j])) {
-						fighters[i][j]->set_animation(Fighter::RETURN);
-					}
-				}
+				break;
 
-			} else if(command_is_executed == GAME_TIMER_BPS/3) {
-				command_is_executed = 1999; //Direkt zur hit animation springen
+				case GAME_TIMER_BPS/3:
+					//Direkt zur hit animation springen
+					command_is_executed = 2000;
+				case 2000:
+					for(int i = 0; i < 2; i++)
+						for(unsigned int j = 0; j < fighters[i].size(); j++) {
+							//Treffer und zurück bewegen
+							if(comqueue[0].is_target(fighters[i][j])) {
+								fighters[i][j]->set_animation(Fighter::HURT);
+							}
+							if(comqueue[0].is_caster(fighters[i][j])) {
+								fighters[i][j]->set_animation(Fighter::RETURN);
+							}
+						}
+				break;
 
-			} else if(command_is_executed == 2000+GAME_TIMER_BPS/3) {
-				command_is_executed = 3000; //zum execute()
+				case 2000+GAME_TIMER_BPS/3:
+					command_is_executed = 3000; //zum execute()
+				case 3000:
+					for(int i = 0; i < 2; i++)
+						for(unsigned int j = 0; j < fighters[i].size(); j++) {
+							fighters[i][j]->set_animation(Fighter::NORMAL);
+						}
+					comqueue[0].execute();
+					comqueue.pop_front();
+				break;
+
+				case 3000+GAME_TIMER_BPS:
+					command_is_executed = -1;
+				break;
 			}
+
 			command_is_executed++;
 		}
 
-		if(comqueue.size() > 0 && command_is_executed == 0) {
+		for(unsigned int i = 0; i < comqueue.size(); i++) {
+			comqueue[i].prepare();
+			if(i > 0 && !comqueue[i-1].is_prepared() && comqueue[i].is_prepared()) {
+				Command temp = comqueue[i-1];
+				comqueue[i-1] = comqueue[i];
+				comqueue[i] = temp;
+			}
+		}
+
+		if(comqueue.size() > 0 && command_is_executed == 0 && comqueue[0].is_prepared()) {
 			command_is_executed = 1;
 		}
 
 		//Fighter animieren
 		for(int i = 0; i < 2; i++)
-			for(int j = 0; j < fighters[i].size(); j++) {
+			for(unsigned int j = 0; j < fighters[i].size(); j++) {
 				fighters[i][j]->animate();
 			}
 
@@ -896,19 +922,19 @@ int Fight::update_fightarea() {
 		{
 		int xp = 0;
 		int gp = 0;
-		for(int i = 0; i < defeated_fighters.size(); i++) {
+		for(unsigned int i = 0; i < defeated_fighters.size(); i++) {
 			Monster::Treasure t = ((Monster*)defeated_fighters[i])->treasure();
 			xp += t.xp;
 			gp += t.gp;
 		}
 		int living_heroes = 0;
-		for(int i = 0; i < fighters[FRIEND].size(); i++) {
+		for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
 			if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
 				living_heroes++;
 		}
 		xp /= living_heroes;
 		//enqueue_menu(); //xp
-		for(int i = 0; i < fighters[FRIEND].size(); i++) {
+		for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
 			if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
 				if(((Hero*)fighters[FRIEND][i])->get_xp(xp)) {
 					//levelup…
@@ -925,7 +951,7 @@ int Fight::update_fightarea() {
 	break;
 	}
 	return 1; //0 = Kampfende
-};
+}
 
 int Fight::update() {
 	if(!update_game_menu(false, player.back())) { //D_CLOSE erhalten! false: esc beendet Kampf nicht
@@ -948,7 +974,14 @@ void Fight::enqueue_command(Command c) {
 }
 
 void Fight::enqueue_ready_fighter(FighterBase *f) {
-	ready_fighters.push_back(f);
+	if(f->is_friend())
+		ready_fighters.push_back(f);
+	else {
+		Command c = ((Monster*)f)->get_command();
+		//Die Targetauswahl sollte vom Fighter-Skript übernommen werden
+		c.add_target(fighters[FRIEND][random()%fighters[FRIEND].size()]);
+		enqueue_command(c);
+	}
 }
 
 int Fight::get_fighter_count(int side) {
@@ -959,7 +992,7 @@ int Fight::get_fighter_count(int side) {
 int Fight::get_fighter_count(PlayerSide side) {
 	int fc = 0;
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++)
+		for(unsigned int j = 0; j < fighters[i].size(); j++)
 			if(fighters[i][j]->get_side() == side)
 				fc++;
 	return fc;
@@ -972,14 +1005,15 @@ void Fight::add_fighter_target(Command &c, int fighter, int side) {
 void Fight::add_fighter_target(Command &c, int fighter, PlayerSide side) {
 	int fc = 0;
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++)
-			if(fighters[i][j]->get_side() == side)
+		for(unsigned int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == side) {
 				if(fc == fighter) {
 					c.add_target(fighters[i][j]);
 					return;
 				} else {
 					fc++;
 				}
+			}
 }
 
 void Fight::mark_fighter(int fighter, int side, bool mark) {
@@ -989,33 +1023,36 @@ void Fight::mark_fighter(int fighter, int side, bool mark) {
 void Fight::mark_fighter(int fighter, PlayerSide side, bool mark) {
 	int fc = 0;
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++)
-			if(fighters[i][j]->get_side() == side)
+		for(unsigned int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == side) {
 				if(fc == fighter) {
 					marked_fighters[i][j] = mark;
 					return;
 				} else {
 					fc++;
 				}
+			}
 }
 
 int Fight::get_index_of_fighter(FighterBase* f, PlayerSide s) {
 	int fc = 0;
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++)
-			if(fighters[i][j]->get_side() == s)
+		for(unsigned int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == s) {
 				if(f == fighters[i][j]) {
 					return fc;
 				} else {
 					fc++;
 				}
+			}
+	return -1;
 }
 
 int Fight::get_team(FighterBase* f) {
-	for(int i = 0; i < fighters[FRIEND].size(); i++)
+	for(unsigned int i = 0; i < fighters[FRIEND].size(); i++)
 		if(fighters[FRIEND][i] == f)
 			return FRIEND;
-	for(int i = 0; i < fighters[ENEMY].size(); i++)
+	for(unsigned int i = 0; i < fighters[ENEMY].size(); i++)
 		if(fighters[ENEMY][i] == f)
 			return ENEMY;
 	return -1;
@@ -1024,13 +1061,15 @@ int Fight::get_team(FighterBase* f) {
 int Fight::get_team(int fighter, PlayerSide side) {
 	int fc = 0;
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++)
-			if(fighters[i][j]->get_side() == side)
+		for(unsigned int j = 0; j < fighters[i].size(); j++)
+			if(fighters[i][j]->get_side() == side) {
 				if(fighter == fc) {
 					return i;
 				} else {
 					fc++;
 				}
+			}
+	return -1;
 }
 
 PlayerSide Fight::get_PlayerSide(FighterBase *f) {
@@ -1038,12 +1077,12 @@ PlayerSide Fight::get_PlayerSide(FighterBase *f) {
 }
 
 void Fight::defeated_fighter(FighterBase *f) {
-	for(int i = 0; i < ready_fighters.size(); i++) {
+	for(unsigned int i = 0; i < ready_fighters.size(); i++) {
 		if(f == ready_fighters[i])
 			ready_fighters.erase(ready_fighters.begin()+i);
 	}
 	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < fighters[i].size(); j++) {
+		for(unsigned int j = 0; j < fighters[i].size(); j++) {
 			if(fighters[i][j] == f) {
 				fighters[i].erase(fighters[i].begin()+j);
 				defeated_fighters.push_back(f);
@@ -1053,9 +1092,9 @@ void Fight::defeated_fighter(FighterBase *f) {
 
 int Fight::get_active_menu_fighter(int defval) {
 	int current_menu = defval;
-	for(int i = 0; i < ready_fighters.size(); i++) {
+	for(unsigned int i = 0; i < ready_fighters.size(); i++) {
 		bool end = false;
-		for(int j = 0; j < fighters[FRIEND].size(); j++) {
+		for(unsigned int j = 0; j < fighters[FRIEND].size(); j++) {
 			if(ready_fighters[i] == fighters[FRIEND][j]) {
 				current_menu = i;
 				end = true;

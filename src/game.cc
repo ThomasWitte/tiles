@@ -102,7 +102,7 @@ void Game::laden(string spielstand) {
 	vars.clear();
 	m.laden(parser.getstring("Level", "Level"), this);
 	deque<deque<string> > ret = parser.getsection("Userdata");
-	for(int i = 0; i < ret.size(); i++)
+	for(unsigned int i = 0; i < ret.size(); i++)
 		if(ret[i].size() > 1)
 			vars[ret[i][0]] = ret[i][1];
 
@@ -112,7 +112,7 @@ void Game::laden(string spielstand) {
 	e.arg.push_back(vars["position_y"]);
 	events[ON_LOAD].push_back(e);
 
-	for(int i = 0; i < events[ON_LOAD].size(); i++) {
+	for(unsigned int i = 0; i < events[ON_LOAD].size(); i++) {
 		void (Game::*ptr) (Event*);
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
@@ -157,7 +157,8 @@ void Game::register_event(deque<string> ev) {
 		if(ev[index+1] == "var") {
 			f.arg.push_back(ev[index+4]);
 			index++;
-		} if(ev[index+1] == "var") {
+		}
+		if(ev[index+1] == "var") {
 			f.arg.push_back(ev[index+4]);
 			index++;
 		}
@@ -165,7 +166,7 @@ void Game::register_event(deque<string> ev) {
 		char ind[5];
 		sprintf(ind, "%i", (int)events[EXTENDED_EVENTS].size());
 		f.arg.push_back(ind);
-		index += 4;
+		index += 5;
 		events[typ].push_back(f);
 		typ = EXTENDED_EVENTS;
 	}
@@ -186,7 +187,7 @@ void Game::register_event(deque<string> ev) {
 		e.arg.push_back(ev[index+2]);
 	} else if(ev[index] == "dialog") {
 		e.func = &Game::dialog;
-		for(int i = index+1; i < ev.size(); i++)
+		for(unsigned int i = index+1; i < ev.size(); i++)
 			e.arg.push_back(ev[i]);
 	}
 
@@ -198,7 +199,7 @@ void Game::set_var(Event *e) {
 }
 
 void Game::change_map(Event *e) {
-	for(int i = 0; i < events[ON_EXIT].size(); i++) {
+	for(unsigned int i = 0; i < events[ON_EXIT].size(); i++) {
 		void (Game::*ptr) (Event*);
 		ptr = events[ON_EXIT][i].func;
 		(this->*ptr)(&events[ON_EXIT][i]);
@@ -216,7 +217,7 @@ void Game::change_map(Event *e) {
 	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	m.laden(map_to_load, this);
 
-	for(int i = 0; i < events[ON_LOAD].size(); i++) {
+	for(unsigned int i = 0; i < events[ON_LOAD].size(); i++) {
 		void (Game::*ptr) (Event*);
 		ptr = events[ON_LOAD][i].func;
 		(this->*ptr)(&events[ON_LOAD][i]);
@@ -251,7 +252,7 @@ void Game::dialog(Event *e) {
 
 	int zeile = 15;
 	int spalte = 15;
-	for(int i = 0; i < e->arg.size(); i++) {
+	for(unsigned int i = 0; i < e->arg.size(); i++) {
 		if(spalte + text_length(font, e->arg[i].c_str()) > d.dlg->w - 15) {
 			spalte = 15;
 			zeile = zeile + text_height(font) + 3;
@@ -267,7 +268,7 @@ void Game::if_function(Event *e2) {
 	Event e = *e2;
 	bool do_it = false;
 
-	for(int i = 0; i < e.arg.size(); i++)
+	for(unsigned int i = 0; i < e.arg.size(); i++)
 		if(e.arg[i] == "var") {
 			e.arg[i] = vars[e.arg[i+1]];
 			if(e.arg[i] == "") e.arg[i] = "nil";
@@ -318,7 +319,7 @@ void Game::update() {
 				y /= m.get_tilesize();
 
 				if(x!=lastx || y!=lasty) {
-					for(int i = 0; i < events[PLAYER_AT].size(); i++) 
+					for(unsigned int i = 0; i < events[PLAYER_AT].size(); i++) 
 						if(x == events[PLAYER_AT][i].x && y == events[PLAYER_AT][i].y) {
 							void (Game::*ptr) (Event*);
 							ptr = events[PLAYER_AT][i].func;
@@ -345,7 +346,7 @@ void Game::update() {
 
 				if(me->action) {
 					me->action = false;
-					for(int i = 0; i < events[ON_ACTION].size(); i++) 
+					for(unsigned int i = 0; i < events[ON_ACTION].size(); i++) 
 						if(x == events[ON_ACTION][i].x && y == events[ON_ACTION][i].y) {
 							void (Game::*ptr) (Event*);
 							ptr = events[ON_ACTION][i].func;
@@ -355,7 +356,7 @@ void Game::update() {
 				}
 			}
 
-			for(int i = 0; i < events[ALWAYS].size(); i++) {
+			for(unsigned int i = 0; i < events[ALWAYS].size(); i++) {
 				void (Game::*ptr) (Event*);
 				ptr = events[ALWAYS][i].func;
 				(this->*ptr)(&events[ALWAYS][i]);

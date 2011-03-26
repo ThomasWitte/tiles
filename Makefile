@@ -18,7 +18,8 @@ CC = g++
 CXXFLAGS = -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
 LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
-DEBUGFLAGS = -g3
+DEBUGFLAGS = -g3 -Wall -pedantic
+PROFILEFLAGS = -pg
 RELEASEFLAGS = -O3
 
 OBJ =   main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o \
@@ -42,6 +43,9 @@ tools:
 
 debug: CXXFLAGS += $(DEBUGFLAGS)
 debug: all
+
+profile: CXXFLAGS += $(PROFILEFLAGS)
+profile: all
 
 clean:
 	rm -rf $(BIN) $(OBJ) *~ && \

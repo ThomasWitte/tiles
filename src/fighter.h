@@ -39,7 +39,7 @@ class Fighter : public FighterBase {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
 		virtual PlayerSide get_side() {return side;}
 		int get_dir() {return direction;}
-		int set_dir(int dir) {direction = dir%2;}
+		void set_dir(int dir) {direction = dir%2;}
 		virtual void get_ready();
 		virtual bool is_monster() {return !is_friend();}; // nicht final
 		virtual bool is_friend();
@@ -102,6 +102,7 @@ class Monster : public Fighter {
 		virtual void update();
 		virtual void draw(BITMAP *buffer, int x, int y);
 		virtual void laden(string name);
+		Command get_command();
 
 		struct Treasure {
 			int xp;
@@ -115,6 +116,8 @@ class Monster : public Fighter {
 		virtual Treasure treasure();
 	protected:
 		Treasure t;
+		deque<deque<string> > com_script;
+		unsigned int comcounter;
 };
 
 #endif

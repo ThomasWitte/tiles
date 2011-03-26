@@ -18,7 +18,7 @@
 #include "guihelper.h"
 
 MenuBase::~MenuBase() {
-	for(int i = 0; i < player.size(); i++) {
+	for(unsigned int i = 0; i < player.size(); i++) {
 		shutdown_dialog(player[i]);
 		delete [] dialog[i];
 	}
@@ -62,7 +62,7 @@ void MenuBase::delete_last_dialog() {
 }
 
 int MenuBase::update_game_menu(bool esc_possible, DIALOG_PLAYER *p) {
-   int c, cascii = 0, cscan = 0, ccombo, r, ret, nowhere, z;
+   int c, cascii = 0, cscan = 0, ccombo, r, ret;
    ASSERT(p);
 
 	p->res = 0;

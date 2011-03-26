@@ -3,7 +3,7 @@
 	Background defaultBackground.tga ;;
 	Type 15 ;;
 [Fighter]
-	Enemy Luigi ;;
+	Enemy Guard ;;
 	Enemy Lobo ;;
 	Enemy Guard ;;
 [eof]

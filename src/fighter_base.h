@@ -72,7 +72,7 @@ class FighterBase {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h) = 0;
 		virtual PlayerSide get_side() = 0;
 		virtual int get_dir() = 0;
-		virtual int set_dir(int dir) = 0;
+		virtual void set_dir(int dir) = 0;
 		virtual void get_ready() = 0;
 		virtual bool is_monster() = 0;
 		virtual bool is_friend() = 0;

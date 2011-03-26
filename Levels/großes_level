@@ -30,7 +30,7 @@ object 2 3 TV_eingeschaltet ;;
 [Event]
 
 on_load
-	if var last_map = keller
+	if var last_map = keller do
 		set_player_position 12 1 ;;
 
 player_at 17 7 change_map defaultLevel ;;
@@ -45,15 +45,15 @@ on_action 13 1 dialog <- zum Keller ;;
 player_at 3 6 change_map hugelevel ;;
 
 on_action 3 3
-	if var dialog_gelesen = true
+	if var großes_level.dialog_gelesen = true do
 		dialog hast du schon gelesen, nächstes mal vielleicht wieder. ;;
 on_action 3 3
-	if var dialog_gelesen != true
+	if var großes_level.dialog_gelesen != true do
 		dialog testdialog: dies soll die fähigkeiten des dialogsystems anhand eines langen dialoges testen. ;;
 on_action 3 3
-	if var dialog_gelesen != true
+	if var großes_level.dialog_gelesen != true do
 		dialog Wenn der Dialog jedoch zu lang wird, so empfiehlt es sich auf eine zweite Seite auszuweichen... ;;
 
-on_action 3 3 set_var dialog_gelesen true ;;
+on_action 3 3 set_var großes_level.dialog_gelesen true ;;
 
 [eof]

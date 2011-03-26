@@ -1,3 +1,24 @@
-Fight-Events
-blickrichtung im kampf
-imageloader cache
+exp/items nach kampf anzeigen + jubel
+attackenanimation
+verschiedene Bilder im Kampf
+kampfki
+Items
+Items im Kampf
+Attackenanimationen
+Ausrüstung
+Relikte
+Esper
+Skripte
+
+Layer
+Mauern statt unbegehbare Felder
+Treppen
+
+Map, Fight, Fighter - Editor
+evtl algui->c++
+
+Sound
+Musik
+Worldmap
+Geräusche
+skriptkonsole	

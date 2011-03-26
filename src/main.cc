@@ -212,4 +212,4 @@ int main()
 		gp2x_exit();
 	#endif
 	return 0;
-}END_OF_MAIN();
+}END_OF_MAIN()
