@@ -33,7 +33,7 @@ class Command {
 		string get_attack() {return attack_name;}
 		bool is_target(FighterBase *tgt);
 		bool is_caster(FighterBase *c);
-		void prepare();
+		bool prepare();
 		bool is_prepared();
 		
 		void execute();

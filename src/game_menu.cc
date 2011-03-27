@@ -303,8 +303,8 @@ string GameMenu::get_chosen_player() {
 	int player = atoi(parent->get_var("Internal.dlgID").c_str());
 	string chars = parent->get_var("CharactersInBattle");
 	for(int i = 0; i <= player; i++) {
-		unsigned int pos = chars.find_first_of(";");
-		if(pos == string::npos)
+		int pos = chars.find_first_of(";");
+		if(pos == (int)string::npos)
 			break;
 		pstr = chars.substr(0, pos);
 		chars.erase(0, pos+1);

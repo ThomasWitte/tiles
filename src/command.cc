@@ -25,15 +25,24 @@ Command::Command(FighterBase *caster) {
 
 void Command::add_target(FighterBase *tg) {
 	target.push_back(tg);
+
+	//Fighter in richtige Richtung drehen
+	if(caster->get_side() < tg->get_side())
+		caster->set_dir(1);
+	else if(caster->get_side() > tg->get_side())
+		caster->set_dir(0);
 }
 
 void Command::set_attack(string attack_name) {
 	this->attack_name = attack_name;
-	preparation_time = GAME_TIMER_BPS; //Normale Attacken werden 1s vorbereitet
+	preparation_time = 1.5*GAME_TIMER_BPS; //Normale Attacken werden 1,5s vorbereitet
+	caster->set_animation(FighterBase::WAIT_TO_ATTACK);
 
 	AttackLib::Attack a = AttackLib::get_attack(attack_name);
-	if(a.vulnerable_to_runic) //Alle Zauber werden 2s vorbereitet
-		preparation_time = 2*GAME_TIMER_BPS;
+	if(a.vulnerable_to_runic) { //Alle Zauber werden 3s vorbereitet
+		preparation_time = 3*GAME_TIMER_BPS;
+		caster->set_animation(FighterBase::WAIT_TO_CAST_SPELL);
+	}
 }
 
 bool Command::is_target(FighterBase *tgt) {
@@ -58,9 +67,13 @@ cout << "attack: " << attack_name << endl;
 	caster->get_ready();
 }
 
-void Command::prepare() {
+bool Command::prepare() {
 	if(preparation_time > 0)
 		preparation_time--;
+
+	if(caster->get_status(Character::WOUND) == Character::SUFFERING)
+		return false;
+	return true;
 }
 
 bool Command::is_prepared() {
@@ -77,6 +90,9 @@ int Command::calc_damage(int target_index) {
 	Character ctarget = target[target_index]->get_character();
 	//Step1
 	if(a.physical == true) {
+		int bpower = a.power;
+		if(a.power < 0) bpower = ccaster.apower;
+
 		if(character) {
 			int vigor2 = 2*ccaster.vigor;
 			if(vigor2 > 255) vigor2 = 255;
@@ -87,7 +103,7 @@ int Command::calc_damage(int target_index) {
 			//1e
 			//1f
 		} else { //Monster
-			dmg = ccaster.level * ccaster.level * (ccaster.apower * 4 + ccaster.vigor) / 256;
+			dmg = ccaster.level * ccaster.level * (bpower * 4 + ccaster.vigor) / 256;
 		}
 	} else { //Magische Attacke
 		if(character) {

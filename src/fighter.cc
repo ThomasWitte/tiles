@@ -74,6 +74,8 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	textremframes = 0;
 	textcol = 0;
 	current_animation = NORMAL;
+	ts.current = FighterTileset::NORMAL;
+	ts.saved = FighterTileset::NORMAL;
 
 	spritename = name;
 	laden(name);
@@ -82,8 +84,9 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 }
 
 Fighter::~Fighter() {
-	for(unsigned int i = 0; i < ts.normal.size(); i++)
-		imageloader.destroy(ts.normal[i]);
+	for(int j = FighterTileset::NORMAL; j < FighterTileset::MAGIC_WAIT; j++)
+		for(unsigned int i = 0; i < ts.imgs[j].size(); i++)
+			imageloader.destroy(ts.imgs[j][i]);
 }
 
 void Fighter::laden(string name) {
@@ -91,12 +94,14 @@ void Fighter::laden(string name) {
 	path = string("Fights/Fighters/") + name + string("/");
 
 	FileParser parser(path + name, "Fighter");
+	string sections[] = {"normal", "wound", "hit", "critical", "attack", "attack_exec", "attack_wait",
+						"magic", "magic_exec", "magic_wait"};
 
-	deque< deque<string> > ret = parser.getsection("normal");
-	for(unsigned int i = 0; i < ret.size(); i++)
-		ts.normal.push_back(imageloader.load(path + ret[i][0]));
-
-	//alle anderen bilder auch mit normal belegen
+	for(int j = FighterTileset::NORMAL; j < FighterTileset::MAGIC_WAIT; j++) {
+		deque< deque<string> > ret = parser.getsection(sections[j]);
+		for(unsigned int i = 0; i < ret.size(); i++)
+			ts.imgs[j].push_back(imageloader.load(path + ret[i][0]));
+	}
 
 	c.defensive = true;
 	if(parser.getvalue("Fighter", "defensive", 0) == 0) c.defensive = false;
@@ -148,8 +153,11 @@ void Fighter::update() {
 	if(c.curhp <= 0) {
 		c.status[Character::WOUND] = Character::SUFFERING;
 		atb = 0;
-	} else if(c.curhp < c.hp/8) c.status[Character::NEAR_FATAL] = Character::SUFFERING;
-	else c.status[Character::NEAR_FATAL] = Character::NORMAL;
+	} else if(c.curhp < c.hp/8) {
+		c.status[Character::NEAR_FATAL] = Character::SUFFERING;
+	} else {
+		c.status[Character::NEAR_FATAL] = Character::NORMAL;
+	}
 
 	if(c.status[Character::WOUND] != Character::SUFFERING &&
 		c.status[Character::STOP] != Character::SUFFERING &&
@@ -200,6 +208,7 @@ void Fighter::update() {
 			poisoncounter++;
 			if(poisoncounter > 7) poisoncounter = 0;
 			//Giftschaden
+
 		}
 		if(c.status[Character::SEIZURE] == Character::SUFFERING && random()%4 == 0) {
 			int dmg = (c.hp * c.stamina / 1024) + 2;
@@ -208,6 +217,7 @@ void Fighter::update() {
 			if(!is_monster()) dmg /= 2;
 			lose_health(dmg);
 			//Seizureschaden
+
 		}
 		if(c.status[Character::REGEN] == Character::SUFFERING && random()%4 == 0) {
 			int dmg = (c.hp * c.stamina / 1024) + 2;
@@ -224,12 +234,12 @@ void Fighter::animate() {
 }
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
-	int index = (step/SPRITE_ANIMATION_SPEED)%ts.normal.size();
+	int index = (step/SPRITE_ANIMATION_SPEED)%ts.imgs[ts.current].size();
 	//spiegeln, wenn direction = 0(linkss)
 	if(direction == 0) {
-		draw_sprite_h_flip(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2);
+		draw_sprite_h_flip(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
 	} else {
-		draw_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2);
+		draw_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
 	}
 	if(textremframes) {
 		textremframes--;
@@ -421,10 +431,64 @@ void Hero::draw(BITMAP *buffer, int x, int y) {
 	switch(current_animation) {
 		case ATTACK:
 			x -= (get_side()-1)*(step*3*PC_RESOLUTION_X/8)/GAME_TIMER_BPS;
+			if(ts.saved == FighterTileset::ATTACK_WAIT) {
+				ts.current = FighterTileset::ATTACK;
+				ts.saved = FighterTileset::NORMAL;
+			} else if(ts.saved == FighterTileset::MAGIC_WAIT) {
+				ts.current = FighterTileset::MAGIC;
+				ts.saved = FighterTileset::NORMAL;
+			}
 		break;
+
 		case RETURN:
 			x -= (get_side()-1)*((GAME_TIMER_BPS/3-step)*3*PC_RESOLUTION_X/8)/GAME_TIMER_BPS;
+			ts.current = FighterTileset::ATTACK;
 		break;
+
+		case NORMAL:
+			if(c.status[Character::WOUND] == Character::SUFFERING) {
+				ts.current = FighterTileset::WOUND;
+				ts.saved = FighterTileset::WOUND;
+			}
+
+			if(ts.saved == FighterTileset::NORMAL) {
+				if(	c.status[Character::NEAR_FATAL] == Character::SUFFERING ||
+					c.status[Character::POISON] == Character::SUFFERING ||
+					c.status[Character::SEIZURE] == Character::SUFFERING) {
+					ts.current = FighterTileset::CRITICAL;
+				} else {
+					ts.current = FighterTileset::NORMAL;
+				}
+			} else {
+				ts.current = ts.saved;
+			}
+		break;
+
+		case WAIT_TO_CAST_SPELL:
+			ts.saved = FighterTileset::MAGIC_WAIT;
+			ts.current = FighterTileset::MAGIC_WAIT;
+		break;
+
+		case WAIT_TO_ATTACK:
+			ts.saved = FighterTileset::ATTACK_WAIT;
+		case DEFEND:
+		case EVADE:
+			ts.current = FighterTileset::ATTACK_WAIT;
+		break;
+
+		case ATTACK_IN_PROGRESS:
+			x -= (get_side()-1)*(PC_RESOLUTION_X/8);
+			if(ts.current == FighterTileset::ATTACK)
+				ts.current = FighterTileset::ATTACK_EXEC;
+			else if(ts.current == FighterTileset::MAGIC)
+				ts.current = FighterTileset::MAGIC_EXEC;
+		break;
+
+		case HURT:
+			if(c.status[Character::WOUND] != Character::SUFFERING)
+				ts.current = FighterTileset::HIT;
+		break;
+		
 		default:
 		break;
 	}
@@ -457,16 +521,16 @@ void Monster::draw(BITMAP *buffer, int x, int y) {
 		case DIE:
 		{
 			set_trans_blender(200, 128, 255, 0);
-			int index = (step/SPRITE_ANIMATION_SPEED)%ts.normal.size();
+			int index = (step/SPRITE_ANIMATION_SPEED)%ts.imgs[ts.current].size();
 
 			//spiegeln, wenn direction = 0(links)
 			if(direction == 0) {
-				BITMAP *temp = create_bitmap(ts.normal[index]->w, ts.normal[index]->h);
-				draw_sprite_h_flip(temp, ts.normal[index], 0, 0);
-				draw_lit_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2, 100+step*300/GAME_TIMER_BPS);
+				BITMAP *temp = create_bitmap(ts.imgs[ts.current][index]->w, ts.imgs[ts.current][index]->h);
+				draw_sprite_h_flip(temp, ts.imgs[ts.current][index], 0, 0);
+				draw_lit_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2, 100+step*300/GAME_TIMER_BPS);
 				destroy_bitmap(temp);
 			} else {
-				draw_lit_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2, 100+step*300/GAME_TIMER_BPS);
+				draw_lit_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2, 100+step*300/GAME_TIMER_BPS);
 			}
 			if(textremframes) {
 				textremframes--;

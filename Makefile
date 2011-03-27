@@ -18,7 +18,7 @@ CC = g++
 CXXFLAGS = -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
 LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
-DEBUGFLAGS = -g3 -Wall -pedantic
+DEBUGFLAGS = -g3 -Wall
 PROFILEFLAGS = -pg
 RELEASEFLAGS = -O3
 

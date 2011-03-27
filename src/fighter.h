@@ -70,7 +70,9 @@ class Fighter : public FighterBase {
 		string spritename;
 
 		struct FighterTileset {
-			deque<BITMAP*> normal;
+			enum {NORMAL, WOUND, HIT, CRITICAL, ATTACK, ATTACK_EXEC, ATTACK_WAIT, MAGIC, MAGIC_EXEC, MAGIC_WAIT};
+			deque<BITMAP*> imgs[10];
+			int current, saved;
 		} ts;
 
 		class FighterMenu {

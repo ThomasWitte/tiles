@@ -55,7 +55,7 @@ struct Character {
 
 class FighterBase {
 	public:
-		enum AnimationType {NORMAL, WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, CAST_SPELL, RETURN, HURT, DIE, EVADE};
+		enum AnimationType {NORMAL, WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, ATTACK_IN_PROGRESS, RETURN, HURT, DIE, EVADE};
 
 		struct MenuEntry {
 			string text;

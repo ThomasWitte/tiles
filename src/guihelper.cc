@@ -174,8 +174,8 @@ int char_select(int msg, DIALOG *d, int c) {
 			//eigenen namen herausfinden
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
-				unsigned int pos = chars.find_first_of(";");
-				if(pos == string::npos) {
+				int pos = chars.find_first_of(";");
+				if(pos == (int)string::npos) {
 					//Position bleibt leer
 					d->dp2 = NULL;
 					d->flags |= D_DISABLED;
@@ -243,8 +243,8 @@ int char_select(int msg, DIALOG *d, int c) {
 			name = new string("empty");
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
-				unsigned int pos = chars.find_first_of(";");
-				if(pos == string::npos) {
+				int pos = chars.find_first_of(";");
+				if(pos == (int)string::npos) {
 					break;
 				}
 				*name = chars.substr(0, pos);
@@ -327,8 +327,8 @@ int ch_button(int msg, DIALOG *d, int c) {
 			//ist an der position überhaupt ein character?
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->bg; i++) { //d->bg = 0…3 im Menü
-				unsigned int pos = chars.find_first_of(";");
-				if(pos == string::npos) {
+				int pos = chars.find_first_of(";");
+				if(pos == (int)string::npos) {
 					//Position bleibt leer
 					d->flags |= D_DISABLED;
 					break;

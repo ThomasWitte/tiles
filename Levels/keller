@@ -11,7 +11,7 @@ Data
 ;;
 [Object]
 
-sprite 1 2 Mario player ;;
+sprite 1 2 DefaultSprite player ;;
 sprite 8 2 Luigi none ;;
 
 [Event]

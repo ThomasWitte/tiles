@@ -152,8 +152,8 @@ Fight::Fight(string dateiname, Game *g) {
 	//Party hinzufügen (noch nicht final) am ende sollte ein fighter.override_character(c) stehen…
 	if(parent) {
 		string chars = parent->get_var("CharactersInBattle");
-		unsigned int pos = chars.find_first_of(";");
-		while(pos != string::npos) {
+		int pos = chars.find_first_of(";");
+		while(pos != (int)string::npos) {
 			string curchar = chars.substr(0, pos);
 
 			Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -559,12 +559,6 @@ int Fight::target_choose(int msg, DIALOG *d, int c) {
 							add_fighter_target(*cur_cmd, i, (PlayerSide)d->bg);
 					}
 
-					//Fighter in richtige Richtung drehen
-					if(((Fighter*)d->dp2)->get_side() < d->bg)
-						((Fighter*)d->dp2)->set_dir(1);
-					else if(((Fighter*)d->dp2)->get_side() > d->bg)
-						((Fighter*)d->dp2)->set_dir(0);
-
 					//Befehl in Comqueue aufnehemen
 					if(cur_cmd != NULL) {
 						enqueue_command(*cur_cmd);
@@ -807,8 +801,8 @@ void Fight::draw_fightarea(BITMAP *buffer, DIALOG *dlg) {
 		for(unsigned int j = 0; j < fighters[i].size(); j++) {
 
 			//Fighter platzieren
-			x = dlg->w/8 + dlg->w/8 * 3 * fighters[i][j]->get_side();
-			y = dlg->h / (sz[fighters[i][j]->get_side()]+1) * (szd[fighters[i][j]->get_side()]+1);
+			x = dlg->x + dlg->w/2 + dlg->w/3 * (fighters[i][j]->get_side()-1) * ((szd[fighters[i][j]->get_side()]%4)*0.1+1) - dlg->w/8 * (fighters[i][j]->get_side()-1) * (szd[fighters[i][j]->get_side()]/4);
+			y = dlg->y + dlg->h/3 + dlg->h/6 * (szd[fighters[i][j]->get_side()]%4);
 			szd[fighters[i][j]->get_side()]++;
 
 			//Fighter zeichnen
@@ -860,7 +854,18 @@ int Fight::update_fightarea() {
 
 				case GAME_TIMER_BPS/3:
 					//Direkt zur hit animation springen
-					command_is_executed = 2000;
+					command_is_executed = 1000;
+				case 1000:
+					for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
+						if(comqueue[0].is_caster(fighters[FRIEND][i]))
+							fighters[FRIEND][i]->set_animation(Fighter::ATTACK_IN_PROGRESS);
+					}
+					//Wird nur gebraucht, solange keine Attackenanimation existiert
+					command_is_executed = 1970;
+				break;
+
+				case 1000+GAME_TIMER_BPS:
+					//command_is_executed = 2000;
 				case 2000:
 					for(int i = 0; i < 2; i++)
 						for(unsigned int j = 0; j < fighters[i].size(); j++) {
@@ -894,7 +899,11 @@ int Fight::update_fightarea() {
 		}
 
 		for(unsigned int i = 0; i < comqueue.size(); i++) {
-			comqueue[i].prepare();
+			if(!comqueue[i].prepare()) { //liefert false, wenn command entfernt werden muss
+				comqueue.erase(comqueue.begin()+i);
+				i--;
+				continue;
+			}
 			if(i > 0 && !comqueue[i-1].is_prepared() && comqueue[i].is_prepared()) {
 				Command temp = comqueue[i-1];
 				comqueue[i-1] = comqueue[i];
@@ -947,8 +956,7 @@ int Fight::update_fightarea() {
 		//enqueue_menu(); //items
 		
 		}
-		return 0;
-	break;
+	return 0;
 	}
 	return 1; //0 = Kampfende
 }
