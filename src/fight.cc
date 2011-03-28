@@ -186,8 +186,12 @@ Fight::Fight(string dateiname, Game *g) {
 
 			if(parent->get_var(curchar + ".name") != "")
 				c.name = parent->get_var(curchar + ".name");
-			if(parent->get_var(curchar + ".defensive") == "true") c.defensive = true;
-			else if(parent->get_var(curchar + ".defensive") == "false") c.defensive = false;
+
+			if(parent->get_var(curchar + ".defensive") == "true") {
+				c.defensive = true;
+			} else if(parent->get_var(curchar + ".defensive") == "false") {
+				c.defensive = false;
+			}
 			if(parent->get_var(curchar + ".hp") != "")
 				c.hp = atoi(parent->get_var(curchar + ".hp").c_str());
 			if(parent->get_var(curchar + ".curhp") != "")
@@ -812,6 +816,11 @@ void Fight::draw_fightarea(BITMAP *buffer, DIALOG *dlg) {
 
 		}
 
+	if(command_is_executed > 1000 && command_is_executed < 2000) {
+		//Attackenanimation zeichnen
+		comqueue[0].draw_attack_animation(buffer);
+	}
+
 	if(fightarea_message_timeout > 0) {
 		DIALOG pos = { NULL, dlg->x, dlg->y, dlg->w, 24, COL_WHITE, -1, 0, 0, 0, 0, NULL, NULL, NULL };
 		menu_bg_proc(MSG_DRAW, &pos, 0);
@@ -860,12 +869,8 @@ int Fight::update_fightarea() {
 						if(comqueue[0].is_caster(fighters[FRIEND][i]))
 							fighters[FRIEND][i]->set_animation(Fighter::ATTACK_IN_PROGRESS);
 					}
-					//Wird nur gebraucht, solange keine Attackenanimation existiert
-					command_is_executed = 1970;
 				break;
 
-				case 1000+GAME_TIMER_BPS:
-					//command_is_executed = 2000;
 				case 2000:
 					for(int i = 0; i < 2; i++)
 						for(unsigned int j = 0; j < fighters[i].size(); j++) {
@@ -896,6 +901,13 @@ int Fight::update_fightarea() {
 			}
 
 			command_is_executed++;
+
+			if(command_is_executed > 1000 && command_is_executed < 2000) {
+				//Attackenanimation
+				if(comqueue[0].attack_animation() == -1) {
+					command_is_executed = 2000;
+				}
+			}
 		}
 
 		for(unsigned int i = 0; i < comqueue.size(); i++) {

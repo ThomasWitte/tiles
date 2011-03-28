@@ -52,6 +52,7 @@ class Fighter : public FighterBase {
 		string get_spritename() {return spritename;}
 		virtual MenuEntry *get_menu_entry(string name) {return menu.get_menu_entry(name, NULL);}
 		virtual void set_animation(AnimationType type) {current_animation = type; step = 0;}
+		virtual void get_screen_position(int *x, int *y);
 
 	protected:
 		Fight *parent;
@@ -68,6 +69,7 @@ class Fighter : public FighterBase {
 		int textremframes;
 		int textcol;
 		string spritename;
+		int scrposx, scrposy;
 
 		struct FighterTileset {
 			enum {NORMAL, WOUND, HIT, CRITICAL, ATTACK, ATTACK_EXEC, ATTACK_WAIT, MAGIC, MAGIC_EXEC, MAGIC_WAIT};

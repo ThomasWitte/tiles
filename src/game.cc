@@ -39,10 +39,14 @@ Game::Game() : m("defaultLevel", this) {
 }
 
 Game::~Game() {
-	if(f)
+	if(f) {
 		delete f;
-	if(menu)
+		f = NULL;
+	}
+	if(menu) {
 		delete menu;
+		menu = NULL;
+	}
 	if(buffer)
 		imageloader.destroy(buffer);
 }
@@ -89,8 +93,14 @@ void Game::speichern(string spielstand) {
 }
 
 void Game::laden(string spielstand) {
-	if(f) delete f;
-	if(menu) delete menu;
+	if(f) {
+		delete f;
+		f = NULL;
+	}
+	if(menu) {
+		delete menu;
+		menu = NULL;
+	}
 
 	last_action = 0;
 	for(int i = 0; i < 6; i++)
@@ -99,13 +109,17 @@ void Game::laden(string spielstand) {
 	spielstand.insert(0, "Saves/");
 	FileParser parser(spielstand, "Savefile");
 
+	//Variablen laden
 	vars.clear();
-	m.laden(parser.getstring("Level", "Level"), this);
 	deque<deque<string> > ret = parser.getsection("Userdata");
 	for(unsigned int i = 0; i < ret.size(); i++)
 		if(ret[i].size() > 1)
 			vars[ret[i][0]] = ret[i][1];
 
+	//Map laden
+	m.laden(parser.getstring("Level", "Level"), this);
+
+	//Events laden
 	Event e;
 	e.func = &Game::set_player_position;
 	e.arg.push_back(vars["position_x"]);
@@ -425,9 +439,7 @@ void Game::draw() {
 }
 
 void Game::set_var(string key, int val) {
-	stringstream ss;
-	ss << val;
-	vars[key] = ss.str();
+	vars[key] = to_string(val);
 }
 
 string Game::get_var(string key) {

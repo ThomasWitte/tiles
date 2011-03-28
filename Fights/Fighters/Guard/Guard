@@ -27,13 +27,13 @@
 [Special]
 	Human 1 ;;
 [Menu]
-	Fight ;;
+	Battle ;;
 [Sketch]
-	Fight Fight ;;
+	Battle Battle ;;
 [Rage]
-	Fight Critical ;;
+	Battle Critical ;;
 [Script]
-	rand Fight Fight Critical ;;
+	rand Battle Battle Critical ;;
 [normal]
 	Guard.tga ;;
 [eof]

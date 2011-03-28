@@ -19,6 +19,7 @@
 
 #include <string>
 #include "fighter_base.h"
+#include "attack_animations.h"
 
 using namespace std;
 
@@ -29,7 +30,7 @@ class AttackLib {
 		struct Attack {
 			string name;
 			int (*effect_function)(class FighterBase*, FighterBase*);
-			int (*animation)(int step, int caster_x, int caster_y, vector<int> *target_x, vector<int> *target_y);
+			int (*animation)(int step, AnimationData *data, BITMAP *buffer); //returns -1, wenn Animation beendet ist.
 			int power;
 			bool physical;
 			bool ign_def;
@@ -42,6 +43,7 @@ class AttackLib {
 			Element element;
 			int possible_targets;
 		};
+		static Attack lib[];
 		static Attack get_attack(string name);
 		static int death(FighterBase *caster, FighterBase *target);
 		static int full_revive(FighterBase *caster, FighterBase *target);

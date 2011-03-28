@@ -22,12 +22,15 @@
 #include <string>
 #include <deque>
 #include "fighter_base.h"
+#include "attacks.h"
+#include "attack_animations.h"
 
 using namespace std;
 
 class Command {
 	public:
 		Command(class FighterBase *caster = NULL);
+		~Command();
 		void add_target(FighterBase *tg);
 		void set_attack(string attack_name);
 		string get_attack() {return attack_name;}
@@ -35,6 +38,8 @@ class Command {
 		bool is_caster(FighterBase *c);
 		bool prepare();
 		bool is_prepared();
+		int attack_animation();
+		void draw_attack_animation(BITMAP *buffer);
 		
 		void execute();
 	protected:
@@ -44,6 +49,8 @@ class Command {
 		string attack_name;
 		int calc_damage(int target_index); //MAX_DAMAGE + 1: MISS; MAX_DAMAGE + 2: BLOCK
 		int preparation_time;
+		int animation_step, animation_ret;
+		AnimationData adata;
 };
 
 #endif

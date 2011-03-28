@@ -238,6 +238,16 @@ int char_select(int msg, DIALOG *d, int c) {
 				}
 			}
 		break;
+
+		case MSG_KEY:
+			//defensive-Werte speichern (genau umgekehrt, da button den zustand direkt danach ändert)
+			if(d->flags & D_SELECTED && !(d->flags & D_DISABLED)) {
+				g->set_var(*((string*)d->dp3) + ".defensive", "false");
+			} else {
+				g->set_var(*((string*)d->dp3) + ".defensive", "true");
+			}
+		break;
+
 		case MSG_IDLE:
 			//reihenfolge verändert?
 			name = new string("empty");
@@ -256,17 +266,20 @@ int char_select(int msg, DIALOG *d, int c) {
 			}
 			delete name;
 
+			if(!(d->flags & D_DISABLED)) {
+				if(g->get_var(*((string*)d->dp3) + ".defensive") == "true") {
+					d->flags |= D_SELECTED;
+				} else {
+					d->flags &= ~D_SELECTED;
+				}
+			}
+
 			//beweglicher finger:
 			d->d1--;
 			if(d->d1 < -GAME_TIMER_BPS/6)
 				d->d1 = GAME_TIMER_BPS/6;
 		break;
 		case MSG_END:
-			if(d->flags & D_SELECTED) {
-				g->set_var(*((string*)d->dp3) + ".defensive", "true");
-			} else {
-				g->set_var(*((string*)d->dp3) + ".defensive", "false");
-			}
 			imageloader.destroy(((BITMAP**)d->dp2)[0]);
 			imageloader.destroy(((BITMAP**)d->dp2)[1]);
 			delete [] (BITMAP*)d->dp2;

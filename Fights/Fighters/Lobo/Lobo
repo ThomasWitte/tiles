@@ -27,15 +27,15 @@
 [Special]
 	CantRun 1 ;;
 [Menu]
-	Fight ;;
+	Battle ;;
 	Tusk ;;
 [Sketch]
-	Tusk Fight ;;
+	Tusk Battle ;;
 [Rage]
-	Fight Tusk ;;
+	Battle Tusk ;;
 [Script]
-	if var target.level > 6 do rand Fight Tusk else Fight ;;
-	if var target.level > 6 do Tusk else Fight ;;
+	if var target.level > 6 do rand Battle Tusk else Battle ;;
+	if var target.level > 6 do Tusk else Battle ;;
 [normal]
 	Lobo.tga ;;
 [eof]

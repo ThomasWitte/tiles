@@ -31,6 +31,13 @@
 //#define GP2X
 //#define WINDOWS
 
+//Bilder-Cache (in KB)
+#define ENABLE_IMAGELOADER_CACHE
+#define IMAGELOADER_CACHESIZE 5000
+
+//Farbtiefe
+#define COLOR_DEPTH 16
+
 //interne Auflösung
 #define PC_RESOLUTION_X 320
 #define PC_RESOLUTION_Y 240

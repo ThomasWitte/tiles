@@ -1,4 +1,4 @@
-#  Copyright 2009 Thomas Witte
+#  Copyright 2009-2011 Thomas Witte
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,8 @@ PROFILEFLAGS = -pg
 RELEASEFLAGS = -O3
 
 OBJ =   main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o \
-		command.o fighter.o game_menu.o guihelper.o menu_base.o tileset.o
+		command.o fighter.o game_menu.o guihelper.o menu_base.o tileset.o \
+		attack_animations.o
 BIN =   tiles
 
 release: CXXFLAGS += $(RELEASEFLAGS)

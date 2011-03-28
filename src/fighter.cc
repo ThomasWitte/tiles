@@ -234,6 +234,9 @@ void Fighter::animate() {
 }
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
+	scrposx = x;
+	scrposy = y;
+
 	int index = (step/SPRITE_ANIMATION_SPEED)%ts.imgs[ts.current].size();
 	//spiegeln, wenn direction = 0(linkss)
 	if(direction == 0) {
@@ -404,6 +407,11 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 		}
 		menu.submenu.push_back(e);
 	}
+}
+
+void Fighter::get_screen_position(int *x, int *y) {
+	*x = scrposx;
+	*y = scrposy;
 }
 
 Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)

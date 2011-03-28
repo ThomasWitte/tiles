@@ -21,6 +21,17 @@ Command::Command(FighterBase *caster) {
 	this->caster = caster;
 	attack_name = "Verteid.";
 	preparation_time = 0;
+	animation_step = AnimationData::INITIALIZE;
+	animation_ret = 0;
+}
+
+Command::~Command() {
+	if(animation_step > AnimationData::INITIALIZE && attack_name != "") {
+		AttackLib::Attack a = AttackLib::get_attack(attack_name);
+		if(a.animation) {
+			a.animation(AnimationData::DESTROY, &adata, NULL);
+		}
+	}		
 }
 
 void Command::add_target(FighterBase *tg) {
@@ -82,6 +93,33 @@ bool Command::is_prepared() {
 	return false;
 }
 
+int Command::attack_animation() {
+	AttackLib::Attack a = AttackLib::get_attack(attack_name);
+	if(a.animation) {
+		if(animation_step == AnimationData::INITIALIZE) {
+			//adata vorbereiten
+			caster->get_screen_position(&adata.caster.x, &adata.caster.y);
+			for(unsigned int i = 0; i < target.size(); i++) {
+				Position p;
+				target[i]->get_screen_position(&p.x, &p.y);
+				adata.targets.push_back(p);
+			}
+
+			animation_ret = a.animation(animation_step, &adata, NULL);
+		}
+		animation_step++;
+		return animation_ret;
+	}
+	return -1;
+}
+
+void Command::draw_attack_animation(BITMAP *buffer) {
+	AttackLib::Attack a = AttackLib::get_attack(attack_name);
+	if(a.animation) {
+		animation_ret = a.animation(animation_step, &adata, buffer);
+	}
+}
+
 int Command::calc_damage(int target_index) {
 	int dmg = 0;
 	bool character = !caster->is_monster();
@@ -136,8 +174,9 @@ int Command::calc_damage(int target_index) {
 		(!a.physical && ctarget.status[Character::SHELL] == Character::SUFFERING))
 		dmg = (dmg * 170/256) + 1;
 	//6d
-	if(a.physical && ctarget.defensive)
+	if(a.physical && ctarget.defensive) {
 		dmg /= 2;
+	}
 	
 	if(!a.physical && ctarget.status[Character::MORPH] == Character::SUFFERING)
 		dmg /= 2;
