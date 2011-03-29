@@ -31,6 +31,7 @@ class AttackLib {
 			string name;
 			int (*effect_function)(class FighterBase*, FighterBase*);
 			int (*animation)(int step, AnimationData *data, BITMAP *buffer); //returns -1, wenn Animation beendet ist.
+			int mp_cost;
 			int power;
 			bool physical;
 			bool ign_def;
@@ -38,22 +39,34 @@ class AttackLib {
 			bool block_by_stamina;
 			bool retarget_if_dead;
 			bool vulnerable_to_runic;
+			bool reflectable;
 			bool cast_outside_battle;
 			int hit_rate;
 			Element element;
 			int possible_targets;
 		};
-		static Attack lib[];
+
 		static Attack get_attack(string name);
+		static int calc_damage(FighterBase *caster, FighterBase *target, Attack a, bool multitarget);
+
 		static int death(FighterBase *caster, FighterBase *target);
 		static int full_revive(FighterBase *caster, FighterBase *target);
 		static int revive(FighterBase *caster, FighterBase *target);
+
 	protected:
+		static Attack lib[];
 		static int poison(FighterBase *caster, FighterBase *target);
+		static int unpoison(FighterBase *caster, FighterBase *target);
 		static int seizure(FighterBase *caster, FighterBase *target);
 		static int poiseiz(FighterBase *caster, FighterBase *target);
 		static int muddle(FighterBase *caster, FighterBase *target);
-		//statische overridemethoden
+		static int petrify(FighterBase *caster, FighterBase *target);
+		static int berserk(FighterBase *caster, FighterBase *target);
+		static int demi(FighterBase *caster, FighterBase *target);
+		static int dispel(FighterBase *caster, FighterBase *target);
+		static int doom(FighterBase *caster, FighterBase *target);
+		static int drain(FighterBase *caster, FighterBase *target);
+		static int float_effect(FighterBase *caster, FighterBase *target);
 };
 
 #endif

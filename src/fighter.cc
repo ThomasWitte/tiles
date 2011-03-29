@@ -97,7 +97,7 @@ void Fighter::laden(string name) {
 	string sections[] = {"normal", "wound", "hit", "critical", "attack", "attack_exec", "attack_wait",
 						"magic", "magic_exec", "magic_wait"};
 
-	for(int j = FighterTileset::NORMAL; j < FighterTileset::MAGIC_WAIT; j++) {
+	for(int j = FighterTileset::NORMAL; j <= FighterTileset::MAGIC_WAIT; j++) {
 		deque< deque<string> > ret = parser.getsection(sections[j]);
 		for(unsigned int i = 0; i < ret.size(); i++)
 			ts.imgs[j].push_back(imageloader.load(path + ret[i][0]));
@@ -137,8 +137,8 @@ void Fighter::laden(string name) {
 	}
 
 	//Statuse
-	string status[] = {"Dark", "Zombie", "Poison", "MTek", "Clear", "Imp", "Petrify", "Wound", "Condemned", "NearFatal", "Image", "Mute", "Berserk", "Muddle", "Seizure", "Sleep", "Dance", "Regen", "Slow", "Haste", "Stop", "Shell", "Safe", "Reflect", "Morph"};
-	for(int i = 0; i < 25; i++) {
+	string status[] = {"Dark", "Zombie", "Poison", "MTek", "Clear", "Imp", "Petrify", "Wound", "Condemned", "NearFatal", "Image", "Mute", "Berserk", "Muddle", "Seizure", "Sleep", "Dance", "Regen", "Slow", "Haste", "Stop", "Shell", "Safe", "Reflect", "Morph", "Float", "Life3"};
+	for(int i = 0; i < 27; i++) {
 		rt = parser.getstring("Status", status[i], "normal");
 		if(rt == "immune") c.status[i] = Character::IMMUNE;
 		else if(rt == "suffering") c.status[i] = Character::SUFFERING;
@@ -317,9 +317,9 @@ void Fighter::override_character(Character o) {
 				c.elements[i] = o.elements[i];
 			break;
 		}
-	for(int i = 0; i < 25; i++)
+	for(int i = 0; i < 27; i++)
 		if(o.status[i] != Character::NORMAL) {
-			for(int j = 0; j < 25; j++) {
+			for(int j = 0; j < 27; j++) {
 				c.status[j] = o.status[j];
 			}
 			break;
@@ -332,19 +332,22 @@ void Fighter::lose_health(int hp) {
 	} else if(hp == MAX_DAMAGE+2) {
 		show_text("Block", COL_WHITE, GAME_TIMER_BPS/2);
 	} else if(hp < 0) {
-		stringstream s;
-		s << (hp*-1);
-		show_text(s.str(), COL_GREEN, GAME_TIMER_BPS/2);
+		show_text(to_string(hp*-1), COL_GREEN, GAME_TIMER_BPS/2);
 	} else {
-		stringstream s;
-		s << hp;
-		show_text(s.str(), COL_WHITE, GAME_TIMER_BPS/2);
+		show_text(to_string(hp), COL_WHITE, GAME_TIMER_BPS/2);
 	}
 
 	if(hp > MAX_DAMAGE) hp = 0;
 	c.curhp -= hp;
 	if(c.curhp < 0) c.curhp = 0;
 	if(c.curhp > c.hp) c.curhp = c.hp;
+}
+
+bool Fighter::lose_mp(int mp) {
+	if(c.curmp < mp)
+		return false;
+	c.curmp -= mp;
+	return true;
 }
 
 void Fighter::show_text(string text, int color, int frames) {
@@ -354,12 +357,12 @@ void Fighter::show_text(string text, int color, int frames) {
 }
 
 int Fighter::get_status(int status) {
-	if(status >= 25 || status < 0) return -1;
+	if(status >= 27 || status < 0) return -1;
 	return c.status[status];
 }
 
 void Fighter::set_status(int status, int state) {
-	if(status >= 25 || status < 0 || !(state == Character::NORMAL || state == Character::IMMUNE || state == Character::SUFFERING)) return;
+	if(status >= 27 || status < 0 || !(state == Character::NORMAL || state == Character::IMMUNE || state == Character::SUFFERING)) return;
 	c.status[status] = state;
 }
 
@@ -421,18 +424,21 @@ Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)
 int Hero::get_xp(int xp) {
 	c.xp += xp;
 	c.levelupxp -= xp;
-	while(c.levelupxp <= 0 && c.level < 100) {
+
+	if(c.xp < xptable[c.level+1])
+		return 0;
+
+	while(c.xp >= xptable[c.level+1] && c.level < 100) {
 		c.level++;
-		c.levelupxp += xptable[c.level]-xptable[c.level-1];
+		c.levelupxp = xptable[c.level+1]-c.xp;
 
 		//HP etc steigern…
 		c.hp += hptable[c.level-1];
 		if(c.hp > MAX_HP) c.hp = MAX_HP;
 		c.mp += mptable[c.level-1];
 		if(c.mp > MAX_MP) c.mp = MAX_MP;
-		return 1;
 	}
-	return 0;
+	return 1;
 }
 
 void Hero::draw(BITMAP *buffer, int x, int y) {
@@ -497,6 +503,14 @@ void Hero::draw(BITMAP *buffer, int x, int y) {
 				ts.current = FighterTileset::HIT;
 		break;
 		
+		case CHEERING:
+			if(((4*step)/GAME_TIMER_BPS)%2 == 0) {
+				ts.current = FighterTileset::MAGIC_EXEC;
+			} else {
+				ts.current = FighterTileset::NORMAL;
+			}
+		break;
+
 		default:
 		break;
 	}

@@ -112,7 +112,7 @@ Fight::Fight(string dateiname, Game *g) {
 		Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		for(int j = 0; j < 11; j++)
 			c.elements[j] = Character::NORMAL;
-		for(int j = 0; j < 25; j++)
+		for(int j = 0; j < 27; j++)
 			c.status[j] = Character::NORMAL;
 
 		switch(type) {
@@ -159,7 +159,7 @@ Fight::Fight(string dateiname, Game *g) {
 			Character c = {"Enemy", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 			for(int i = 0; i < 11; i++)
 				c.elements[i] = Character::NORMAL;
-			for(int i = 0; i < 25; i++)
+			for(int i = 0; i < 27; i++)
 				c.status[i] = Character::NORMAL;
 
 			switch(type) {
@@ -300,7 +300,7 @@ Fight::~Fight() {
 			else if(c.elements[i] == Character::RESISTANT) parent->set_var(s, "resist");
 		}
 
-		for(int i = 0; i < 25; i++) {
+		for(int i = 0; i < 27; i++) {
 			char s[50] = "";
 			sprintf(s, "%s.status%i", curchar.c_str(), i);
 			if(c.status[i] == Character::NORMAL) parent->set_var(s, "normal");
@@ -693,7 +693,7 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 		break;
 
 		case MSG_REBUILD_MENU:
-			if(d->d1 >= 0) {
+			if(d->d1 >= 0 && state == FIGHT) {
 				FighterBase::MenuEntry *menu_items = ready_fighters[d->d1]->get_menu_entry("Menu");
 				if(!menu_items) break;
 
@@ -736,6 +736,11 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 			//neues Menü?, dann Strings updaten
 			if(current_menu != d->d1) {
 				d->d1 = current_menu;
+				fightermenu(MSG_REBUILD_MENU, d, c);
+			}
+
+			//Kampf beendet -> menü schließen
+			if(state == MENU) {
 				fightermenu(MSG_REBUILD_MENU, d, c);
 			}
 
@@ -927,49 +932,85 @@ int Fight::update_fightarea() {
 			command_is_executed = 1;
 		}
 
-		//Fighter animieren
-		for(int i = 0; i < 2; i++)
-			for(unsigned int j = 0; j < fighters[i].size(); j++) {
-				fighters[i][j]->animate();
-			}
-
 		//Kampf beendet?
 		if(fighters[ENEMY].size() == 0 && fightarea_message_timeout <= 0) {
 			state = MENU;
+			command_is_executed = 1;
 		}
 	}
 	break;
 	case MENU:
 		{
-		int xp = 0;
-		int gp = 0;
-		for(unsigned int i = 0; i < defeated_fighters.size(); i++) {
-			Monster::Treasure t = ((Monster*)defeated_fighters[i])->treasure();
-			xp += t.xp;
-			gp += t.gp;
-		}
-		int living_heroes = 0;
-		for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
-			if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
-				living_heroes++;
-		}
-		xp /= living_heroes;
-		//enqueue_menu(); //xp
-		for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
-			if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
-				if(((Hero*)fighters[FRIEND][i])->get_xp(xp)) {
-					//levelup…
-					//enqueue_menu(); //levelup?
+		switch(command_is_executed) {
+			case 1: //XP-Erhalten
+			for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
+					if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
+						fighters[FRIEND][i]->set_animation(Fighter::CHEERING);
+					}
+			case 2*GAME_TIMER_BPS: //Levelup Fighter 1
+			case 4*GAME_TIMER_BPS: //…
+			case 6*GAME_TIMER_BPS:
+			case 8*GAME_TIMER_BPS:
+			{
+				int xp = 0;
+				for(unsigned int i = 0; i < defeated_fighters.size(); i++) {
+					Monster::Treasure t = ((Monster*)defeated_fighters[i])->treasure();
+					xp += t.xp;
 				}
+				int living_heroes = 0;
+
+				for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
+					if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING && !(fighters[FRIEND][i]->is_monster()))
+						living_heroes++;
+				}
+				xp /= living_heroes;
+
+				if(command_is_executed == 1) {
+					set_fightarea_message(2*GAME_TIMER_BPS, to_string(xp) + " Exp. Points.");
+				} else {
+					unsigned int hero = command_is_executed/(2*GAME_TIMER_BPS)-1;
+					if(	hero < fighters[FRIEND].size() && 
+						fighters[FRIEND][hero]->get_status(Character::WOUND) != Character::SUFFERING && 
+						!(fighters[FRIEND][hero]->is_monster())) {
+
+						if(((Hero*)fighters[FRIEND][hero])->get_xp(xp)) {
+							set_fightarea_message(2*GAME_TIMER_BPS, fighters[FRIEND][hero]->get_character().name + " Level up.");
+						} else {
+							command_is_executed = (hero+1)*2*GAME_TIMER_BPS-1;
+						}
+					} else {
+						command_is_executed = 10*GAME_TIMER_BPS-1;
+					}
+				}
+			}
+			break;
+
+			case 10*GAME_TIMER_BPS: //GS erhalten
+			{
+				int gp = 0;
+				for(unsigned int i = 0; i < defeated_fighters.size(); i++) {
+					Monster::Treasure t = ((Monster*)defeated_fighters[i])->treasure();
+					gp += t.gp;
+				}
+				parent->set_var("gp", gp + atoi(parent->get_var("gp").c_str()));
+				set_fightarea_message(2*GAME_TIMER_BPS, to_string(gp) + " GP.");
+			}
+			break;
+
 		}
 
-		parent->set_var("gp", gp + atoi(parent->get_var("gp").c_str()));
-		//enqueue_menu(); //gp
-		//enqueue_menu(); //items
-		
+		if(command_is_executed++ > 12*GAME_TIMER_BPS)
+			return 0;
 		}
-	return 0;
+	break;
 	}
+
+	//Fighter animieren
+	for(int i = 0; i < 2; i++)
+		for(unsigned int j = 0; j < fighters[i].size(); j++) {
+			fighters[i][j]->animate();
+		}
+
 	return 1; //0 = Kampfende
 }
 

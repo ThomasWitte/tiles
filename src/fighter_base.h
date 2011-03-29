@@ -28,7 +28,7 @@ enum PlayerSide {LEFT, MIDDLE, RIGHT};
 
 struct Character {
 	enum {NORMAL, WEAK, ABSORB, IMMUNE, RESISTANT, SUFFERING};
-	enum {DARK, ZOMBIE, POISON, MTEK, CLEAR, IMP, PETRIFY, WOUND, CONDEMNED, NEAR_FATAL, IMAGE, MUTE, BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT, MORPH};
+	enum {DARK, ZOMBIE, POISON, MTEK, CLEAR, IMP, PETRIFY, WOUND, CONDEMNED, NEAR_FATAL, IMAGE, MUTE, BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT, MORPH, FLOAT, LIFE3};
 
 	string name;
 	bool defensive;
@@ -50,12 +50,12 @@ struct Character {
 	int level;
 	int hitrate; // wird von waffe vorgegeben, bei kampf ohne waffe gild dieser wert
 	int elements[11];
-	int status[25];
+	int status[27];
 };
 
 class FighterBase {
 	public:
-		enum AnimationType {NORMAL, WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, ATTACK_IN_PROGRESS, RETURN, HURT, DIE, EVADE};
+		enum AnimationType {NORMAL, WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, ATTACK_IN_PROGRESS, RETURN, HURT, DIE, EVADE, CHEERING};
 
 		struct MenuEntry {
 			string text;
@@ -79,6 +79,7 @@ class FighterBase {
 		virtual Character get_character() = 0;
 		virtual void override_character(Character) = 0;
 		virtual void lose_health(int) = 0;
+		virtual bool lose_mp(int mp) = 0;
 		virtual void show_text(string text, int color, int frames) = 0;
 		virtual int get_status(int status) = 0;
 		virtual void set_status(int status, int state) = 0;

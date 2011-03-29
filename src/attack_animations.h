@@ -44,6 +44,7 @@ geben.
 ***********************************************************/
 
 int fight_ani(int step, AnimationData *data, BITMAP *buffer);
+int heal_ani(int step, AnimationData *data, BITMAP *buffer);
 
 #endif
 

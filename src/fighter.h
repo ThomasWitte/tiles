@@ -46,6 +46,7 @@ class Fighter : public FighterBase {
 		Character get_character();
 		void override_character(Character);
 		virtual void lose_health(int);
+		virtual bool lose_mp(int mp);
 		void show_text(string text, int color, int frames);
 		int get_status(int status);
 		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING

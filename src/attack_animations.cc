@@ -37,7 +37,30 @@ int fight_ani(int step, AnimationData *data, BITMAP *buffer) {
 		return -1;
 
 	BITMAP *bmp = (BITMAP*)data->dp[(16*step) / GAME_TIMER_BPS];
-	masked_blit(bmp, buffer, 0, 0, data->caster.x-bmp->w/2, data->caster.y-bmp->h/2, bmp->w, bmp->h);
+	draw_sprite_ex(buffer, bmp, data->caster.x-bmp->w/2, data->caster.y-bmp->h/2, DRAW_SPRITE_NORMAL,
+		(data->caster.x > data->targets[0].x ? DRAW_SPRITE_NO_FLIP : DRAW_SPRITE_H_FLIP));
+	
+	return 0;
+}
+
+int heal_ani(int step, AnimationData *data, BITMAP *buffer) {
+	if(step == AnimationData::INITIALIZE) {
+		for(int i = 1; i <= 25; i++)
+			data->dp.push_back((void*)imageloader.load("Fights/Images/Animation/cure" + to_string(i) + ".tga"));
+		return 0;
+	} else if(step == AnimationData::DESTROY) {
+		for(int i = 1; i <= 25; i++)
+			imageloader.destroy("Fights/Images/Animation/cure" + to_string(i) + ".tga");
+		return 0;
+	}
+
+	//Animation beenden (Dauer 1s)
+	if(step >= 5*GAME_TIMER_BPS/3)
+		return -1;
+
+	BITMAP *bmp = (BITMAP*)data->dp[(15*step) / GAME_TIMER_BPS];
+	for(unsigned int i = 0; i < data->targets.size(); i++)
+		draw_sprite_ex(buffer, bmp, data->targets[i].x-bmp->w/2, data->targets[i].y-bmp->h/2, DRAW_SPRITE_NORMAL, DRAW_SPRITE_NO_FLIP);
 	
 	return 0;
 }
