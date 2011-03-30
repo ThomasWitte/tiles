@@ -44,29 +44,58 @@ class AttackLib {
 			int hit_rate;
 			Element element;
 			int possible_targets;
+			string description;
 		};
 
 		static Attack get_attack(string name);
 		static int calc_damage(FighterBase *caster, FighterBase *target, Attack a, bool multitarget);
 
-		static int death(FighterBase *caster, FighterBase *target);
+	protected:
+
+		static Attack lib[];
+
+		template<int STATUS>
+		static int inflict(FighterBase *caster, FighterBase *target) {
+			if(	target->get_status(STATUS) != Character::IMMUNE &&
+				target->get_status(Character::WOUND) != Character::SUFFERING)
+				target->set_status(STATUS, Character::SUFFERING);
+			return 0;
+		}
+
+		template<int STATUS>
+		static int heal(FighterBase *caster, FighterBase *target) {
+			if(target->get_status(STATUS) == Character::SUFFERING)
+				target->set_status(STATUS, Character::NORMAL);
+			return 0;
+		}
+
+		template<int STATUS>
+		static int toggle(FighterBase *caster, FighterBase *target) {
+			if(target->get_status(STATUS) == Character::NORMAL) {
+				inflict<STATUS>(caster, target);
+			} else if(target->get_status(STATUS) == Character::SUFFERING) {
+				heal<STATUS>(caster, target);
+			}
+			return 0;
+		}
+
+		template<int PERCENT>
+		static int partdmg(FighterBase *caster, FighterBase *target) {
+			Character c = target->get_character();
+			target->lose_health((c.curhp * PERCENT)/100);
+			return 0;
+		}
+
 		static int full_revive(FighterBase *caster, FighterBase *target);
 		static int revive(FighterBase *caster, FighterBase *target);
-
-	protected:
-		static Attack lib[];
-		static int poison(FighterBase *caster, FighterBase *target);
 		static int unpoison(FighterBase *caster, FighterBase *target);
-		static int seizure(FighterBase *caster, FighterBase *target);
 		static int poiseiz(FighterBase *caster, FighterBase *target);
-		static int muddle(FighterBase *caster, FighterBase *target);
-		static int petrify(FighterBase *caster, FighterBase *target);
-		static int berserk(FighterBase *caster, FighterBase *target);
 		static int demi(FighterBase *caster, FighterBase *target);
 		static int dispel(FighterBase *caster, FighterBase *target);
-		static int doom(FighterBase *caster, FighterBase *target);
+		static int remedy(FighterBase *caster, FighterBase *target);
 		static int drain(FighterBase *caster, FighterBase *target);
-		static int float_effect(FighterBase *caster, FighterBase *target);
+		static int rasp(FighterBase *caster, FighterBase *target);
+		static int osmose(FighterBase *caster, FighterBase *target);
 };
 
 #endif

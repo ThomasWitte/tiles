@@ -1,0 +1,43 @@
+< tiles 1.0 Fighter >
+[Fighter]
+	name Templar ;;
+	level 11 ;;
+	defensive 0 ;;
+	hp 205 ;;
+	mp 50 ;;
+	speed 30 ;;
+	stamina 0 ;;
+	mpower 10 ;;
+	apower 16 ;;
+	ablock 0 ;;
+	mblock 0 ;;
+	adefense 50 ;;
+	mdefense 150 ;;
+	hitrate 100 ;;
+[Elements]
+	Poison weak ;;
+	Heal absorb ;;
+[Status]
+	Safe suffering ;;
+[Treasure]
+	xp 0 ;;
+	gp 96 ;;
+	Stolen Tonic Tonic Tonic Tonic Tonic Tonic Tonic Tonic ;;
+	Dropped Potion none none none none none none none ;;
+	Morph 71 ;;
+	MorphItems Tent FenixDawn WarpStone Revivify ;;
+[Special]
+	Human 1 ;;
+	CantRun 1 ;;
+[Menu]
+	Battle ;;
+	Axe ;;
+[Sketch]
+	Axe Battle ;;
+[Rage]
+	Battle Fire2 ;;
+[Script]
+	Battle ;;
+[normal]
+	Templar.tga ;;
+[eof]

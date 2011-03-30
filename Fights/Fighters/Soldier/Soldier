@@ -1,0 +1,44 @@
+< tiles 1.0 Fighter >
+[Fighter]
+	name Soldier ;;
+	level 11 ;;
+	defensive 0 ;;
+	hp 100 ;;
+	mp 15 ;;
+	speed 30 ;;
+	stamina 0 ;;
+	mpower 10 ;;
+	apower 12 ;;
+	ablock 0 ;;
+	mblock 0 ;;
+	adefense 80 ;;
+	mdefense 150 ;;
+	hitrate 100 ;;
+[Elements]
+	Poison weak ;;
+	Heal absorb ;;
+[Status]
+	Dark immune ;;
+	Sleep immune ;;
+[Treasure]
+	xp 0 ;;
+	gp 48 ;;
+	Stolen Tonic Potion Potion Potion Potion Potion Potion Potion ;;
+	Dropped Tonic none none none none none none none ;;
+	Morph 100 ;;
+	MorphItems Antidote GreenCherry Eyedrop Soft ;;
+[Special]
+	Human 1 ;;
+	CantRun 1 ;;
+[Menu]
+	Battle ;;
+	Scan ;;
+[Sketch]
+	Scan Battle ;;
+[Rage]
+	Battle Fire ;;
+[Script]
+	Battle ;;
+[normal]
+	Soldier.tga ;;
+[eof]

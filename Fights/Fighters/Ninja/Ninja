@@ -1,0 +1,57 @@
+< tiles 1.0 Fighter >
+[Fighter]
+	name Ninja ;;
+	level 27 ;;
+	defensive 0 ;;
+	hp 1650 ;;
+	mp 130 ;;
+	speed 37 ;;
+	stamina 50 ;;
+	mpower 5 ;;
+	apower 22 ;;
+	ablock 50 ;;
+	mblock 0 ;;
+	adefense 135 ;;
+	mdefense 140 ;;
+	hitrate 100 ;;
+[Elements]
+	Poison absorb ;;
+	Bolt weak ;;
+	Pearl weak ;;
+	Heal absorb ;;
+[Status]
+	Float suffering ;;
+	Dark immune ;;
+	Petrify immune ;;
+	NearFatal immune ;;
+	Muddle immune ;;
+	Seizure immune ;;
+	Sleep immune ;;
+	Slow immune ;;
+	Stop immune ;;
+[Treasure]
+	xp 694 ;;
+	gp 520 ;;
+	Stolen CherubDown none none none none none none none ;;
+	Dropped XNinjaStar none none none none none none none ;;
+	Morph 43 ;;
+	MorphItems Trump Trump Assassin Striker ;;
+[Special]
+	Human 1 ;;
+	CantRun 1 ;;
+[Menu]
+	Battle ;;
+	FireSkean ;;
+	WaterEdge ;;
+	BoltEdge ;;
+[Sketch]
+	FireSkean WaterEdge ;;
+[Rage]
+	Battle WaterEdge ;;
+[Script]
+	rand Battle FireSkean WaterEdge ;;
+	rand FireSkean Battle BoltEdge ;;
+	rand Battle WaterEdge BoltEdge ;;
+[normal]
+	Ninja.tga ;;
+[eof]

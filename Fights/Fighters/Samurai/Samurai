@@ -1,0 +1,54 @@
+< tiles 1.0 Fighter >
+[Fighter]
+	name Samurai ;;
+	level 40 ;;
+	defensive 0 ;;
+	hp 3000 ;;
+	mp 500 ;;
+	speed 20 ;;
+	stamina 0 ;;
+	mpower 10 ;;
+	apower 13 ;;
+	ablock 0 ;;
+	mblock 0 ;;
+	adefense 10 ;;
+	mdefense 20 ;;
+	hitrate 100 ;;
+[Elements]
+	Poison weak ;;
+	Heal absorb ;;
+[Status]
+	Zombie immune ;;
+	Imp immune ;;
+	Petrify immune ;;
+	Death immune ;;
+	Condemned immune ;;
+	Image immune ;;
+	Mute immune ;;
+	Berserk immune ;;
+	Muddle immune ;;
+[Treasure]
+	xp 1545 ;;
+	gp 791 ;;
+	Stolen none none none none none none none none ;;
+	Dropped none none none none none none none none ;;
+	Morph 43 ;;
+	MorphItems Tonic Tonic Tonic GenjiGlove ;;
+[Special]
+	Human 1 ;;
+	CritHitIfImp 1 ;;
+[Menu]
+	Battle ;;
+	Flare ;;
+	Doom ;;
+	Haste2 ;;
+[Sketch]
+	Flare Doom ;;
+[Rage]
+	Battle Lullaby ;;
+[Script]
+	rand Battle Battle none ;;
+	rand Battle Battle Fatal ;;
+[normal]
+	Samurai.tga ;;
+[eof]
