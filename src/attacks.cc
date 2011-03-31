@@ -18,12 +18,27 @@
 
 template<>
 int AttackLib::inflict<Character::WOUND>(FighterBase *caster, FighterBase *target) {
-	if(target->get_status(Character::ZOMBIE) != Character::SUFFERING) {
+	if(target->get_status(Character::ZOMBIE) != Character::SUFFERING && !target->get_special(Character::UNDEAD)) {
 		if(target->get_status(Character::WOUND) != Character::IMMUNE) {
 			target->set_status(Character::WOUND, Character::SUFFERING);
 		}
 	} else {
 		target->lose_health(-MAX_DAMAGE);
+	}
+	return 0;
+}
+
+template<>
+int AttackLib::inflict<Character::CONDEMNED>(FighterBase *caster, FighterBase *target) {
+	if(	target->get_status(Character::CONDEMNED) != Character::IMMUNE &&
+		target->get_status(Character::WOUND) != Character::SUFFERING) {
+		target->set_status(Character::CONDEMNED, Character::SUFFERING);
+		if(target->condemnedcounter < 1) {
+			int level = caster->get_character().level;
+			target->condemnedcounter = 79-level-random()%level;
+			if(target->condemnedcounter < 20)
+				target->condemnedcounter = 20;
+		}
 	}
 	return 0;
 }
@@ -76,15 +91,15 @@ AttackLib::Attack AttackLib::lib[] = {
 	{"Life",		&revive,						NULL,			30,		0,		false,	false,	true,	false,	false,	true,	false,	true,	0,		HEAL,	SELF + FRIEND + ENEMY + SINGLE + DEAD,		"Recovers life"},
 	{"Life2",		&full_revive,					NULL,			60,		0,		false,	false,	true,	false,	false,	true,	false,	true,	0,		HEAL,	SELF + FRIEND + ENEMY + SINGLE + DEAD,		"Restores life and HP/MP"},
 	{"Life3", 		&inflict<Character::LIFE3>,		NULL,			50,		0,		false,	false,	true,	false,	false,	true,	false,	false,	0,		HEAL,	SELF + FRIEND + SINGLE,						"Protects from wound"},
-	{"Merton",		NULL,							NULL,			85,		138,	false,	true,	true,	false,	false,	true,	false,	false,	0,		FIRE,	SELF + FRIEND + ENEMY + MULTI_BOTH_SIDES,	"Unfocused piercing fire attack"},
-	{"Meteor",		NULL,							NULL,			62,		62,		false,	true,	true,	false,	false,	true,	false,	false,	0,		NONE, 	ENEMY + MULTI_BOTH_SIDES,					"Damages multiple enemies"},
+	{"Merton",		NULL,							NULL,			85,		138,	false,	true,	true,	false,	false,	false,	false,	false,	0,		FIRE,	SELF + FRIEND + ENEMY + MULTI_BOTH_SIDES,	"Unfocused piercing fire attack"},
+	{"Meteor",		NULL,							NULL,			62,		62,		false,	true,	true,	false,	false,	false,	false,	false,	0,		NONE, 	ENEMY + MULTI_BOTH_SIDES,					"Damages multiple enemies"},
 	{"Muddle",		&inflict<Character::MUDDLE>,	NULL,			8,		0,		false,	false,	false,	false,	false,	true,	true,	false,	94,		NONE,	SELF + FRIEND + ENEMY + SINGLE,				"Confuses target"},
 	{"Mute",		&inflict<Character::MUTE>,		NULL,			8,		0,		false,	false,	false,	false,	false,	true,	true,	false,	100,	NONE,	SELF + FRIEND + ENEMY + SINGLE,				"Silences target"},
 	{"Osmose", 		&osmose,						NULL,			1,		0,		false,	false,	false,	false,	true,	true,	false,	false,	150,	NONE,	SELF + FRIEND + ENEMY + SINGLE,				"Drains HP from an enemy"},
 	{"_Osmose", 	NULL,							NULL,			0,		26,		false,	false,	false,	false,	true,	false,	false,	false,	255,	NONE,	SELF + FRIEND + ENEMY + SINGLE,				""},
 	{"Pearl",		NULL,							NULL,			40,		108,	false,	false,	false,	false,	true,	true,	true,	false,	150,	PEARL,	SELF + FRIEND + ENEMY + SINGLE,				"Pearl-elemental attack"},
 	{"Poison",		&inflict<Character::POISON>,	NULL,			3,		25,		false,	false,	false,	false,	true,	true,	true,	false,	100,	POISON,	SELF + FRIEND + ENEMY + SINGLE,				"Poisons an enemy"},
-	{"Quake",		NULL,							NULL,			50,		111,	false,	true,	true,	false,	false,	true,	false,	false,	0,		EARTH,	SELF + FRIEND + ENEMY + MULTI_BOTH_SIDES,	"Unfocused Earth-elemental attack"},
+	{"Quake",		NULL,							NULL,			50,		111,	false,	true,	true,	false,	false,	false,	false,	false,	0,		EARTH,	SELF + FRIEND + ENEMY + MULTI_BOTH_SIDES,	"Unfocused Earth-elemental attack"},
 	{"Quartr",		&partdmg<75>,					NULL,			48,		0,		false,	false,	false,	true,	true,	true,	false,	false,	100,	DEATH,	ENEMY + MULTI_BOTH_SIDES,					"Cuts an enemy's HP by 3/4"},
 	{"Rasp",		&rasp,							NULL,			12,		0,		false,	false,	false,	false,	true,	true,	true,	false,	150,	NONE,	SELF + FRIEND + ENEMY + SINGLE,				"Damages MP"},
 	{"_Rasp", 		NULL,							NULL,			0,		10,		false,	false,	false,	false,	false,	true,	false,	false,	255,	NONE,	SELF + FRIEND + ENEMY + SINGLE,				""},
@@ -101,7 +116,7 @@ AttackLib::Attack AttackLib::lib[] = {
 	{"Tusk",		NULL,							NULL,			0,		30,		true,	false,	false,	false,	true,	false,	false,	false,	-1,		NONE,	SELF + FRIEND + ENEMY + SINGLE,				""},
 	{"Ultima",		NULL,							NULL,			80,		150,	false,	true,	true,	false,	false,	true,	false,	false,	0,		NONE,	ENEMY + MULTI_BOTH_SIDES,					"Damages multiple enemies"},
 	{"Vanish",		&toggle<Character::CLEAR>,		NULL,			18,		0,		false,	false,	true, 	false, 	false,	true,	false,	false,	0,		NONE,	SELF + FRIEND + ENEMY + SINGLE,				"Renders target invisible"},
-	{"WWind",		&partdmg<94>,					NULL,			75,		0,		false,	false,	false,	true,	false,	true,	false,	false,	100,	DEATH,	SELF + FRIEND + ENEMY + MULTI_BOTH_SIDES,	"Unfocused near-fatal attack"},
+	{"WWind",		&partdmg<94>,					NULL,			75,		0,		false,	false,	false,	true,	false,	false,	false,	false,	100,	DEATH,	SELF + FRIEND + ENEMY + MULTI_BOTH_SIDES,	"Unfocused near-fatal attack"},
 	{"X-Fer",		&inflict<Character::WOUND>,		NULL,			0,		0,		false,	false,	false,	true, 	false,	false,	false,	false,	120,	DEATH,	SELF + FRIEND + ENEMY + SINGLE,				""},
 	{"X-Zone",		&inflict<Character::WOUND>,		NULL,			53,		0,		false,	false,	false,	true,	false,	true,	false,	false,	85,		DEATH,	ENEMY + MULTI_BOTH_SIDES,					"Sends an enemy into the X-Zone"},
 	{"NULL",		NULL,							NULL,			0,		0,		false,	false,	false,	false,	false,	false,	false,	false,	0,		NONE,	0,											""}
@@ -121,8 +136,8 @@ int AttackLib::full_revive(FighterBase *caster, FighterBase *target) {
 	if(c.status[Character::WOUND] == Character::SUFFERING) {
 		target->set_status(Character::WOUND, Character::NORMAL);
 		target->lose_health(-MAX_DAMAGE);
-	} else if(c.status[Character::ZOMBIE] == Character::SUFFERING) {
-		target->lose_health(MAX_DAMAGE);
+	} else if(c.status[Character::ZOMBIE] == Character::SUFFERING || c.special[Character::UNDEAD]) {
+		kill(caster, target);
 	}
 	return 0;
 }
@@ -132,8 +147,8 @@ int AttackLib::revive(FighterBase *caster, FighterBase *target) {
 	if(c.status[Character::WOUND] == Character::SUFFERING) {
 		target->set_status(Character::WOUND, Character::NORMAL);
 		target->lose_health(-c.hp/8);
-	} else if(c.status[Character::ZOMBIE] == Character::SUFFERING) {
-		target->lose_health(MAX_DAMAGE);
+	} else if(c.status[Character::ZOMBIE] == Character::SUFFERING || c.special[Character::UNDEAD]) {
+		kill(caster, target);
 	}
 	return 0;
 }
@@ -181,7 +196,7 @@ int AttackLib::drain(FighterBase *caster, FighterBase *target) {
 	if(dmg > ctarget.curhp)
 		dmg = ctarget.curhp;
 
-	if(target->get_status(Character::ZOMBIE) == Character::SUFFERING)
+	if(target->get_status(Character::ZOMBIE) == Character::SUFFERING || target->get_special(Character::UNDEAD))
 		dmg *= -1;
 
 	caster->lose_health(-dmg);
@@ -197,7 +212,7 @@ int AttackLib::osmose(FighterBase *caster, FighterBase *target) {
 	if(dmg > ctarget.curmp)
 		dmg = ctarget.curmp;
 
-	if(target->get_status(Character::ZOMBIE) == Character::SUFFERING)
+	if(target->get_status(Character::ZOMBIE) == Character::SUFFERING || target->get_special(Character::UNDEAD))
 		dmg *= -1;
 
 	caster->lose_mp(-dmg);
@@ -210,6 +225,11 @@ int AttackLib::rasp(FighterBase *caster, FighterBase *target) {
 	int dmg = calc_damage(caster, target, get_attack("_Rasp"), false);
 	target->lose_mp(dmg);
 
+	return 0;
+}
+
+int AttackLib::kill(FighterBase *caster, FighterBase *target) {
+	target->set_status(Character::WOUND, Character::SUFFERING);
 	return 0;
 }
 
@@ -265,14 +285,14 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 	if((a.physical && ctarget.status[Character::SAFE] == Character::SUFFERING) ||
 		(!a.physical && ctarget.status[Character::SHELL] == Character::SUFFERING))
 		dmg = (dmg * 170/256) + 1;
-	//6d
+	//6e
 	if(a.physical && ctarget.defensive) {
 		dmg /= 2;
 	}
-	
+	//6f
 	if(!a.physical && ctarget.status[Character::MORPH] == Character::SUFFERING)
 		dmg /= 2;
-
+	//6g
 	if((a.element != AttackLib::HEAL) && !caster->is_monster() && !target->is_monster())
 		dmg /= 2;
 	//Step7
@@ -294,6 +314,10 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 	if(ctarget.elements[a.element] == Character::RESISTANT)
 		dmg /= 2;
 
+	//Undead are harmed by heal
+	if(a.element == AttackLib::HEAL && ctarget.status[Character::ZOMBIE] == Character::SUFFERING)
+		dmg *= -1;
+
 	if(dmg > MAX_DAMAGE) dmg = MAX_DAMAGE;
 	if(dmg < -MAX_DAMAGE) dmg = -MAX_DAMAGE;
 
@@ -305,8 +329,13 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 	//Step1
 	if(a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING)
 		return MAX_DAMAGE + 1;
-	else if(!a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING)
+	else if(!a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING) {
+		//Magic removes Clear status
+		if(a.effect_function != &toggle<Character::CLEAR>)
+			heal<Character::CLEAR>(caster, target);
+
 		goto hit;
+	}
 	//Step2
 	if(ctarget.status[Character::WOUND] == Character::IMMUNE && a.effect_function == &inflict<Character::WOUND>)
 		return MAX_DAMAGE + 1;
@@ -334,6 +363,7 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 				target->set_status(Character::IMAGE, Character::NORMAL);
 			return MAX_DAMAGE + 1;
 		}
+		//4e
 		int bval;
 		if(a.physical)
 			bval = (255-ctarget.ablock*2) + 1;
@@ -344,6 +374,26 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 		int hitr;
 		if(a.hit_rate == -1) hitr = ccaster.hitrate;
 		else hitr = a.hit_rate;
+
+		//Penalties to Hit Rate
+		//Poison
+		if(ctarget.status[Character::POISON] == Character::SUFFERING)
+			hitr *= 0.75;
+		//Seizure
+		if(ctarget.status[Character::SEIZURE] == Character::SUFFERING)
+			hitr *= 0.75;
+		//Zombie
+		if(ctarget.status[Character::ZOMBIE] == Character::SUFFERING)
+			hitr *= 1.25;
+		//Dark
+		if(ctarget.status[Character::DARK] == Character::SUFFERING)
+			hitr *= 1.25;
+		if(ccaster.status[Character::DARK] == Character::SUFFERING)
+			hitr *= 0.5;
+		//Near Fatal
+		if(ctarget.status[Character::NEAR_FATAL] == Character::SUFFERING)
+			hitr *= 0.75;
+
 		if((hitr*bval/256) > (random()%100)) {
 			goto hit;
 		} else {
@@ -372,7 +422,14 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 	}
 
 	hit:
+
 	if(a.effect_function != NULL)
 		dmg += a.effect_function(caster, target);
+	if(ccaster.status[Character::ZOMBIE] == Character::SUFFERING) {
+		if(random()%16 == 0)
+			inflict<Character::POISON>(caster, target);
+		if(random()%16 == 0)
+			inflict<Character::DARK>(caster, target);
+	}
 	return dmg;
 }

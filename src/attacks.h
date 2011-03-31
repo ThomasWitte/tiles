@@ -96,6 +96,7 @@ class AttackLib {
 		static int drain(FighterBase *caster, FighterBase *target);
 		static int rasp(FighterBase *caster, FighterBase *target);
 		static int osmose(FighterBase *caster, FighterBase *target);
+		static int kill(FighterBase *caster, FighterBase *target);
 };
 
 #endif

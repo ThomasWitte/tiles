@@ -342,6 +342,21 @@ void Game::update() {
 					lastx = x;
 					lasty = y;
 					set_var("Game.Steps", atoi(get_var("Game.Steps").c_str())+1);
+
+					//Giftschaden
+					string chars = get_var("CharactersInBattle");
+					int pos = chars.find_first_of(";");
+					while(pos != (int)string::npos) {
+						string curchar = chars.substr(0, pos);
+						if(get_var(curchar + ".status" + to_string(Character::POISON)) == "suffering") {
+							int curhp = atoi(get_var(curchar + ".curhp").c_str());
+							curhp -= atoi(get_var(curchar + ".hp").c_str())/32;
+							if(curhp < 1) curhp = 1;
+							set_var(curchar + ".curhp", curhp);
+						}
+						chars.erase(0, pos+1);
+						pos = chars.find_first_of(";");
+					}
 				}
 				switch(me->get_direction()) {
 					case Sprite::UP:

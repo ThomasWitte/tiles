@@ -50,7 +50,7 @@ void Command::set_attack(string attack_name) {
 	caster->set_animation(FighterBase::WAIT_TO_ATTACK);
 
 	AttackLib::Attack a = AttackLib::get_attack(attack_name);
-	if(a.vulnerable_to_runic) { //Alle Zauber werden 3s vorbereitet
+	if(!a.physical) { //Alle Zauber werden 3s vorbereitet
 		preparation_time = 3*GAME_TIMER_BPS;
 		caster->set_animation(FighterBase::WAIT_TO_CAST_SPELL);
 	}

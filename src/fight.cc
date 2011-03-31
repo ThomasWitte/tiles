@@ -937,6 +937,19 @@ int Fight::update_fightarea() {
 			state = MENU;
 			command_is_executed = 1;
 		}
+
+		bool end = true;
+		for(unsigned int i = 0; i < fighters[FRIEND].size(); i++) {
+			if(fighters[FRIEND][i]->get_status(Character::WOUND) != Character::SUFFERING &&
+				fighters[FRIEND][i]->get_status(Character::PETRIFY) != Character::SUFFERING &&
+				fighters[FRIEND][i]->get_status(Character::ZOMBIE) != Character::SUFFERING) {
+				end = false;
+				break;
+			}
+		}
+		if(end)
+			set_fightarea_message(10, "Defeated...");
+
 	}
 	break;
 	case MENU:
@@ -1035,9 +1048,23 @@ void Fight::enqueue_command(Command c) {
 }
 
 void Fight::enqueue_ready_fighter(FighterBase *f) {
-	if(f->is_friend())
+	if(f->is_friend()) {
+		if(f->get_status(Character::ZOMBIE) == Character::SUFFERING) {
+			Command c(f);
+			c.set_attack("Fight");
+			FighterBase *target;
+			int i = 0;
+			do {
+				if(i++ > 100) return;
+				int side = random()%2;
+				target = fighters[side][random()%fighters[side].size()];
+			} while(target->get_status(Character::WOUND) == Character::SUFFERING);
+			c.add_target(target);
+			enqueue_command(c);
+			return;
+		}
 		ready_fighters.push_back(f);
-	else {
+	} else {
 		Command c = ((Monster*)f)->get_command();
 		//Die Targetauswahl sollte vom Fighter-Skript übernommen werden
 		c.add_target(fighters[FRIEND][random()%fighters[FRIEND].size()]);

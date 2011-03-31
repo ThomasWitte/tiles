@@ -32,6 +32,9 @@ struct Character {
 			BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT,
 			MORPH, FLOAT, LIFE3};
 
+	enum {	MP_DEATH, HUMAN, CRITHITIFIMP, UNDEAD, HARDTORUN, ATKFIRST, BLOCKSUPLEX, CANTRUN, CANTSCAN,
+			CANTSKETCH, SPECIALEVENT, CANTCONTROL, TRUEKNIGHT, RUNIC, REMOVABLEFLOAT};
+
 	string name;
 	bool defensive;
 	int hp;
@@ -51,6 +54,7 @@ struct Character {
 	int levelupxp;
 	int level;
 	int hitrate; // wird von waffe vorgegeben, bei kampf ohne waffe gild dieser wert
+	bool special[15];
 	int elements[11];
 	int status[27];
 };
@@ -84,11 +88,15 @@ class FighterBase {
 		virtual bool lose_mp(int mp) = 0;
 		virtual void show_text(string text, int color, int frames) = 0;
 		virtual int get_status(int status) = 0;
+		virtual bool get_special(int special) = 0;
 		virtual void set_status(int status, int state) = 0;
+		virtual void set_special(int special, bool state) = 0;
 		virtual string get_spritename() = 0;
 		virtual void set_animation(AnimationType) = 0;
 		virtual MenuEntry* get_menu_entry(string name) = 0;
 		virtual void get_screen_position(int *x, int *y) = 0;
+
+		int condemnedcounter;
 };
 
 #include "fight.h"

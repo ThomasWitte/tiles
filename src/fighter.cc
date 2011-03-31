@@ -68,6 +68,7 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	itc = 0;
 	step = 0;
 	poisoncounter = 0;
+	condemnedcounter = 0;
 	this->side = side;
 	direction = dir;
 	texttoshow = "";
@@ -145,53 +146,63 @@ void Fighter::laden(string name) {
 		else c.status[i] = Character::NORMAL;
 	}
 
+	//Special
+	string special[] = {"0MPDeath", "Human", "CritHitIfImp", "Undead", "HardToRun", "AtkFirst", "BlockSuplex", "CantRun", "CantScan", "CantSketch", "SpecialEvent", "CantControl", "TrueKnight", "Runic", "RemovableFloat"};
+	for(int i = 0; i < 15; i++) {
+		rt = parser.getstring("Special", special[i], "0");
+		if(rt == "0") c.special[i] = false;
+		else if(rt == "1") c.special[i] = true;
+		else c.special[i] = false;
+	}
+
 	deque< deque<string> > menu_items = parser.getsection("Menu");
 	menu.set_items(menu_items);
 }
 
 void Fighter::update() {
+	//Wound status
 	if(c.curhp <= 0) {
-		c.status[Character::WOUND] = Character::SUFFERING;
-		atb = 0;
+		if(c.status[Character::ZOMBIE] != Character::SUFFERING) {
+			for(int i = 0; i < 27; i++) {
+				if(c.status[i] != Character::IMMUNE)
+					c.status[i] = Character::NORMAL;
+			}
+			c.status[Character::WOUND] = Character::SUFFERING;
+			atb = 0;
+		}
 	} else if(c.curhp < c.hp/8) {
 		c.status[Character::NEAR_FATAL] = Character::SUFFERING;
 	} else {
 		c.status[Character::NEAR_FATAL] = Character::NORMAL;
 	}
 
-	if(c.status[Character::WOUND] != Character::SUFFERING &&
-		c.status[Character::STOP] != Character::SUFFERING &&
-		c.status[Character::SLEEP] != Character::SUFFERING &&
-		c.status[Character::PETRIFY] != Character::SUFFERING)
+	//Zombie status
+	if(c.status[Character::ZOMBIE] == Character::SUFFERING) {
+		if(c.status[Character::DARK] != Character::IMMUNE)
+			c.status[Character::DARK] = Character::NORMAL;
+		if(c.status[Character::POISON] != Character::IMMUNE)
+			c.status[Character::POISON] = Character::NORMAL;
+		if(c.status[Character::NEAR_FATAL] != Character::IMMUNE)
+			c.status[Character::NEAR_FATAL] = Character::NORMAL;
+		if(c.status[Character::BERSERK] != Character::IMMUNE)
+			c.status[Character::BERSERK] = Character::NORMAL;
+		if(c.status[Character::MUDDLE] != Character::IMMUNE)
+			c.status[Character::MUDDLE] = Character::NORMAL;
+		if(c.status[Character::SLEEP] != Character::IMMUNE)
+			c.status[Character::SLEEP] = Character::NORMAL;
+	}
 
-		if(atb < 65536) {
-			if(is_monster()) {
-				if(c.status[Character::HASTE] == Character::SUFFERING) // Berechnungen in der Algorithms FAQ sind offensichtlich falsch…
-					atb += 63*(c.speed+20) / 16;
-				else if(c.status[Character::SLOW] == Character::SUFFERING)
-					atb += 24*(c.speed+20) / 16;
-				else
-					atb += 3*(c.speed+20);
-			} else {
-				if(c.status[Character::HASTE] == Character::SUFFERING)
-					atb += 63*(c.speed+20) / 16;
-				else if(c.status[Character::SLOW] == Character::SUFFERING)
-					atb += 24*(c.speed+20) / 16;
-				else
-					atb += 3*(c.speed+20);
-			}
-		}
 	if(atb > 65536) {
 		atb = 65536;
 		parent->enqueue_ready_fighter(this);
 	}
 
 	if(c.status[Character::HASTE] == Character::SUFFERING)
-		itc += 3;
+		itc += 180/GAME_TIMER_BPS;
 	else if(c.status[Character::SLOW] == Character::SUFFERING)
-		itc += 1;
+		itc += 60/GAME_TIMER_BPS;
 	else
-		itc += 2;
+		itc += 120/GAME_TIMER_BPS;
 
 	if(itc > 255 && c.status[Character::WOUND] != Character::SUFFERING) {
 		itc = 0;
@@ -209,6 +220,16 @@ void Fighter::update() {
 			if(poisoncounter > 7) poisoncounter = 0;
 			//Giftschaden
 
+		}
+		if(c.status[Character::CONDEMNED] == Character::SUFFERING) {
+			if(condemnedcounter == 0) {
+				Command c(this);
+				c.add_target(this);
+				c.set_attack("X-Fer");
+				c.execute();
+			} else {
+				condemnedcounter--;
+			}
 		}
 		if(c.status[Character::SEIZURE] == Character::SUFFERING && random()%4 == 0) {
 			int dmg = (c.hp * c.stamina / 1024) + 2;
@@ -244,6 +265,10 @@ void Fighter::draw(BITMAP *buffer, int x, int y) {
 	} else {
 		draw_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
 	}
+
+	if(condemnedcounter > 0) {
+		textprintf_ex(buffer, font, x, y-25, COL_GREY, -1, "%i", condemnedcounter);
+	}
 	if(textremframes) {
 		textremframes--;
 		textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes/2, textcol, -1);
@@ -256,7 +281,7 @@ void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
 	sprintf(text, "%i", c.curhp);
 	if(c.status[Character::NEAR_FATAL] == Character::SUFFERING)
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_YELLOW, -1);
-	else if(c.status[Character::WOUND] == Character::SUFFERING)
+	else if(c.status[Character::WOUND] == Character::SUFFERING || c.status[Character::ZOMBIE] == Character::SUFFERING)
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_RED, -1);
 	else
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_WHITE, -1);
@@ -339,13 +364,18 @@ void Fighter::lose_health(int hp) {
 
 	if(hp > MAX_DAMAGE) hp = 0;
 	c.curhp -= hp;
-	if(c.curhp < 0) c.curhp = 0;
+	if(c.curhp <= 0) {
+		c.curhp = 0;
+	}
 	if(c.curhp > c.hp) c.curhp = c.hp;
 }
 
 bool Fighter::lose_mp(int mp) {
 	if(c.curmp < mp)
 		return false;
+	if(mp < 0) {
+		show_text(to_string(mp) + "MP", COL_GREEN, GAME_TIMER_BPS/2);
+	}
 	c.curmp -= mp;
 	return true;
 }
@@ -364,6 +394,17 @@ int Fighter::get_status(int status) {
 void Fighter::set_status(int status, int state) {
 	if(status >= 27 || status < 0 || !(state == Character::NORMAL || state == Character::IMMUNE || state == Character::SUFFERING)) return;
 	c.status[status] = state;
+}
+
+bool Fighter::get_special(int special) {
+	if(special < 15 && special >= 0)
+		return c.special[special];
+	return false;
+}
+
+void Fighter::set_special(int special, bool state) {
+	if(special < 15 && special >= 0)
+		c.special[special] = state;
 }
 
 FighterBase::MenuEntry* Fighter::FighterMenu::get_menu_entry(string name, MenuEntry *e) {
@@ -439,6 +480,24 @@ int Hero::get_xp(int xp) {
 		if(c.mp > MAX_MP) c.mp = MAX_MP;
 	}
 	return 1;
+}
+
+void Hero::update() {
+	Fighter::update();
+
+	if(c.status[Character::WOUND] != Character::SUFFERING &&
+	c.status[Character::STOP] != Character::SUFFERING &&
+	c.status[Character::SLEEP] != Character::SUFFERING &&
+	c.status[Character::PETRIFY] != Character::SUFFERING)
+
+	if(atb < 65536) {
+		if(c.status[Character::HASTE] == Character::SUFFERING)
+			atb += 63*(c.speed+20) / 16;
+		else if(c.status[Character::SLOW] == Character::SUFFERING)
+			atb += 24*(c.speed+20) / 16;
+		else
+			atb += 3*(c.speed+20);
+	}
 }
 
 void Hero::draw(BITMAP *buffer, int x, int y) {
@@ -525,7 +584,23 @@ Monster::Monster(Fight *f, Character c, string name, PlayerSide side, int dir)
 
 void Monster::update() {
 	Fighter::update();
-	if(c.status[Character::WOUND] == Character::SUFFERING) {
+
+	if(c.status[Character::WOUND] != Character::SUFFERING &&
+	c.status[Character::STOP] != Character::SUFFERING &&
+	c.status[Character::SLEEP] != Character::SUFFERING &&
+	c.status[Character::PETRIFY] != Character::SUFFERING)
+
+	if(atb < 65536) {
+		if(c.status[Character::HASTE] == Character::SUFFERING) // Berechnungen in der Algorithms FAQ sind offensichtlich falsch…
+			atb += 63*(c.speed+20) / 16;
+		else if(c.status[Character::SLOW] == Character::SUFFERING)
+			atb += 24*(c.speed+20) / 16;
+		else
+			atb += 3*(c.speed+20);
+	}
+
+	if(c.status[Character::WOUND] == Character::SUFFERING ||
+		c.status[Character::PETRIFY] == Character::SUFFERING) {
 		if(current_animation != DIE) {
 			set_animation(DIE);
 		} else if(step > GAME_TIMER_BPS/3) {
@@ -570,8 +645,8 @@ void Monster::draw(BITMAP *buffer, int x, int y) {
 
 Command Monster::get_command() {
 	Command c(this);
-	if(com_script.size() == 0) {
-		c.set_attack("Fight");
+	if(com_script.size() == 0 || Fighter::c.status[Character::BERSERK] == Character::SUFFERING) {
+		c.set_attack("Battle");
 		return c;
 	}
 

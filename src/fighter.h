@@ -41,7 +41,7 @@ class Fighter : public FighterBase {
 		int get_dir() {return direction;}
 		void set_dir(int dir) {direction = dir%2;}
 		virtual void get_ready();
-		virtual bool is_monster() {return !is_friend();}; // nicht final
+		virtual bool is_monster() {return !is_friend();};
 		virtual bool is_friend();
 		Character get_character();
 		void override_character(Character);
@@ -50,6 +50,8 @@ class Fighter : public FighterBase {
 		void show_text(string text, int color, int frames);
 		int get_status(int status);
 		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING
+		bool get_special(int special);
+		void set_special(int special, bool state);
 		string get_spritename() {return spritename;}
 		virtual MenuEntry *get_menu_entry(string name) {return menu.get_menu_entry(name, NULL);}
 		virtual void set_animation(AnimationType type) {current_animation = type; step = 0;}
@@ -95,18 +97,19 @@ class Fighter : public FighterBase {
 class Hero : public Fighter {
 	public:
 		Hero(class Fight *f, Character c, string name, PlayerSide side, int dir);
-		virtual bool is_monster() {return false;}
-		virtual int get_xp(int);
-		virtual void draw(BITMAP *buffer, int x, int y);
+		bool is_monster() {return false;}
+		int get_xp(int);
+		void update();
+		void draw(BITMAP *buffer, int x, int y);
 };
 
 class Monster : public Fighter {
 	public:
 		Monster(class Fight *f, Character c, string name, PlayerSide side, int dir);
-		virtual bool is_monster() {return true;}
-		virtual void update();
-		virtual void draw(BITMAP *buffer, int x, int y);
-		virtual void laden(string name);
+		bool is_monster() {return true;}
+		void update();
+		void draw(BITMAP *buffer, int x, int y);
+		void laden(string name);
 		Command get_command();
 
 		struct Treasure {
@@ -118,7 +121,7 @@ class Monster : public Fighter {
 			deque<string> morph_items;
 		};
 
-		virtual Treasure treasure();
+		Treasure treasure();
 	protected:
 		Treasure t;
 		deque<deque<string> > com_script;

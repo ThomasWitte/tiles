@@ -76,6 +76,8 @@
 #define COL_BLACK makecol(0,0,0)
 #define COL_LIGHT_BLUE makecol(128,128,255)
 #define COL_RED makecol(255,0,0)
+#define COL_VIOLET makecol(255,128,255)
+#define COL_GREY makecol(128,128,128)
 
 extern volatile int timecounter;
 
