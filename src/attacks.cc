@@ -326,6 +326,10 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 	if(ctarget.status[Character::WOUND] && a.effect_function != AttackLib::revive && a.effect_function != AttackLib::full_revive) {
 		return MAX_DAMAGE + 1;
 	}
+	//Earth Attacks never hit floating targets
+	if(a.element == EARTH && ctarget.status[Character::FLOAT] == Character::SUFFERING)
+		return MAX_DAMAGE + 1;
+
 	//Step1
 	if(a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING)
 		return MAX_DAMAGE + 1;

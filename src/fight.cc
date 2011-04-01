@@ -300,7 +300,7 @@ Fight::~Fight() {
 			else if(c.elements[i] == Character::RESISTANT) parent->set_var(s, "resist");
 		}
 
-		for(int i = 0; i < 27; i++) {
+		for(int i = 0; i < 8; i++) {
 			char s[50] = "";
 			sprintf(s, "%s.status%i", curchar.c_str(), i);
 			if(c.status[i] == Character::NORMAL) parent->set_var(s, "normal");
@@ -328,6 +328,7 @@ Fight::~Fight() {
 
 //Liefert die Einträge für die Attackenliste
 FighterBase::MenuEntry *menu = NULL;
+int available_mp = 0;
 const char* get_list_win_entries(int index, int *size) {
 	if(!menu)
 		return "<Error>";
@@ -338,7 +339,14 @@ const char* get_list_win_entries(int index, int *size) {
 	}
 
 	if(index < (int)menu->submenu.size()) {
-		return menu->submenu[index].text.c_str();
+		string ret = menu->submenu[index].text;
+		if(size != NULL) {
+			if(AttackLib::get_attack(ret).mp_cost > available_mp)
+				*size = D_DISABLED;
+			else
+				*size = D_EXIT;
+		}
+		return ret.c_str();
 	}
 
 	return "<Error>";
@@ -367,16 +375,21 @@ DIALOG *Fight::create_dialog(int id) {
 
 		case LIST_WIN:
 		{
-			ret = new DIALOG[5];
+			ret = new DIALOG[10];
 			DIALOG test[] = {
 				/* (proc)			(x)					(y)						(w)  					(h)					(fg)       (bg) (key) (flags) (d1)  (d2) 				(dp)              (dp2) (dp3) */
-				{menu_bg_proc,		0,					2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X,		PC_RESOLUTION_Y/3,	COL_WHITE, -1,	0,	  0, 0, 0, NULL, NULL, NULL},
-				{ff6_list,			10,					2*PC_RESOLUTION_Y/3+8,	2*PC_RESOLUTION_X/3,	PC_RESOLUTION_Y/3-12,COL_WHITE, -1,	0,    D_EXIT, 0, 0, (void*)get_list_win_entries, NULL, NULL},
+				{ menu_bg_proc,		-8,					2*PC_RESOLUTION_Y/3-8,	PC_RESOLUTION_X+16,		PC_RESOLUTION_Y/3+16,COL_WHITE, -1,	0,	  0, 0, 0, NULL, NULL, NULL},
+				{ r_box_proc,		2*PC_RESOLUTION_X/3,4+2*PC_RESOLUTION_Y/3,	PC_RESOLUTION_X/3-4,	PC_RESOLUTION_Y/3-8,COL_WHITE,	-1,	0,	  0, 0, 0, NULL, NULL, NULL},
+				{ r_box_proc,		4,					4+2*PC_RESOLUTION_Y/3,	2*PC_RESOLUTION_X/3-4,	PC_RESOLUTION_Y/3-8,COL_WHITE,	-1,	0,	  0, 0, 0, NULL, NULL, NULL},
+				{ ff6_list,			10,					2*PC_RESOLUTION_Y/3+8,	2*PC_RESOLUTION_X/3,	PC_RESOLUTION_Y/3-12,COL_WHITE, -1,	0,    D_EXIT, 0, 0, (void*)get_list_win_entries, NULL, NULL},
+				{ d_ctext_proc,		5*PC_RESOLUTION_X/6,2*PC_RESOLUTION_Y/3+16, 0,						0,					COL_WHITE,	-1, 0,    0, 0, 0, NULL, NULL, NULL},		
+				{ d_ctext_proc,		5*PC_RESOLUTION_X/6,2*PC_RESOLUTION_Y/3+32, 0,						0,					COL_WHITE,	-1, 0,    0, 0, 0, NULL, NULL, NULL},
+				{ d_ctext_proc,		5*PC_RESOLUTION_X/6,2*PC_RESOLUTION_Y/3+48, 0,						0,					COL_WHITE,	-1, 0,    0, 0, 0, (void*)"used", NULL, NULL},
 				{ fight_area_proc,	0,					0,						PC_RESOLUTION_X,		2*PC_RESOLUTION_Y/3,0,         0,   0,    D_EXIT, 0,    0,   				this,             NULL, NULL },
-				{listwin_proc,		0,					0,						0,						0,					0,		   0,	0,	  D_EXIT, BACK_KEY, 0, this, NULL, NULL},
-				{NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL}
+				{ listwin_proc,		0,					0,						0,						0,					0,		   0,	0,	  D_EXIT, BACK_KEY, 0, this, NULL, NULL},
+				{ NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL}
 			};
-			memcpy(ret, test, 5*sizeof(DIALOG));
+			memcpy(ret, test, 10*sizeof(DIALOG));
 		}
 		break;
 
@@ -400,19 +413,38 @@ DIALOG *Fight::create_dialog(int id) {
 int Fight::listwin(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_START:
+		{
 			d->d2 = 0;
+			dialog.back()[4].dp = (void*)new char[15];
+			dialog.back()[5].dp = (void*)new char[15];
+
+			int current_menu = get_active_menu_fighter(0);
+			Character c = ready_fighters[current_menu]->get_character();
+			sprintf((char*)dialog.back()[4].dp, "%i/%i", c.curmp, c.mp);
+			available_mp = c.curmp;
+		}
 		break;
 
 		case MSG_IDLE: //MSG_XCHAR funktioniert nicht.
+		{
 			if(key[d->d1] && d->flags & D_EXIT) {
 				//Markieren, dass Menü ohne Auswahl geschlossen wurde
 				d->d2 = 1;
 				return D_CLOSE;
 			}
+
+			//Element 5 des Dialogs auf dem aktuellen Stand halten
+			int chosen = dialog.back()[3].d1; //gewählter index aus der Liste
+			AttackLib::Attack a = AttackLib::get_attack(get_list_win_entries(chosen, NULL));
+			sprintf((char*)dialog.back()[5].dp, "%i MP", a.mp_cost);
+		}
 		break;
 
 		case MSG_END:
 		{
+			delete [] (char*)dialog.back()[4].dp;
+			delete [] (char*)dialog.back()[5].dp;
+
 			int current_menu = get_active_menu_fighter(0);
 
 			if(d->d2 == 0) {
@@ -421,7 +453,7 @@ int Fight::listwin(int msg, DIALOG *d, int c) {
 				if((int)ready_fighters.size() > current_menu && ready_fighters[current_menu]) {
 					if(cur_cmd) delete cur_cmd;
 					cur_cmd = new Command(ready_fighters[current_menu]);
-					int close_obj = dialog.back()[1].d1; //gewählter index aus der Liste
+					int close_obj = dialog.back()[3].d1; //gewählter index aus der Liste
 					cur_cmd->set_attack(get_list_win_entries(close_obj, NULL));
 
 					//sich selber löschen

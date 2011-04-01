@@ -11,7 +11,7 @@ Terra.ablock 5 ;;
 Terra.adefense 42 ;;
 Terra.apower 12 ;;
 Terra.curhp 100 ;;
-Terra.curmp 500 ;;
+Terra.curmp 10 ;;
 Terra.defensive false ;;
 Terra.element0 normal ;;
 Terra.element1 absorb ;;

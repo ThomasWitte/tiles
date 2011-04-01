@@ -69,12 +69,14 @@ int ff6_list(int msg, DIALOG *d, int c) {
 			list_item(-1, &listsize); //Länge der liste herausfinden
 			int col = d->fg;
 			if(d->flags & D_DISABLED)
-				col = makecol(128,128,128);
+				col = COL_GREY;
 
 			for(int i = 0; i < d->h/16; i++) {
 				//Menüeinträge
 				if(d->d2+i < listsize) {
-					gui_textout_ex(scr, list_item(d->d2+i, NULL), d->x+10, d->y+i*16, col, -1, FALSE);
+					int dis = D_EXIT;
+					char *text = list_item(d->d2+i, &dis);
+					gui_textout_ex(scr, text, d->x+10, d->y+i*16, (dis == D_DISABLED ? COL_GREY : col), -1, FALSE);
 				}
 
 				//Zeiger zeichnen
@@ -84,6 +86,16 @@ int ff6_list(int msg, DIALOG *d, int c) {
 						masked_blit((BITMAP*)d->dp3, scr, 0, 0, d->x-((BITMAP*)d->dp3)->w-offset+10, d->y+i*16, ((BITMAP*)d->dp3)->w, ((BITMAP*)d->dp3)->h);
 				}
 			}
+		}
+		return D_O_K;
+
+		case MSG_KEY:
+		{
+			char* (*list_item) (int, int*) = (char*(*)(int,int*))d->dp;
+			int dis = D_EXIT;
+			list_item(d->d1, &dis);
+			if(dis == D_EXIT)
+				return D_EXIT;
 		}
 		return D_O_K;
 
@@ -132,8 +144,9 @@ int menu_items(int msg, DIALOG *d, int c) {
 int menu_bg_proc(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
-			for(int x = 0; x < 80; x++) {
-				rectfill(gui_get_screen(), d->x, d->y+x*d->h/80, d->x+d->w, d->y+(x+1)*d->h/80, makecol(x, x, 255-x));
+			for(int x = 0; x < d->h; x++) {
+				int col = x*100/d->h;
+				hline(gui_get_screen(), d->x, d->y+x, d->x+d->w, makecol(100-col, 100-col, 175-col));
 			}
 			rounded_rect(gui_get_screen(), d->x+3, d->y+3, d->x+d->w-4, d->y+d->h-4, 4, makecol(255, 255, 255));
 		break;

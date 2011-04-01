@@ -1,6 +1,6 @@
 < tiles 1.0 Fight >
 [Fight]
-	Background Narshe.tga ;;
+	Background narshe.tga ;;
 	Type 15 ;;
 [Fighter]
 	Enemy Guard ;;
