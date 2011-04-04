@@ -259,11 +259,45 @@ void Fighter::draw(BITMAP *buffer, int x, int y) {
 	scrposy = y;
 
 	int index = (step/SPRITE_ANIMATION_SPEED)%ts.imgs[ts.current].size();
+
+	//Schatten
+	ellipsefill(buffer, x, y+ts.imgs[ts.current][index]->h/2, 6, 2, COL_BLACK);
+
+	if(c.status[Character::FLOAT] == Character::SUFFERING) {
+		y -= 5;
+	}
+
 	//spiegeln, wenn direction = 0(linkss)
-	if(direction == 0) {
-		draw_sprite_h_flip(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
-	} else {
-		draw_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
+	if(c.status[Character::CLEAR] != Character::SUFFERING) {
+		if(direction == 0) {
+			draw_sprite_h_flip(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
+		} else {
+			draw_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
+		}
+	}
+
+	//Statusindikatoren zeichnen
+	if(c.status[Character::HASTE] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_RED, (direction == 0));
+	} else if(c.status[Character::SLOW] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_WHITE, (direction == 0));
+	} else if(c.status[Character::STOP] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_PINK, (direction == 0));
+	} else if(c.status[Character::SHELL] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_GREEN, (direction == 0));
+	} else if(c.status[Character::SAFE] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_YELLOW, (direction == 0));
+	} else if(c.status[Character::REFLECT] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_LIGHT_BLUE, (direction == 0));
+	} else if(c.status[Character::CLEAR] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_BLACK, (direction == 0));
 	}
 
 	if(condemnedcounter > 0) {
@@ -273,6 +307,15 @@ void Fighter::draw(BITMAP *buffer, int x, int y) {
 		textremframes--;
 		textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes/2, textcol, -1);
 	}
+}
+
+void Fighter::draw_outline(BITMAP *target, BITMAP *muster, int x, int y, int color, bool flip) {
+	for(int i = 0; i < muster->w; i++)
+		for(int j = 0; j < muster->h; j++) {
+			int c = getpixel(muster, i, j);
+			if(getr(c) < 30 && getg(c) < 30 && getb(c) < 30)
+				putpixel(target, (flip ? x+muster->w-i : x+i), y+j, color);
+		}
 }
 
 void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
@@ -371,7 +414,8 @@ void Fighter::lose_health(int hp) {
 }
 
 bool Fighter::lose_mp(int mp) {
-	if(c.curmp < mp)
+	//Bin mir nicht sicher, ob das Mute-verhalten so richtig ist
+	if(c.curmp < mp || (mp > 0 && c.status[Character::MUTE] == Character::SUFFERING))
 		return false;
 	if(mp < 0) {
 		show_text(to_string(mp) + "MP", COL_GREEN, GAME_TIMER_BPS/2);
@@ -405,6 +449,23 @@ bool Fighter::get_special(int special) {
 void Fighter::set_special(int special, bool state) {
 	if(special < 15 && special >= 0)
 		c.special[special] = state;
+}
+
+bool Fighter::has_menu_entry(string name) {
+	MenuEntry *e = menu.get_menu_entry("Menu", NULL);
+
+	unsigned int sz = e->submenu.size();
+	//Maximale Suchtiefe ist 2 - reicht fürs erste
+	for(unsigned int i = 0; i < sz; i++) {
+		if(e->submenu[i].text == name)
+			return true;
+		unsigned int sz2 = e->submenu[i].submenu.size();
+		for(unsigned int j = 0; j < sz2; j++) {
+			if(e->submenu[i].submenu[j].text == name)
+				return true;
+		}
+	}
+	return false;
 }
 
 FighterBase::MenuEntry* Fighter::FighterMenu::get_menu_entry(string name, MenuEntry *e) {

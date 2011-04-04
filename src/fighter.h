@@ -54,8 +54,10 @@ class Fighter : public FighterBase {
 		void set_special(int special, bool state);
 		string get_spritename() {return spritename;}
 		virtual MenuEntry *get_menu_entry(string name) {return menu.get_menu_entry(name, NULL);}
+		bool has_menu_entry(string name);
 		virtual void set_animation(AnimationType type) {current_animation = type; step = 0;}
 		virtual void get_screen_position(int *x, int *y);
+		void draw_outline(BITMAP *target, BITMAP *muster, int x, int y, int color, bool flip);
 
 	protected:
 		Fight *parent;

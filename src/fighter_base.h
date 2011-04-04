@@ -94,6 +94,7 @@ class FighterBase {
 		virtual string get_spritename() = 0;
 		virtual void set_animation(AnimationType) = 0;
 		virtual MenuEntry* get_menu_entry(string name) = 0;
+		virtual bool has_menu_entry(string name) = 0;
 		virtual void get_screen_position(int *x, int *y) = 0;
 
 		int condemnedcounter;

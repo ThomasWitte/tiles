@@ -43,6 +43,30 @@ int AttackLib::inflict<Character::CONDEMNED>(FighterBase *caster, FighterBase *t
 	return 0;
 }
 
+template<>
+int AttackLib::inflict<Character::SLOW>(FighterBase *caster, FighterBase *target) {
+	if(	target->get_status(Character::SLOW) != Character::IMMUNE &&
+		target->get_status(Character::WOUND) != Character::SUFFERING) {
+		if(target->get_status(Character::HASTE) != Character::SUFFERING)
+			target->set_status(Character::SLOW, Character::SUFFERING);
+		else
+			heal<Character::HASTE>(caster, target);
+	}
+	return 0;
+}
+
+template<>
+int AttackLib::inflict<Character::HASTE>(FighterBase *caster, FighterBase *target) {
+	if(	target->get_status(Character::HASTE) != Character::IMMUNE &&
+		target->get_status(Character::WOUND) != Character::SUFFERING) {
+		if(target->get_status(Character::SLOW) != Character::SUFFERING)
+			target->set_status(Character::HASTE, Character::SUFFERING);
+		else
+			heal<Character::SLOW>(caster, target);
+	}
+	return 0;
+}
+
 AttackLib::Attack AttackLib::lib[] = {
 	// pow = -1: Angriffskraft wird durch Characterwert bestimmt
 	// hitr = 255: trifft immer
@@ -386,8 +410,14 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 		//Seizure
 		if(ctarget.status[Character::SEIZURE] == Character::SUFFERING)
 			hitr *= 0.75;
+		//Haste
+		if(ctarget.status[Character::HASTE] == Character::SUFFERING)
+			hitr *= 0.75;
 		//Zombie
 		if(ctarget.status[Character::ZOMBIE] == Character::SUFFERING)
+			hitr *= 1.25;
+		//Slow
+		if(ctarget.status[Character::SLOW] == Character::SUFFERING)
 			hitr *= 1.25;
 		//Dark
 		if(ctarget.status[Character::DARK] == Character::SUFFERING)

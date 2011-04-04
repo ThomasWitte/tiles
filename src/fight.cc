@@ -422,6 +422,11 @@ int Fight::listwin(int msg, DIALOG *d, int c) {
 			Character c = ready_fighters[current_menu]->get_character();
 			sprintf((char*)dialog.back()[4].dp, "%i/%i", c.curmp, c.mp);
 			available_mp = c.curmp;
+
+			//Bin mir nicht ganz sicher ob das genau dem Mute effekt entspricht
+			//aber Zauber sind damit nicht möglich
+			if(c.status[Character::MUTE] == Character::SUFFERING)
+				available_mp = 0;
 		}
 		break;
 
@@ -766,8 +771,10 @@ int Fight::fightermenu(int msg, DIALOG *d, int c) {
 			int current_menu = get_active_menu_fighter(-1);
 
 			//neues Menü?, dann Strings updaten
-			if(current_menu != d->d1) {
+			if(current_menu != d->d1 || (d->d1 >= 0 && curmf != ready_fighters[d->d1])) {
 				d->d1 = current_menu;
+				if(d->d1 > 0)
+					curmf = ready_fighters[d->d1];
 				fightermenu(MSG_REBUILD_MENU, d, c);
 			}
 
@@ -1082,6 +1089,7 @@ void Fight::enqueue_command(Command c) {
 void Fight::enqueue_ready_fighter(FighterBase *f) {
 	if(f->is_friend()) {
 		if(f->get_status(Character::ZOMBIE) == Character::SUFFERING) {
+			//Im Zombie-Status wird ein zufälliges ziel angegriffen
 			Command c(f);
 			c.set_attack("Fight");
 			FighterBase *target;
@@ -1091,6 +1099,25 @@ void Fight::enqueue_ready_fighter(FighterBase *f) {
 				int side = random()%2;
 				target = fighters[side][random()%fighters[side].size()];
 			} while(target->get_status(Character::WOUND) == Character::SUFFERING);
+			c.add_target(target);
+			enqueue_command(c);
+			return;
+		} else if(f->get_status(Character::BERSERK) == Character::SUFFERING) {
+			string attacks[] = {"", "Capture", "Jump", "Rage", "Fight", "Fight"};
+			Fighter::MenuEntry *mtek = f->get_menu_entry("Magitek");
+			unsigned int sz = mtek->submenu.size();
+			if(mtek && sz > 0) {
+				attacks[0] = mtek->submenu[random()%sz].text;
+			}
+			string att;
+			do {
+				att = attacks[random()%6];
+			} while(att != "Fight" && !f->has_menu_entry(att));
+			Command c(f);
+			c.set_attack(att);
+
+			FighterBase *target;
+			target = fighters[ENEMY][random()%fighters[ENEMY].size()];
 			c.add_target(target);
 			enqueue_command(c);
 			return;

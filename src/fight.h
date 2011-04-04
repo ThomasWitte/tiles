@@ -84,6 +84,7 @@ class Fight : public MenuBase {
 		deque<FighterBase*> fighters[2]; //Friends, Enemies
 		deque<FighterBase*> ready_fighters;
 		deque<FighterBase*> defeated_fighters;
+		FighterBase *curmf; //Notlösung um zu verhindern, dass falsches Fightermenü angezeigt wird.
 		bool marked_fighters[2][20];
 };
 
