@@ -25,6 +25,7 @@
 #include "fight.h"
 #include "command.h"
 #include "attacks.h"
+#include "script_engine.h"
 
 using namespace std;
 
@@ -105,7 +106,7 @@ class Hero : public Fighter {
 		void draw(BITMAP *buffer, int x, int y);
 };
 
-class Monster : public Fighter {
+class Monster : public Fighter, public Scriptable {
 	public:
 		Monster(class Fight *f, Character c, string name, PlayerSide side, int dir);
 		bool is_monster() {return true;}

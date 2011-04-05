@@ -24,7 +24,7 @@ RELEASEFLAGS = -O3
 
 OBJ =   main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o \
 		command.o fighter.o game_menu.o guihelper.o menu_base.o tileset.o \
-		attack_animations.o
+		attack_animations.o script_engine.o
 BIN =   tiles
 
 release: CXXFLAGS += $(RELEASEFLAGS)
