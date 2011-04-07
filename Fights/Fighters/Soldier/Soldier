@@ -38,7 +38,9 @@
 [Rage]
 	Battle Fire ;;
 [Script]
-	Battle ;;
+	CMD="Battle";
+	wait();
+;;
 [normal]
 	Soldier.tga ;;
 [eof]

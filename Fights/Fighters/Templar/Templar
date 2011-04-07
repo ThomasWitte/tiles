@@ -37,7 +37,9 @@
 [Rage]
 	Battle Fire2 ;;
 [Script]
-	Battle ;;
+	CMD = "Battle";
+	wait();
+;;
 [normal]
 	Templar.tga ;;
 [eof]

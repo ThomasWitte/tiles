@@ -49,9 +49,13 @@
 [Rage]
 	Battle WaterEdge ;;
 [Script]
-	rand Battle FireSkean WaterEdge ;;
-	rand FireSkean Battle BoltEdge ;;
-	rand Battle WaterEdge BoltEdge ;;
+	CMD = random("Battle", "FireSkean", "WaterEdge");
+	wait();
+	CMD = random("FireSkean", "Battle", "BoltEdge");
+	wait();
+	CMD = random("Battle", "WaterEdge", "BoltEdge");
+	wait();
+;;
 [normal]
 	Ninja.tga ;;
 [eof]

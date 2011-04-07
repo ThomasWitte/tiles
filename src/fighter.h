@@ -127,8 +127,6 @@ class Monster : public Fighter, public Scriptable {
 		Treasure treasure();
 	protected:
 		Treasure t;
-		deque<deque<string> > com_script;
-		unsigned int comcounter;
 };
 
 #endif

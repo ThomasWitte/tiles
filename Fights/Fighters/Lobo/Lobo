@@ -34,8 +34,13 @@
 [Rage]
 	Battle Tusk ;;
 [Script]
-	if var target.level > 6 do rand Battle Tusk else Battle ;;
-	if var target.level > 6 do Tusk else Battle ;;
+#	if var target.level > 6 do rand Battle Tusk else Battle ;;
+#	if var target.level > 6 do Tusk else Battle ;;
+	CMD = random("Battle", "Tusk");
+	wait();
+	CMD = "Tusk";
+	wait();
+;;
 [normal]
 	Lobo.tga ;;
 [eof]

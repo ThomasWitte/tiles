@@ -14,7 +14,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "allegro.h"
 #include "iohelper.h"
 #include "config.h"
 #include <cstdlib>
@@ -173,6 +172,24 @@ deque<deque<string> > FileParser::getsection(string section) {
 			temp[temp.size()-1].pop_front();
 		}
 	return temp;
+}
+
+//Nicht schön, aber funktioniert erstmal
+//Durch die Leerzeichen versuchen ich den Originalstring so gut wie mäglich wieder aufzubauen
+string FileParser::getsection_raw(string section) {
+	deque<deque<string> > temp = getsection(section);
+	string ret;
+	size_t lines = temp.size();
+	for(unsigned int i = 0; i < lines; i++) {
+		size_t words = temp[i].size();
+		for(unsigned int j = 0; j < words; j++) {
+			if(temp[i][j] != ";;") {
+				ret += temp[i][j];
+				ret += " ";
+			}
+		}
+	}
+	return ret;
 }
 
 ImageLoader::ImageLoader() {

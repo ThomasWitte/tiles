@@ -706,39 +706,14 @@ void Monster::draw(BITMAP *buffer, int x, int y) {
 
 Command Monster::get_command() {
 	Command c(this);
-	if(com_script.size() == 0 || Fighter::c.status[Character::BERSERK] == Character::SUFFERING) {
+	if(!start || Fighter::c.status[Character::BERSERK] == Character::SUFFERING) {
 		c.set_attack("Battle");
 		return c;
 	}
 
-	int index = 0;
+	run();
 
-	while(true) {
-		if(com_script[comcounter][index] == "if") {
-			//Stimmt zwar nicht, aber das Skriptsystem muss sowieso überarbeitet werden
-			if(com_script[comcounter][index+1] == "var") {
-				index++;
-			}
-			if(com_script[comcounter][index+3] == "var") {
-				index++;
-			}
-			index += 5;
-			for(unsigned int i = 0; i < com_script[comcounter].size(); i++) {
-				if(com_script[comcounter][i] == "else")
-					com_script[comcounter].erase(com_script[comcounter].begin()+i);
-			}
-
-		} if(com_script[comcounter][index] == "rand") {
-			c.set_attack(com_script[comcounter][index + 1 + random()%(com_script[comcounter].size()-index-1)]);
-			break;
-		} else {
-			c.set_attack(com_script[comcounter][index]);
-			break;
-		}
-	}
-
-	comcounter++;
-	if(comcounter >= com_script.size()) comcounter = 0;
+	c.set_attack(vars["CMD"]);
 	return c;
 }
 
@@ -754,8 +729,8 @@ void Monster::laden(string name) {
 	t.morph_items = parser.get("Treasure", "MorphItems");
 	t.morph = parser.getvalue("Treasure", "Morph", 0);
 
-	com_script = parser.getsection("Script");
-	comcounter = 0;
+	if(!set_script(parser.getsection_raw("Script")))
+		start = NULL;
 }
 
 Monster::Treasure Monster::treasure() {

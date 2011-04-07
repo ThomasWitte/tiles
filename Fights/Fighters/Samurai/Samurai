@@ -47,8 +47,11 @@
 [Rage]
 	Battle Lullaby ;;
 [Script]
-	rand Battle Battle none ;;
-	rand Battle Battle Fatal ;;
+	CMD = random("Battle", "Battle", "");
+	wait();
+	CMD = random("Battle", "Battle", "Fatal");
+	wait();
+;;
 [normal]
 	Samurai.tga ;;
 [eof]

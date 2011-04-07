@@ -19,6 +19,7 @@
 
 //TODO Imageloader Cache
 
+#include <allegro.h>
 #include <deque>
 #include <iostream>
 #include <fstream>
@@ -49,6 +50,7 @@ class FileParser {
 		deque<string> get(string section, string element);
 		deque<deque<string> > getall(string section, string element);
 		deque<deque<string> > getsection(string section);
+		string getsection_raw(string section);
 	protected:
 		deque<deque<string> > daten;
 };

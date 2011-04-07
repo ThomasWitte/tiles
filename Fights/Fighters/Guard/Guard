@@ -33,7 +33,9 @@
 [Rage]
 	Battle Critical ;;
 [Script]
-	rand Battle Battle Critical ;;
+	CMD = random("Battle", "Battle", "Critical");
+	wait();
+;;
 [normal]
 	Guard.tga ;;
 [eof]

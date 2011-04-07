@@ -17,6 +17,8 @@
 #ifndef SCRIPT_ENGINE_H
 #define SCRIPT_ENGINE_H
 
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
 #include <string>
 #include <deque>
 #include <map>
@@ -104,7 +106,7 @@ class Scriptable {
 		class ScriptInstruction : public ScriptNode {
 			public:
 				ScriptInstruction(
-					string (Scriptable::*instruction)(deque<Argument*> &args),
+					boost::function< string (deque<Argument*>&) > instruction,
 					deque<Argument*> arguments,
 					string rv,
 					Scriptable *p);
@@ -114,7 +116,7 @@ class Scriptable {
 			protected:
 				ScriptNode *next;
 				string return_var;
-				string (Scriptable::*instruction)(deque<Argument*> &args);
+				boost::function< string (deque<Argument*>&) > instruction;
 				deque<Argument*> arguments;
 		};
 
@@ -139,12 +141,12 @@ class Scriptable {
 		};
 
 		struct Funktion {
-			string(Scriptable::*func)(deque<Argument*>&);
+			boost::function< string (deque<Argument*>&) > func;
 			int argc;
 		};
 
 		//verbindet string mit Methodenaufruf
-		virtual void connect(string name, string (Scriptable::*func)(deque<Argument*> &args), int argc);
+		virtual void connect(string name, boost::function< string (deque<Argument*>&) > func, int argc);
 
 		map<string,Funktion> assoc_list;
 		map<string,string> vars;
@@ -157,11 +159,14 @@ class Scriptable {
 		string wait_func(deque<Argument*> &args);
 		string return_func(deque<Argument*> &args);
 		string set_func(deque<Argument*> &args);
+		string random_func(deque<Argument*> &args);
 
 	private:
 		void remove_ws(string &s);
 		ScriptNode *create_instruction(string current);
+		ScriptNode *create_switch(string bed);
 		ScriptNode *process_chunk(string s, ScriptNode *start);
+		ScriptNode *process_script(string &s, ScriptNode *start);
 };
 
 #endif

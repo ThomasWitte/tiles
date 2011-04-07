@@ -1127,7 +1127,10 @@ void Fight::enqueue_ready_fighter(FighterBase *f) {
 		Command c = ((Monster*)f)->get_command();
 		//Die Targetauswahl sollte vom Fighter-Skript übernommen werden
 		c.add_target(fighters[FRIEND][random()%fighters[FRIEND].size()]);
-		enqueue_command(c);
+		if(c.get_attack() != "")
+			enqueue_command(c);
+		else
+			((Monster*)f)->get_ready();
 	}
 }
 

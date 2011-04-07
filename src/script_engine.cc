@@ -14,6 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "iohelper.h"
 #include "script_engine.h"
 #include <iostream>
 #include <cstdlib>
@@ -24,8 +25,9 @@ Scriptable::Scriptable() {
 	start = NULL;
 	position = NULL;
 
-	connect("wait", &Scriptable::wait_func, 0);
-	connect("return", &Scriptable::return_func, 0);
+	connect("wait", boost::bind(&Scriptable::wait_func, this, _1), 0);
+	connect("return", boost::bind(&Scriptable::return_func, this, _1), 0);
+	connect("random", boost::bind(&Scriptable::random_func, this, _1), -1);
 }
 
 Scriptable::~Scriptable() {
@@ -79,7 +81,7 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 			return NULL;
 		}
 		args.push_back(new StringArgument(pl[1].substr(1, pl[1].length()-2)));
-		return new ScriptInstruction(&Scriptable::set_func, args, pl[0], this);
+		return new ScriptInstruction(boost::bind(&Scriptable::set_func, this, _1), args, pl[0], this);
 
 	} else if(aufb == "=();") {
 		if(assoc_list.count(pl[1]) == 0) {
@@ -155,7 +157,33 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 	return NULL;
 }
 
+Scriptable::ScriptNode *Scriptable::create_switch(string bed) {
+	size_t trenner = bed.find_first_of("=!><");
+
+	if(trenner == string::npos) {
+		cout << "Scriptable: [Fehler] Fehlerhafte Bedingung" << endl;
+		return NULL;
+	}
+
+	Argument *a[] = {NULL, NULL};
+	string as[] = {bed.substr(0,trenner), bed.substr(trenner+1)};
+
+	for(int i = 0; i < 2; i++) {
+		if(as[i][0] == '"' && as[i][as[i].length()-1] == '"') {
+			a[i] = new StringArgument(as[i].substr(1, as[i].length()-2));
+		} else if(as[i].find('"') == string::npos) {
+			a[i] = new VarArgument(this, as[i]);
+		} else {
+			cout << "Scriptable: [Fehler] Fehlerhaftes Argument in Bedingung" << endl;
+			return false;
+		}
+	}
+	return new ScriptSwitch(bed[trenner], a[0], a[1], this);
+}
+
 Scriptable::ScriptNode *Scriptable::process_chunk(string s, Scriptable::ScriptNode *start) {
+	if(s.empty())
+		return start;
 
 	if(s[s.length()-1] != ';') {
 		cout << "Scriptable: [Fehler] Unerwartetes Blockende" << endl;
@@ -183,6 +211,56 @@ Scriptable::ScriptNode *Scriptable::process_chunk(string s, Scriptable::ScriptNo
 	return start;
 }
 
+Scriptable::ScriptNode *Scriptable::process_script(string &s, ScriptNode *start) {
+	size_t posif = s.find("if");
+	size_t poswhile = s.find("while");
+	size_t chend = s.find("}");
+
+	if(chend <= posif && chend <= poswhile) {
+		start = process_chunk(s.substr(0, chend), start);
+		s.erase(0, (chend == string::npos ? chend : chend+1));
+		return start;
+	}
+
+	//Alles bis zur Bedingung bearbeiten
+	start = process_chunk(s.substr(0, (posif<poswhile ? posif : poswhile)), start);
+	if(!start) return NULL;
+	s.erase(0, (posif<poswhile ? posif : poswhile));
+	//Es folgt eine If/While-Anweisung
+	size_t condend = s.find("{");
+	if(s[(posif < poswhile ? 2 : 5)] != '(' || s[condend-1] != ')') {
+		cout << "Scriptable: [Fehler] Fehlerhaftes " << (posif<poswhile ? "If" : "While") << endl;
+		return NULL;
+	}
+
+	if(posif < poswhile) {
+		string bed = s.substr(3, condend-4);
+		ScriptNode *temp = create_switch(bed);
+		start->set_next(temp);
+		start = temp;
+		s.erase(0, condend+1);
+		//true block
+		ScriptNode* end_true = process_script(s, start);
+		if(!end_true) return NULL;
+		temp = new NoOp();
+		end_true->set_next(temp);
+		start->set_next(temp);
+		start = temp;
+	} else if(poswhile < posif) {
+		string bed = s.substr(6, condend-7);
+		ScriptNode *temp = create_switch(bed);
+		start->set_next(temp);
+		start = temp;
+		s.erase(0, condend+1);
+		//schleifenblock
+		ScriptNode* end_true = process_script(s, start);
+		if(!end_true) return NULL;
+		end_true->set_next(temp);
+		start = temp;
+	}
+	return process_script(s, start);
+}
+
 bool Scriptable::set_script(string s) {
 	//Aufräumen
 	if(start)
@@ -194,9 +272,13 @@ bool Scriptable::set_script(string s) {
 	remove_ws(s);
 
 	//Block bearbeiten
-	position = process_chunk(s, start);
+	position = process_script(s, start);
 	if(!position)
 		return false;
+	if(!s.empty()) {
+		cout << "Scriptable: [Fehler] Fehlerhafte Blockstruktur" << endl;
+		return false;
+	}
 
 	position = start;
 	return true;
@@ -223,7 +305,7 @@ bool Scriptable::run() {
 
 void Scriptable::connect(
 	string name,
-	string (Scriptable::*func)(deque<Argument*> &args),
+	boost::function< string (deque<Argument*>&) > func,
 	int argc) {
 
 	assoc_list[name].func = func;
@@ -243,6 +325,13 @@ string Scriptable::return_func(deque<Argument*> &args) {
 
 string Scriptable::set_func(deque<Argument*> &args) {
 	return args[0]->value();
+}
+
+string Scriptable::random_func(deque<Argument*> &args) {
+	if(args.size() == 0) {
+		return to_string(random()%256);
+	}
+	return args[random()%args.size()]->value();
 }
 
 //ScriptNode ==================================================================
@@ -270,9 +359,13 @@ Scriptable::ScriptSwitch::ScriptSwitch(
 
 Scriptable::ScriptSwitch::~ScriptSwitch() {
 	delete_mark = true;
+
+	if(next[0] && !next[0]->delete_mark)
+		delete next[0];
+	else if(next[1] && !next[1]->delete_mark)
+		delete next[1];
+
 	for(int i = 0; i < 2; i++) {
-		if(!next[i]->delete_mark)
-			delete next[i];
 		delete arg[i];
 	}
 }
@@ -281,28 +374,28 @@ Scriptable::ScriptNode *Scriptable::ScriptSwitch::exec() {
 	switch(op) {
 		case '=':
 			if(arg[0]->value() == arg[1]->value())
-				return next[1];
+				return next[0];
 		break;
 
 		case '!': //!=
 			if(arg[0]->value() != arg[1]->value())
-				return next[1];
+				return next[0];
 		break;
 
 		case '>':
 			if(atof(arg[0]->value().c_str()) > atof(arg[1]->value().c_str()))
-				return next[1];
+				return next[0];
 		break;
 
 		case '<':
 			if(atof(arg[0]->value().c_str()) < atof(arg[1]->value().c_str()))
-				return next[1];
+				return next[0];
 		break;
 		default:
 			cout << "Scriptable: [Fehler] Unbekannter Operator " << op << " in" << endl;
 			cout << "    " << arg[0]->debug() << op << arg[1]->debug() << endl;
 	}
-	return next[0];
+	return next[1];
 }
 
 void Scriptable::ScriptSwitch::set_next(Scriptable::ScriptNode *n) {
@@ -315,7 +408,7 @@ void Scriptable::ScriptSwitch::set_next(Scriptable::ScriptNode *n) {
 //ScriptInstruction ===========================================================
 
 Scriptable::ScriptInstruction::ScriptInstruction(
-	string (Scriptable::*instruction)(deque<Argument*> &args),
+	boost::function< string (deque<Argument*>&) > instruction,
 	deque<Argument*> arguments,
 	string rv,
 	Scriptable *p) : 
@@ -340,6 +433,6 @@ void Scriptable::ScriptInstruction::set_next(Scriptable::ScriptNode *n) {
 }
 
 Scriptable::ScriptNode *Scriptable::ScriptInstruction::exec() {
-	parent->vars[return_var] = (parent->*instruction)(arguments);
+	parent->vars[return_var] = instruction(arguments);
 	return next;
 }
