@@ -45,13 +45,13 @@ void BaseObject::update() {
 }
 
 Animation::~Animation() {
-	for(int i = 0; i < frames.size(); i++)
+	for(unsigned int i = 0; i < frames.size(); i++)
 		imageloader.destroy(frames[i]);
 }
 
 void Animation::load(string dateiname) {
 	name = dateiname;
-	for(int i = 0; i < frames.size(); i++)
+	for(unsigned int i = 0; i < frames.size(); i++)
 		imageloader.destroy(frames[i]);
 	frames.resize(0);
 
@@ -61,7 +61,7 @@ void Animation::load(string dateiname) {
 	FileParser parser(s, "Object");
 	deque< deque<string> > ret = parser.getsection("Animation");
 
-	for(int i = 0; i< ret.size(); i++) {
+	for(unsigned int i = 0; i< ret.size(); i++) {
 		dateiname = prefix + ret[i][0];
 		frames.push_back(imageloader.load(dateiname));
 	}

@@ -53,7 +53,7 @@ class Map {
 		~Map();
 		bool is_walkable(int x, int y);
 		void laden(string dateiname, Game *parent);
-		void centre(int index = 0);
+		void centre(unsigned int index = 0);
 		void update();
 		void draw(BITMAP *buffer);
 		int get_tilesize();

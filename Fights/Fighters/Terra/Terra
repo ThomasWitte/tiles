@@ -1,19 +1,22 @@
 < tiles 1.0 Fighter >
 [Fighter]
 	name Terra ;;
-	level 3 ;;
-	mp 24 ;;
-	hp 63 ;;
+	level 1 ;;
+	mp 16 ;;
+	hp 40 ;;
 	vigor 31 ;;
 	stamina 28 ;;
 	mpower 39 ;;
-	ablock 15 ;;
+	ablock 5 ;;
 	mblock 7 ;;
 	defensive 0 ;;
-	apower 42 ;;
-	mdefense 69 ;;
-	adefense 97 ;;
-	hitrate 254 ;;
+	apower 22 ;;
+	mdefense 33 ;;
+	adefense 42 ;;
+	hitrate 200 ;;
+	speed 33 ;;
+	levelupxp 32 ;;
+	xp 0 ;;
 [Elements]
 	Heal absorb ;;
 [Status]
@@ -35,15 +38,22 @@
 	wound.tga ;;
 [attack]
 	walk1.tga ;;
+	walk1.tga ;;
+	walk2.tga ;;
+	walk2.tga ;;
+[attack_exec]
+	walk1.tga ;;
 [magic]
 	magic1.tga ;;
 	magic1.tga ;;
 	magic2.tga ;;
 	magic2.tga ;;
+[magic_exec]
 	magic2.tga ;;
 [Sketch]
 [Rage]
 [Script]
+	Fight ;;
 [Menu]
 	Fight ;;
 	Magitek
@@ -51,4 +61,24 @@
 		BioBlast
 		HealForce
 		IceBeam ;;
+	Magic
+		Antidot
+		Cure
+		Cure2
+		Cure3
+		Bio
+		Bolt
+		Bolt2
+		Bolt3
+		Break
+		Bserk
+		Demi
+		Dispel
+		Doom
+		Drain
+		Fire
+		Fire2
+		Fire3
+		Flare
+		Float ;;
 [eof]

@@ -121,7 +121,7 @@ int main()
 		gp2x_init();
 	#endif
 	allegro_init();
-	set_color_depth(16);
+	set_color_depth(COLOR_DEPTH);
 	#ifdef GP2X
 		set_gfx_mode(GFX_AUTODETECT, 320, 240, 0, 0);
 	#else
@@ -208,8 +208,9 @@ int main()
 		}
 	}
 
+	imageloader.clear();
 	#ifdef GP2X	
 		gp2x_exit();
 	#endif
 	return 0;
-}END_OF_MAIN();
+}END_OF_MAIN()

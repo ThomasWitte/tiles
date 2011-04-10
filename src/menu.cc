@@ -99,7 +99,7 @@ string Menu::load_menu() {
      
     dp = opendir ("./Saves/");
     if (dp != NULL) {
-    	while (ep = readdir (dp))
+    	while((ep = readdir(dp)))
             files.push_back(ep->d_name);
         closedir(dp);
     }
@@ -138,7 +138,7 @@ string Menu::save_menu() {
      
     dp = opendir ("./Saves/");
     if (dp != NULL) {
-    	while (ep = readdir (dp))
+    	while((ep = readdir(dp)))
             files.push_back(ep->d_name);
         closedir(dp);
     }

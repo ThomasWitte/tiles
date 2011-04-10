@@ -304,7 +304,7 @@ string GameMenu::get_chosen_player() {
 	string chars = parent->get_var("CharactersInBattle");
 	for(int i = 0; i <= player; i++) {
 		int pos = chars.find_first_of(";");
-		if(pos == string::npos)
+		if(pos == (int)string::npos)
 			break;
 		pstr = chars.substr(0, pos);
 		chars.erase(0, pos+1);

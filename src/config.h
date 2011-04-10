@@ -31,6 +31,13 @@
 //#define GP2X
 //#define WINDOWS
 
+//Bilder-Cache (in KB)
+#define ENABLE_IMAGELOADER_CACHE
+#define IMAGELOADER_CACHESIZE 5000
+
+//Farbtiefe
+#define COLOR_DEPTH 16
+
 //interne Auflösung
 #define PC_RESOLUTION_X 320
 #define PC_RESOLUTION_Y 240
@@ -48,7 +55,8 @@
 //Während Dialogen bewegung verbieten?
 #define ENABLE_DIALOG_MOVE_LOCK
 #define MAX_DAMAGE 9999
-#define XP_FACTOR 9.15 //werte zwischen 9.05 und 9.25 sollten funktionieren; niedriger = schneller levelup;
+#define MAX_HP 9999
+#define MAX_MP 999
 
 //Tastenbelegungen
 #define DIR_LEFT KEY_LEFT
@@ -68,6 +76,9 @@
 #define COL_BLACK makecol(0,0,0)
 #define COL_LIGHT_BLUE makecol(128,128,255)
 #define COL_RED makecol(255,0,0)
+#define COL_VIOLET makecol(255,128,255)
+#define COL_PINK makecol(255,0,255)
+#define COL_GREY makecol(128,128,128)
 
 extern volatile int timecounter;
 

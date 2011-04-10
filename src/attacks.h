@@ -19,35 +19,84 @@
 
 #include <string>
 #include "fighter_base.h"
+#include "attack_animations.h"
 
 using namespace std;
 
 class AttackLib {
 	public:
-		enum {SELF = 1, FRIEND = 2, ENEMY = 4, MULTI = 8, SINGLE = 16, MULTI_BOTH_SIDES = 32, DEAD = 64};
+		enum {SELF = 1, FRIEND = 2, ENEMY = 4, MULTI = 8, SINGLE = 16, MULTI_BOTH_SIDES = 32, DEAD = 64, RANDOM = 128};
 		enum Element {NONE, HEAL, DEATH, BOLT, ICE, FIRE, WATER, WIND, EARTH, POISON, PEARL};
 		struct Attack {
 			string name;
 			int (*effect_function)(class FighterBase*, FighterBase*);
+			int (*animation)(int step, AnimationData *data, BITMAP *buffer); //returns -1, wenn Animation beendet ist.
+			int mp_cost;
 			int power;
 			bool physical;
 			bool ign_def;
 			bool unblock;
 			bool block_by_stamina;
+			bool retarget_if_dead;
+			bool vulnerable_to_runic;
+			bool reflectable;
+			bool cast_outside_battle;
 			int hit_rate;
 			Element element;
 			int possible_targets;
+			string description;
 		};
+
 		static Attack get_attack(string name);
-		static int death(FighterBase *caster, FighterBase *target);
+		static int calc_damage(FighterBase *caster, FighterBase *target, Attack a, bool multitarget);
+
+	protected:
+
+		static Attack lib[];
+
+		template<int STATUS>
+		static int inflict(FighterBase *caster, FighterBase *target) {
+			if(	target->get_status(STATUS) != Character::IMMUNE &&
+				target->get_status(Character::WOUND) != Character::SUFFERING)
+				target->set_status(STATUS, Character::SUFFERING);
+			return 0;
+		}
+
+		template<int STATUS>
+		static int heal(FighterBase *caster, FighterBase *target) {
+			if(target->get_status(STATUS) == Character::SUFFERING)
+				target->set_status(STATUS, Character::NORMAL);
+			return 0;
+		}
+
+		template<int STATUS>
+		static int toggle(FighterBase *caster, FighterBase *target) {
+			if(target->get_status(STATUS) == Character::NORMAL) {
+				inflict<STATUS>(caster, target);
+			} else if(target->get_status(STATUS) == Character::SUFFERING) {
+				heal<STATUS>(caster, target);
+			}
+			return 0;
+		}
+
+		template<int PERCENT>
+		static int partdmg(FighterBase *caster, FighterBase *target) {
+			Character c = target->get_character();
+			target->lose_health((c.curhp * PERCENT)/100);
+			return 0;
+		}
+
 		static int full_revive(FighterBase *caster, FighterBase *target);
 		static int revive(FighterBase *caster, FighterBase *target);
-	protected:
-		static int poison(FighterBase *caster, FighterBase *target);
-		static int seizure(FighterBase *caster, FighterBase *target);
+		static int unpoison(FighterBase *caster, FighterBase *target);
 		static int poiseiz(FighterBase *caster, FighterBase *target);
-		static int muddle(FighterBase *caster, FighterBase *target);
-		//statische overridemethoden
+		static int demi(FighterBase *caster, FighterBase *target);
+		static int dispel(FighterBase *caster, FighterBase *target);
+		static int remedy(FighterBase *caster, FighterBase *target);
+		static int drain(FighterBase *caster, FighterBase *target);
+		static int rasp(FighterBase *caster, FighterBase *target);
+		static int osmose(FighterBase *caster, FighterBase *target);
+		static int kill(FighterBase *caster, FighterBase *target);
 };
 
 #endif

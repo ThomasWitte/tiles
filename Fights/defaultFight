@@ -1,10 +1,12 @@
 < tiles 1.0 Fight >
 [Fight]
-	Background defaultBackground.tga ;;
+	Background narshe.tga ;;
 	Type 15 ;;
 [Fighter]
-	Enemy Luigi ;;
+	Enemy Guard ;;
 	Enemy Lobo ;;
+	Enemy Guard ;;
+	Enemy Guard ;;
 	Enemy Guard ;;
 [eof]
 

@@ -42,6 +42,25 @@ int ff6_list(int msg, DIALOG *d, int c) {
 			imageloader.destroy((BITMAP*)d->dp3);
 		break;
 
+		case MSG_CHAR:
+		{
+			char* (*list_item) (int, int*) = (char*(*)(int,int*))d->dp;
+			int max_index;
+			list_item(-1, &max_index);
+			switch(c >> 8) {
+				case DIR_UP:
+					d->d1--;
+					if(d->d1 < 0) d->d1 = max_index-1;
+				return D_USED_CHAR;
+
+				case DIR_DOWN:
+					d->d1++;
+					if(d->d1 >= max_index) d->d1 = 0;
+				return D_USED_CHAR;
+			}
+		}
+		return D_O_K;
+
 		case MSG_DRAW:
 		{
 			BITMAP *scr = gui_get_screen();
@@ -50,12 +69,14 @@ int ff6_list(int msg, DIALOG *d, int c) {
 			list_item(-1, &listsize); //Länge der liste herausfinden
 			int col = d->fg;
 			if(d->flags & D_DISABLED)
-				col = makecol(128,128,128);
+				col = COL_GREY;
 
 			for(int i = 0; i < d->h/16; i++) {
 				//Menüeinträge
 				if(d->d2+i < listsize) {
-					gui_textout_ex(scr, list_item(d->d2+i, NULL), d->x+10, d->y+i*16, col, -1, FALSE);
+					int dis = D_EXIT;
+					char *text = list_item(d->d2+i, &dis);
+					gui_textout_ex(scr, text, d->x+10, d->y+i*16, (dis == D_DISABLED ? COL_GREY : col), -1, FALSE);
 				}
 
 				//Zeiger zeichnen
@@ -65,6 +86,16 @@ int ff6_list(int msg, DIALOG *d, int c) {
 						masked_blit((BITMAP*)d->dp3, scr, 0, 0, d->x-((BITMAP*)d->dp3)->w-offset+10, d->y+i*16, ((BITMAP*)d->dp3)->w, ((BITMAP*)d->dp3)->h);
 				}
 			}
+		}
+		return D_O_K;
+
+		case MSG_KEY:
+		{
+			char* (*list_item) (int, int*) = (char*(*)(int,int*))d->dp;
+			int dis = D_EXIT;
+			list_item(d->d1, &dis);
+			if(dis == D_EXIT)
+				return D_EXIT;
 		}
 		return D_O_K;
 
@@ -95,7 +126,7 @@ int menu_items(int msg, DIALOG *d, int c) {
 		FileParser parser(("Fights/Fighters/") + name + ("/") + name, "Fighter");
 		deque< deque<string> > menu_items = parser.getsection("Menu");
 		d->dp3 = (void*)new char*[4];
-		for(int i = 0; i < 4; i++)
+		for(unsigned int i = 0; i < 4; i++)
 			if(i >= menu_items.size())
 				((char**)d->dp3)[i] = tochar("");
 			else
@@ -113,8 +144,9 @@ int menu_items(int msg, DIALOG *d, int c) {
 int menu_bg_proc(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_DRAW:
-			for(int x = 0; x < 80; x++) {
-				rectfill(gui_get_screen(), d->x, d->y+x*d->h/80, d->x+d->w, d->y+(x+1)*d->h/80, makecol(x, x, 255-x));
+			for(int x = 0; x < d->h; x++) {
+				int col = x*100/d->h;
+				hline(gui_get_screen(), d->x, d->y+x, d->x+d->w, makecol(100-col, 100-col, 175-col));
 			}
 			rounded_rect(gui_get_screen(), d->x+3, d->y+3, d->x+d->w-4, d->y+d->h-4, 4, makecol(255, 255, 255));
 		break;
@@ -156,7 +188,7 @@ int char_select(int msg, DIALOG *d, int c) {
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
 				int pos = chars.find_first_of(";");
-				if(pos == string::npos) {
+				if(pos == (int)string::npos) {
 					//Position bleibt leer
 					d->dp2 = NULL;
 					d->flags |= D_DISABLED;
@@ -219,13 +251,23 @@ int char_select(int msg, DIALOG *d, int c) {
 				}
 			}
 		break;
+
+		case MSG_KEY:
+			//defensive-Werte speichern (genau umgekehrt, da button den zustand direkt danach ändert)
+			if(d->flags & D_SELECTED && !(d->flags & D_DISABLED)) {
+				g->set_var(*((string*)d->dp3) + ".defensive", "false");
+			} else {
+				g->set_var(*((string*)d->dp3) + ".defensive", "true");
+			}
+		break;
+
 		case MSG_IDLE:
 			//reihenfolge verändert?
 			name = new string("empty");
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->d2; i++) { //d->d2 = 0…3 im Menü
 				int pos = chars.find_first_of(";");
-				if(pos == string::npos) {
+				if(pos == (int)string::npos) {
 					break;
 				}
 				*name = chars.substr(0, pos);
@@ -237,17 +279,20 @@ int char_select(int msg, DIALOG *d, int c) {
 			}
 			delete name;
 
+			if(!(d->flags & D_DISABLED)) {
+				if(g->get_var(*((string*)d->dp3) + ".defensive") == "true") {
+					d->flags |= D_SELECTED;
+				} else {
+					d->flags &= ~D_SELECTED;
+				}
+			}
+
 			//beweglicher finger:
 			d->d1--;
 			if(d->d1 < -GAME_TIMER_BPS/6)
 				d->d1 = GAME_TIMER_BPS/6;
 		break;
 		case MSG_END:
-			if(d->flags & D_SELECTED) {
-				g->set_var(*((string*)d->dp3) + ".defensive", "true");
-			} else {
-				g->set_var(*((string*)d->dp3) + ".defensive", "false");
-			}
 			imageloader.destroy(((BITMAP**)d->dp2)[0]);
 			imageloader.destroy(((BITMAP**)d->dp2)[1]);
 			delete [] (BITMAP*)d->dp2;
@@ -309,7 +354,7 @@ int ch_button(int msg, DIALOG *d, int c) {
 			chars = g->get_var("CharactersInBattle");
 			for(int i = 0; i <= d->bg; i++) { //d->bg = 0…3 im Menü
 				int pos = chars.find_first_of(";");
-				if(pos == string::npos) {
+				if(pos == (int)string::npos) {
 					//Position bleibt leer
 					d->flags |= D_DISABLED;
 					break;
@@ -367,6 +412,7 @@ int ff6_button(int msg, DIALOG *d, int c) {
 			imageloader.destroy((BITMAP*)d->dp2);
 		break;
 		case MSG_DRAW:
+			if(~d->flags & D_HIDDEN) {
 				if(d->flags & D_DISABLED) {
 					gui_textout_ex(scr, (char*)d->dp, d->x, d->y, makecol(128,128,128), d->bg, FALSE);
 				} else {
@@ -377,6 +423,7 @@ int ff6_button(int msg, DIALOG *d, int c) {
 						masked_blit((BITMAP*)d->dp2, scr, 0, 0, d->x-((BITMAP*)d->dp2)->w-offset, d->y, ((BITMAP*)d->dp2)->w, ((BITMAP*)d->dp2)->h);
 					}
 				}
+			}
 		break;
 		case MSG_KEY:
 			if(d->flags & D_OPEN)
@@ -466,22 +513,6 @@ static int cmp_tab(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
    int ret = (int)((AL_CONST unsigned long)d2 - (AL_CONST unsigned long)d1);
 
    /* Wrap around if d2 is before d1 in the dialog array. */
-   if (ret < 0)
-      ret += MAX_SIZE;
-
-   return ret;
-}
-
-
-
-/* cmp_shift_tab:
- *  Comparison function for shift+tab key movement.
- */
-static int cmp_shift_tab(AL_CONST DIALOG *d1, AL_CONST DIALOG *d2)
-{
-   int ret = (int)((AL_CONST unsigned long)d1 - (AL_CONST unsigned long)d2);
-
-   /* Wrap around if d2 is after d1 in the dialog array. */
    if (ret < 0)
       ret += MAX_SIZE;
 

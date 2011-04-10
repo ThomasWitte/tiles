@@ -1,4 +1,4 @@
-#  Copyright 2009 Thomas Witte
+#  Copyright 2009-2011 Thomas Witte
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,11 +18,13 @@ CC = g++
 CXXFLAGS = -march=native -pipe
 LDFLAGS	= `allegro-config --libs`
 LDFLAGS_FEDORA	= -L/usr/lib64 -Wl,--export-dynamic -lalld-4.2.2 -lalleg_unsharable
-DEBUGFLAGS = -g3
+DEBUGFLAGS = -g3 -Wall
+PROFILEFLAGS = -pg
 RELEASEFLAGS = -O3
 
 OBJ =   main.o game.o map.o menu.o object.o sprite.o fight.o iohelper.o attacks.o \
-		command.o fighter.o game_menu.o guihelper.o menu_base.o tileset.o
+		command.o fighter.o game_menu.o guihelper.o menu_base.o tileset.o \
+		attack_animations.o script_engine.o
 BIN =   tiles
 
 release: CXXFLAGS += $(RELEASEFLAGS)
@@ -42,6 +44,9 @@ tools:
 
 debug: CXXFLAGS += $(DEBUGFLAGS)
 debug: all
+
+profile: CXXFLAGS += $(PROFILEFLAGS)
+profile: all
 
 clean:
 	rm -rf $(BIN) $(OBJ) *~ && \

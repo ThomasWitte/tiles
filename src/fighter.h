@@ -25,6 +25,7 @@
 #include "fight.h"
 #include "command.h"
 #include "attacks.h"
+#include "script_engine.h"
 
 using namespace std;
 
@@ -39,21 +40,30 @@ class Fighter : public FighterBase {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h);
 		virtual PlayerSide get_side() {return side;}
 		int get_dir() {return direction;}
+		void set_dir(int dir) {direction = dir%2;}
 		virtual void get_ready();
-		virtual bool is_monster() {return !is_friend();}; // nicht final
+		virtual bool is_monster() {return !is_friend();};
 		virtual bool is_friend();
 		Character get_character();
 		void override_character(Character);
 		virtual void lose_health(int);
+		virtual bool lose_mp(int mp);
 		void show_text(string text, int color, int frames);
 		int get_status(int status);
 		void set_status(int status, int state); //status zB Character::DARK, state: Character::NORMAL, IMMUNE oder SUFFERING
+		bool get_special(int special);
+		void set_special(int special, bool state);
 		string get_spritename() {return spritename;}
 		virtual MenuEntry *get_menu_entry(string name) {return menu.get_menu_entry(name, NULL);}
+		bool has_menu_entry(string name);
+		virtual void set_animation(AnimationType type) {current_animation = type; step = 0;}
+		virtual void get_screen_position(int *x, int *y);
+		void draw_outline(BITMAP *target, BITMAP *muster, int x, int y, int color, bool flip);
 
 	protected:
 		Fight *parent;
 		friend Fight *get_parent(Fighter&);
+		AnimationType current_animation;
 		Character c;
 		int atb;
 		int itc;
@@ -65,9 +75,12 @@ class Fighter : public FighterBase {
 		int textremframes;
 		int textcol;
 		string spritename;
+		int scrposx, scrposy;
 
 		struct FighterTileset {
-			deque<BITMAP*> normal;
+			enum {NORMAL, WOUND, HIT, CRITICAL, ATTACK, ATTACK_EXEC, ATTACK_WAIT, MAGIC, MAGIC_EXEC, MAGIC_WAIT};
+			deque<BITMAP*> imgs[10];
+			int current, saved;
 		} ts;
 
 		class FighterMenu {
@@ -78,31 +91,29 @@ class Fighter : public FighterBase {
 				void set_items(deque< deque<string> > items);
 				MenuEntry *get_menu_entry(string name, MenuEntry *e);
 			protected:
-				enum State {START, MENU, CHOOSE_TARGET, TARGETS_BY_ATTACK} state; 
 				Fighter *fighter;
 	
 				MenuEntry menu;
-				class Command *c;
-				class AttackLib::Attack a;
-				PlayerSide target_side;
-				int cur_target;
-				int multitarget;
 		} menu;
 };
 
 class Hero : public Fighter {
 	public:
 		Hero(class Fight *f, Character c, string name, PlayerSide side, int dir);
-		virtual bool is_monster() {return false;}
-		virtual int get_xp(int);
+		bool is_monster() {return false;}
+		int get_xp(int);
+		void update();
+		void draw(BITMAP *buffer, int x, int y);
 };
 
-class Monster : public Fighter {
+class Monster : public Fighter, public Scriptable {
 	public:
 		Monster(class Fight *f, Character c, string name, PlayerSide side, int dir);
-		virtual bool is_monster() {return true;}
-		virtual void update();
-		virtual void laden(string name);
+		bool is_monster() {return true;}
+		void update();
+		void draw(BITMAP *buffer, int x, int y);
+		void laden(string name);
+		Command get_command();
 
 		struct Treasure {
 			int xp;
@@ -113,7 +124,7 @@ class Monster : public Fighter {
 			deque<string> morph_items;
 		};
 
-		virtual Treasure treasure();
+		Treasure treasure();
 	protected:
 		Treasure t;
 };

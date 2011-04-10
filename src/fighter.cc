@@ -18,6 +18,49 @@
 #include <iostream>
 #include <sstream>
 
+//Tabellen für Levelup
+int xptable[] = {
+	0,		0,		32,		96,		208,	400,	672,	1056,	1552,	2184,
+	2976,	3936,	5080,	6432,	7992,	9784,	11840,	14152,	16736,	19616,
+	22832,	26360,	30232,	34456,	39056,	44072,	49464,	55288,	61568,	68304,
+	75496,	83184,	91384,	100088,	109344,	119136,	129504,	140464,	152008,	164184,
+	176976,	190416,	204520,	219320,	234808,	251000,	267936,	285600,	304040,	323248,
+	343248,	364064,	385696,	408160,	431488,	455680,	480776,	506760,	533680,	561528,
+	590320,	620096,	650840,	682600,	715368,	749160,	784016,	819920,	856920,	895016,
+	934208,	974536,	1016000,1058640,1102456,1147456,1193648,1241080,1289744,1339672,
+	1390872,1443368,1497160,1552264,1608712,1666512,1725688,1786240,1848184,1911552,
+	1976352,2042608,2110320,2179504,2250192,2322392,2396128,2471400,2548224,2637112,
+	2637112
+};
+
+int hptable[] = {
+	0,		11,		12,		14,		17,		20,		22,		24,		26,		27,
+	28,		30,		35,		39,		44,		50,		54,		57,		61,		65,
+	67,		69,		72,		76,		79,		82,		86,		90,		95,		99,
+	100,	101,	102,	102,	103,	104,	106,	107,	108,	110,
+	111,	113,	114,	116,	117,	119,	120,	122,	125,	128,
+	130,	131,	133,	134,	136,	137,	139,	142,	144,	145,
+	147,	148,	150,	152,	153,	155,	156,	158,	160,	162,
+	160,	155,	151,	145,	140,	136,	132,	126,	120,	117,
+	113,	110,	108,	105,	102,	100,	98,		95,		92,		90,
+	88,		87,		85,		83,		82,		80,		83,		86,		88,		0
+};
+
+int mptable[] = {
+	0,		0,		0,		5,		5,		6,		6,		7,		8,		8,
+	9,		9,		10,		10,		10,		10,		10,		11,		11,		11,
+	11,		11,		12,		12,		12,		12,		12,		13,		13,		13,
+	13,		13,		14,		14,		14,		14,		14,		15,		15,		15,
+	15,		15,		16,		16,		16,		16,		16,		17,		17,		17,
+	16,		15,		14,		13,		12,		11,		10,		9,		8,		7,
+	6,		5,		5,		6,		6,		7,		7,		7,		8,		8,
+	8,		8,		8,		7,		7,		7,		6,		6,		6,		6,
+	5,		5,		5,		5,		5,		5,		5,		6,		6,		6,
+	6,		6,		7,		8,		9,		10,		11,		12,		13,		0
+};
+
+//ende
+
 Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	parent = f;
 	this->c = c;
@@ -25,12 +68,16 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 	itc = 0;
 	step = 0;
 	poisoncounter = 0;
+	condemnedcounter = 0;
 	this->side = side;
 	direction = dir;
 	texttoshow = "";
 	textremframes = 0;
 	textcol = 0;
-	
+	current_animation = NORMAL;
+	ts.current = FighterTileset::NORMAL;
+	ts.saved = FighterTileset::NORMAL;
+
 	spritename = name;
 	laden(name);
 
@@ -38,8 +85,9 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 }
 
 Fighter::~Fighter() {
-	for(int i = 0; i < ts.normal.size(); i++)
-		imageloader.destroy(ts.normal[i]);
+	for(int j = FighterTileset::NORMAL; j < FighterTileset::MAGIC_WAIT; j++)
+		for(unsigned int i = 0; i < ts.imgs[j].size(); i++)
+			imageloader.destroy(ts.imgs[j][i]);
 }
 
 void Fighter::laden(string name) {
@@ -47,12 +95,14 @@ void Fighter::laden(string name) {
 	path = string("Fights/Fighters/") + name + string("/");
 
 	FileParser parser(path + name, "Fighter");
+	string sections[] = {"normal", "wound", "hit", "critical", "attack", "attack_exec", "attack_wait",
+						"magic", "magic_exec", "magic_wait"};
 
-	deque< deque<string> > ret = parser.getsection("normal");
-	for(int i = 0; i < ret.size(); i++)
-		ts.normal.push_back(imageloader.load(path + ret[i][0]));
-
-	//alle anderen bilder auch mit normal belegen
+	for(int j = FighterTileset::NORMAL; j <= FighterTileset::MAGIC_WAIT; j++) {
+		deque< deque<string> > ret = parser.getsection(sections[j]);
+		for(unsigned int i = 0; i < ret.size(); i++)
+			ts.imgs[j].push_back(imageloader.load(path + ret[i][0]));
+	}
 
 	c.defensive = true;
 	if(parser.getvalue("Fighter", "defensive", 0) == 0) c.defensive = false;
@@ -88,12 +138,21 @@ void Fighter::laden(string name) {
 	}
 
 	//Statuse
-	string status[] = {"Dark", "Zombie", "Poison", "MTek", "Clear", "Imp", "Petrify", "Wound", "Condemned", "NearFatal", "Image", "Mute", "Berserk", "Muddle", "Seizure", "Sleep", "Dance", "Regen", "Slow", "Haste", "Stop", "Shell", "Safe", "Reflect", "Morph"};
-	for(int i = 0; i < 25; i++) {
+	string status[] = {"Dark", "Zombie", "Poison", "MTek", "Clear", "Imp", "Petrify", "Wound", "Condemned", "NearFatal", "Image", "Mute", "Berserk", "Muddle", "Seizure", "Sleep", "Dance", "Regen", "Slow", "Haste", "Stop", "Shell", "Safe", "Reflect", "Morph", "Float", "Life3"};
+	for(int i = 0; i < 27; i++) {
 		rt = parser.getstring("Status", status[i], "normal");
 		if(rt == "immune") c.status[i] = Character::IMMUNE;
 		else if(rt == "suffering") c.status[i] = Character::SUFFERING;
 		else c.status[i] = Character::NORMAL;
+	}
+
+	//Special
+	string special[] = {"0MPDeath", "Human", "CritHitIfImp", "Undead", "HardToRun", "AtkFirst", "BlockSuplex", "CantRun", "CantScan", "CantSketch", "SpecialEvent", "CantControl", "TrueKnight", "Runic", "RemovableFloat"};
+	for(int i = 0; i < 15; i++) {
+		rt = parser.getstring("Special", special[i], "0");
+		if(rt == "0") c.special[i] = false;
+		else if(rt == "1") c.special[i] = true;
+		else c.special[i] = false;
 	}
 
 	deque< deque<string> > menu_items = parser.getsection("Menu");
@@ -101,44 +160,49 @@ void Fighter::laden(string name) {
 }
 
 void Fighter::update() {
+	//Wound status
 	if(c.curhp <= 0) {
-		c.status[Character::WOUND] = Character::SUFFERING;
-		atb = 0;
-	} else if(c.curhp < c.hp/8) c.status[Character::NEAR_FATAL] = Character::SUFFERING;
-	else c.status[Character::NEAR_FATAL] = Character::NORMAL;
-
-	if(c.status[Character::WOUND] != Character::SUFFERING &&
-		c.status[Character::STOP] != Character::SUFFERING &&
-		c.status[Character::SLEEP] != Character::SUFFERING &&
-		c.status[Character::PETRIFY] != Character::SUFFERING)
-
-		if(atb < 65536)
-			if(is_monster()) {
-				if(c.status[Character::HASTE] == Character::SUFFERING) // Berechnungen in der Algorithms FAQ sind offensichtlich falsch…
-					atb += 63*(c.speed+20) / 16;
-				else if(c.status[Character::SLOW] == Character::SUFFERING)
-					atb += 24*(c.speed+20) / 16;
-				else
-					atb += 3*(c.speed+20);
-			} else {
-				if(c.status[Character::HASTE] == Character::SUFFERING)
-					atb += 63*(c.speed+20) / 16;
-				else if(c.status[Character::SLOW] == Character::SUFFERING)
-					atb += 24*(c.speed+20) / 16;
-				else
-					atb += 3*(c.speed+20);
+		if(c.status[Character::ZOMBIE] != Character::SUFFERING) {
+			for(int i = 0; i < 27; i++) {
+				if(c.status[i] != Character::IMMUNE)
+					c.status[i] = Character::NORMAL;
 			}
+			c.status[Character::WOUND] = Character::SUFFERING;
+			atb = 0;
+		}
+	} else if(c.curhp < c.hp/8) {
+		c.status[Character::NEAR_FATAL] = Character::SUFFERING;
+	} else {
+		c.status[Character::NEAR_FATAL] = Character::NORMAL;
+	}
+
+	//Zombie status
+	if(c.status[Character::ZOMBIE] == Character::SUFFERING) {
+		if(c.status[Character::DARK] != Character::IMMUNE)
+			c.status[Character::DARK] = Character::NORMAL;
+		if(c.status[Character::POISON] != Character::IMMUNE)
+			c.status[Character::POISON] = Character::NORMAL;
+		if(c.status[Character::NEAR_FATAL] != Character::IMMUNE)
+			c.status[Character::NEAR_FATAL] = Character::NORMAL;
+		if(c.status[Character::BERSERK] != Character::IMMUNE)
+			c.status[Character::BERSERK] = Character::NORMAL;
+		if(c.status[Character::MUDDLE] != Character::IMMUNE)
+			c.status[Character::MUDDLE] = Character::NORMAL;
+		if(c.status[Character::SLEEP] != Character::IMMUNE)
+			c.status[Character::SLEEP] = Character::NORMAL;
+	}
+
 	if(atb > 65536) {
 		atb = 65536;
 		parent->enqueue_ready_fighter(this);
 	}
 
 	if(c.status[Character::HASTE] == Character::SUFFERING)
-		itc += 3;
+		itc += 180/GAME_TIMER_BPS;
 	else if(c.status[Character::SLOW] == Character::SUFFERING)
-		itc += 1;
+		itc += 60/GAME_TIMER_BPS;
 	else
-		itc += 2;
+		itc += 120/GAME_TIMER_BPS;
 
 	if(itc > 255 && c.status[Character::WOUND] != Character::SUFFERING) {
 		itc = 0;
@@ -155,6 +219,17 @@ void Fighter::update() {
 			poisoncounter++;
 			if(poisoncounter > 7) poisoncounter = 0;
 			//Giftschaden
+
+		}
+		if(c.status[Character::CONDEMNED] == Character::SUFFERING) {
+			if(condemnedcounter == 0) {
+				Command c(this);
+				c.add_target(this);
+				c.set_attack("X-Fer");
+				c.execute();
+			} else {
+				condemnedcounter--;
+			}
 		}
 		if(c.status[Character::SEIZURE] == Character::SUFFERING && random()%4 == 0) {
 			int dmg = (c.hp * c.stamina / 1024) + 2;
@@ -163,6 +238,7 @@ void Fighter::update() {
 			if(!is_monster()) dmg /= 2;
 			lose_health(dmg);
 			//Seizureschaden
+
 		}
 		if(c.status[Character::REGEN] == Character::SUFFERING && random()%4 == 0) {
 			int dmg = (c.hp * c.stamina / 1024) + 2;
@@ -179,17 +255,67 @@ void Fighter::animate() {
 }
 
 void Fighter::draw(BITMAP *buffer, int x, int y) {
-	int index = (step/SPRITE_ANIMATION_SPEED)%ts.normal.size();
+	scrposx = x;
+	scrposy = y;
+
+	int index = (step/SPRITE_ANIMATION_SPEED)%ts.imgs[ts.current].size();
+
+	//Schatten
+	ellipsefill(buffer, x, y+ts.imgs[ts.current][index]->h/2, 6, 2, COL_BLACK);
+
+	if(c.status[Character::FLOAT] == Character::SUFFERING) {
+		y -= 5;
+	}
+
 	//spiegeln, wenn direction = 0(linkss)
-	if(direction == 0) {
-		draw_sprite_h_flip(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2);
-	} else {
-		draw_sprite(buffer, ts.normal[index], x-ts.normal[index]->w/2, y-ts.normal[index]->h/2);
+	if(c.status[Character::CLEAR] != Character::SUFFERING) {
+		if(direction == 0) {
+			draw_sprite_h_flip(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
+		} else {
+			draw_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2);
+		}
+	}
+
+	//Statusindikatoren zeichnen
+	if(c.status[Character::HASTE] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_RED, (direction == 0));
+	} else if(c.status[Character::SLOW] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_WHITE, (direction == 0));
+	} else if(c.status[Character::STOP] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_PINK, (direction == 0));
+	} else if(c.status[Character::SHELL] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_GREEN, (direction == 0));
+	} else if(c.status[Character::SAFE] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_YELLOW, (direction == 0));
+	} else if(c.status[Character::REFLECT] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_LIGHT_BLUE, (direction == 0));
+	} else if(c.status[Character::CLEAR] == Character::SUFFERING) {
+		draw_outline(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2,
+					y-ts.imgs[ts.current][index]->h/2, COL_BLACK, (direction == 0));
+	}
+
+	if(condemnedcounter > 0) {
+		textprintf_ex(buffer, font, x, y-25, COL_GREY, -1, "%i", condemnedcounter);
 	}
 	if(textremframes) {
 		textremframes--;
 		textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes/2, textcol, -1);
 	}
+}
+
+void Fighter::draw_outline(BITMAP *target, BITMAP *muster, int x, int y, int color, bool flip) {
+	for(int i = 0; i < muster->w; i++)
+		for(int j = 0; j < muster->h; j++) {
+			int c = getpixel(muster, i, j);
+			if(getr(c) < 30 && getg(c) < 30 && getb(c) < 30)
+				putpixel(target, (flip ? x+muster->w-i : x+i), y+j, color);
+		}
 }
 
 void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
@@ -198,7 +324,7 @@ void Fighter::draw_status(BITMAP *buffer, int x, int y, int w, int h) {
 	sprintf(text, "%i", c.curhp);
 	if(c.status[Character::NEAR_FATAL] == Character::SUFFERING)
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_YELLOW, -1);
-	else if(c.status[Character::WOUND] == Character::SUFFERING)
+	else if(c.status[Character::WOUND] == Character::SUFFERING || c.status[Character::ZOMBIE] == Character::SUFFERING)
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_RED, -1);
 	else
 		textout_right_ex(buffer, font, text, x+w*2/3, y+h/2-text_height(font)/2, COL_WHITE, -1);
@@ -259,9 +385,9 @@ void Fighter::override_character(Character o) {
 				c.elements[i] = o.elements[i];
 			break;
 		}
-	for(int i = 0; i < 25; i++)
+	for(int i = 0; i < 27; i++)
 		if(o.status[i] != Character::NORMAL) {
-			for(int j = 0; j < 25; j++) {
+			for(int j = 0; j < 27; j++) {
 				c.status[j] = o.status[j];
 			}
 			break;
@@ -274,19 +400,28 @@ void Fighter::lose_health(int hp) {
 	} else if(hp == MAX_DAMAGE+2) {
 		show_text("Block", COL_WHITE, GAME_TIMER_BPS/2);
 	} else if(hp < 0) {
-		stringstream s;
-		s << (hp*-1);
-		show_text(s.str(), COL_GREEN, GAME_TIMER_BPS/2);
+		show_text(to_string(hp*-1), COL_GREEN, GAME_TIMER_BPS/2);
 	} else {
-		stringstream s;
-		s << hp;
-		show_text(s.str(), COL_WHITE, GAME_TIMER_BPS/2);
+		show_text(to_string(hp), COL_WHITE, GAME_TIMER_BPS/2);
 	}
 
 	if(hp > MAX_DAMAGE) hp = 0;
 	c.curhp -= hp;
-	if(c.curhp < 0) c.curhp = 0;
+	if(c.curhp <= 0) {
+		c.curhp = 0;
+	}
 	if(c.curhp > c.hp) c.curhp = c.hp;
+}
+
+bool Fighter::lose_mp(int mp) {
+	//Bin mir nicht sicher, ob das Mute-verhalten so richtig ist
+	if(c.curmp < mp || (mp > 0 && c.status[Character::MUTE] == Character::SUFFERING))
+		return false;
+	if(mp < 0) {
+		show_text(to_string(mp) + "MP", COL_GREEN, GAME_TIMER_BPS/2);
+	}
+	c.curmp -= mp;
+	return true;
 }
 
 void Fighter::show_text(string text, int color, int frames) {
@@ -296,13 +431,41 @@ void Fighter::show_text(string text, int color, int frames) {
 }
 
 int Fighter::get_status(int status) {
-	if(status >= 25 || status < 0) return -1;
+	if(status >= 27 || status < 0) return -1;
 	return c.status[status];
 }
 
 void Fighter::set_status(int status, int state) {
-	if(status >= 25 || status < 0 || !(state == Character::NORMAL || state == Character::IMMUNE || state == Character::SUFFERING)) return;
+	if(status >= 27 || status < 0 || !(state == Character::NORMAL || state == Character::IMMUNE || state == Character::SUFFERING)) return;
 	c.status[status] = state;
+}
+
+bool Fighter::get_special(int special) {
+	if(special < 15 && special >= 0)
+		return c.special[special];
+	return false;
+}
+
+void Fighter::set_special(int special, bool state) {
+	if(special < 15 && special >= 0)
+		c.special[special] = state;
+}
+
+bool Fighter::has_menu_entry(string name) {
+	MenuEntry *e = menu.get_menu_entry("Menu", NULL);
+
+	unsigned int sz = e->submenu.size();
+	//Maximale Suchtiefe ist 2 - reicht fürs erste
+	for(unsigned int i = 0; i < sz; i++) {
+		if(e->submenu[i].text == name)
+			return true;
+		unsigned int sz2 = e->submenu[i].submenu.size();
+		for(unsigned int j = 0; j < sz2; j++) {
+			if(e->submenu[i].submenu[j].text == name)
+				return true;
+		}
+	}
+	return false;
 }
 
 FighterBase::MenuEntry* Fighter::FighterMenu::get_menu_entry(string name, MenuEntry *e) {
@@ -310,7 +473,7 @@ FighterBase::MenuEntry* Fighter::FighterMenu::get_menu_entry(string name, MenuEn
 	if(e->text == name)
 		return e;
 
-	for(int i = 0; i < e->submenu.size(); i++) {
+	for(unsigned int i = 0; i < e->submenu.size(); i++) {
 		MenuEntry *ret = NULL;
 		ret = get_menu_entry(name, &e->submenu[i]);
 		if(ret)
@@ -322,8 +485,6 @@ FighterBase::MenuEntry* Fighter::FighterMenu::get_menu_entry(string name, MenuEn
 
 Fighter::FighterMenu::FighterMenu() {
 	fighter = NULL;
-	state = START;
-	multitarget = AttackLib::SINGLE;
 }
 
 Fight *get_parent(Fighter& f) {
@@ -342,10 +503,10 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 	//bei gelegenheit ändern
 	MenuEntry e, e2;
 	menu.text = "Menu";
-	for(int i = 0; i < items.size(); i++) {
+	for(unsigned int i = 0; i < items.size(); i++) {
 		e.submenu.resize(0);
 		e.text = items[i][0];
-		for(int j = 1; j < items[i].size(); j++) {
+		for(unsigned int j = 1; j < items[i].size(); j++) {
 			e2.text = items[i][j];
 			e.submenu.push_back(e2);
 		}
@@ -353,184 +514,10 @@ void Fighter::FighterMenu::set_items(deque< deque<string> > items) {
 	}
 }
 
-//ausmisten!
-/*int Fighter::FighterMenu::update() {
-	switch(state) {
-	case START:
-		c = new Command(fighter);
-		state = MENU;
-	case MENU:
-	if(mpause < 0) {
-		if(key[DIR_UP]) {
-			if(sub_open) {
-				sub_auswahl--;
-				if(sub_auswahl <= 0) sub_auswahl = menu_items[auswahl].size()-1;
-			} else {
-				auswahl--;
-				auswahl = auswahl%menu_items.size();
-			}
-			mpause = GAME_TIMER_BPS/10;
-		} else if(key[DIR_DOWN]) {
-			if(sub_open) {
-				sub_auswahl++;
-				if(sub_auswahl >= menu_items[auswahl].size()) sub_auswahl = 1;
-			} else {
-				auswahl++;
-				auswahl = auswahl%menu_items.size();
-			}
-			mpause = GAME_TIMER_BPS/10;
-		} else if(key[ACTION_KEY]) {
-			mpause = GAME_TIMER_BPS/10;
-			if(menu_items[auswahl].size() > 1 && !sub_open) {
-				//Submenü öffnen
-				sub_auswahl = 1;
-				sub_open = true;
-			} else {
-				string attack = "Defend";
-				if(menu_items[auswahl].size() > 1) {
-					attack = menu_items[auswahl][sub_auswahl];
-				} else {
-					attack = menu_items[auswahl][0];
-				}
-				c->set_attack(attack);
-
-				state = TARGETS_BY_ATTACK;
-				sub_open = false;
-			}
-		} else if(key[BACK_KEY]) {
-			if(sub_open) sub_open = false;
-			mpause = GAME_TIMER_BPS/10;
-		}
-	} else mpause--;
-	pointer_position += pointer_delta;
-	if(pointer_position >= 5 || pointer_position <= -5)
-		pointer_delta *= -1;
-	break;
-
-	case TARGETS_BY_ATTACK:
-	//Starttargets werden anhand der gewählten Attacke ausgesucht…
-	a = AttackLib::get_attack(c->get_attack());
-
-	if(a.possible_targets & AttackLib::SINGLE) {
-		multitarget = AttackLib::SINGLE;
-	} else {
-		multitarget = AttackLib::MULTI;
-	}
-
-	if(a.element == AttackLib::HEAL && (a.possible_targets & AttackLib::FRIEND)) {
-		target_side = fighter->get_side();
-		cur_target = 0;
-	} else if(a.possible_targets & AttackLib::ENEMY) {
-		target_side = fighter->get_side();
-		cur_target = 0;
-		for(int i = LEFT; i <= RIGHT; i++) {
-			if((fighter->get_side() != i) && get_parent(*fighter)->get_fighter_count((PlayerSide)i)) {
-				target_side = (PlayerSide)i;
-				cur_target = 0;
-			}
-		}
-	} else if(a.possible_targets & AttackLib::FRIEND) {
-		target_side = fighter->get_side();
-		cur_target = 0;
-	} else { //SELF einziges mögliches ziel
-		target_side = fighter->get_side();
-		cur_target = get_parent(*fighter)->get_index_of_fighter(fighter, target_side);
-	}
-	state = CHOOSE_TARGET;
-	//kein break, um sofort den state zu wechseln
-
-	case CHOOSE_TARGET:
-	if(mpause < 0) {
-		int fc = get_parent(*fighter)->get_fighter_count(target_side);
-		if(key[DIR_UP]) {
-			if((a.possible_targets & AttackLib::FRIEND) || (a.possible_targets & AttackLib::ENEMY)) {
-				cur_target--;
-				if(cur_target < 0) cur_target = fc-1;
-			}
-			mpause = GAME_TIMER_BPS/10;
-		} else if(key[DIR_DOWN]) {
-			if((a.possible_targets & AttackLib::FRIEND) || (a.possible_targets & AttackLib::ENEMY)) {
-				cur_target++;
-				if(cur_target >= fc) cur_target = 0;
-			}
-			mpause = GAME_TIMER_BPS/10;
-		} else if(key[DIR_LEFT]) {
-			int i = target_side;
-			do {
-				i--;
-				if(i < 0) i = RIGHT;
-				cur_target = 0;
-				target_side = (PlayerSide)i;
-			} while(get_parent(*fighter)->get_fighter_count(target_side) == 0 ||
-					((get_parent(*fighter)->get_team(cur_target, target_side) == Fight::FRIEND) && !(a.possible_targets & AttackLib::FRIEND)) || 
-					((get_parent(*fighter)->get_team(cur_target, target_side) == Fight::ENEMY) && !(a.possible_targets & AttackLib::ENEMY))
-					);
-			mpause = GAME_TIMER_BPS/10;
-		} else if(key[DIR_RIGHT]) {
-			int i = target_side;
-			do {
-				i++;
-				cur_target = 0;
-				target_side = (PlayerSide)(i%3);
-			} while(get_parent(*fighter)->get_fighter_count(target_side) == 0 ||
-					((get_parent(*fighter)->get_team(cur_target, target_side) == Fight::FRIEND) && !(a.possible_targets & AttackLib::FRIEND)) || 
-					((get_parent(*fighter)->get_team(cur_target, target_side) == Fight::ENEMY) && !(a.possible_targets & AttackLib::ENEMY))
-					);
-			mpause = GAME_TIMER_BPS/10;
-		} else if(key[SWITCH_KEY]) { // Multi/Singletarget wechseln
-			if(multitarget == AttackLib::SINGLE) {
-				if(a.possible_targets & AttackLib::MULTI) {
-					multitarget = AttackLib::MULTI;
-				}
-			} else if (multitarget == AttackLib::MULTI) {
-				if(a.possible_targets & AttackLib::SINGLE) {
-					multitarget = AttackLib::SINGLE;
-				}
-			}
-			mpause = GAME_TIMER_BPS/10;
-		} else if(key[ACTION_KEY]) { //Enter gedrückt, Befehl ausführen
-			if(multitarget == AttackLib::SINGLE) {
-				get_parent(*fighter)->add_fighter_target(*c, cur_target, target_side);
-			} else {
-				for(int i = 0; i < get_parent(*fighter)->get_fighter_count(target_side); i++)
-					get_parent(*fighter)->add_fighter_target(*c, i, target_side);
-			}
-
-			get_parent(*fighter)->enqueue_command(*c);
-
-			delete c;
-			c = NULL;
-
-			state = START;
-			mpause = GAME_TIMER_BPS/10;
-			for(int h = 0; h < 2; h++)
-				for(int i = 0; i < get_parent(*fighter)->get_fighter_count(h); i++)
-					get_parent(*fighter)->mark_fighter(i, h, false);
-			return 0;
-
-		} else if(key[BACK_KEY]) {
-			state = MENU;
-			mpause = GAME_TIMER_BPS/10;
-			for(int h = 0; h < 2; h++)
-				for(int i = 0; i < get_parent(*fighter)->get_fighter_count(h); i++)
-					get_parent(*fighter)->mark_fighter(i, h, false);
-		}
-
-		for(int h = 0; h < 2; h++)
-			for(int i = 0; i < get_parent(*fighter)->get_fighter_count(h); i++)
-				get_parent(*fighter)->mark_fighter(i, h, false);
-
-		if(multitarget == AttackLib::SINGLE) {
-			get_parent(*fighter)->mark_fighter(cur_target, target_side, true);
-		} else {
-			for(int i = 0; i < get_parent(*fighter)->get_fighter_count(target_side); i++)
-				get_parent(*fighter)->mark_fighter(i, target_side, true);
-		}
-	} else mpause--;
-	break;
-	}
-	return 1; //0 = schließen
-}*/
+void Fighter::get_screen_position(int *x, int *y) {
+	*x = scrposx;
+	*y = scrposy;
+}
 
 Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)
 	: Fighter(f, c, name, side, dir) {
@@ -539,13 +526,116 @@ Hero::Hero(Fight *f, Character c, string name, PlayerSide side, int dir)
 int Hero::get_xp(int xp) {
 	c.xp += xp;
 	c.levelupxp -= xp;
-	while(c.levelupxp <= 0) {
+
+	if(c.xp < xptable[c.level+1])
+		return 0;
+
+	while(c.xp >= xptable[c.level+1] && c.level < 100) {
 		c.level++;
-		c.levelupxp += (XP_FACTOR*c.level*c.level) + ((14-XP_FACTOR)*c.level) + 18;
+		c.levelupxp = xptable[c.level+1]-c.xp;
+
 		//HP etc steigern…
-		return 1;
+		c.hp += hptable[c.level-1];
+		if(c.hp > MAX_HP) c.hp = MAX_HP;
+		c.mp += mptable[c.level-1];
+		if(c.mp > MAX_MP) c.mp = MAX_MP;
 	}
-	return 0;
+	return 1;
+}
+
+void Hero::update() {
+	Fighter::update();
+
+	if(c.status[Character::WOUND] != Character::SUFFERING &&
+	c.status[Character::STOP] != Character::SUFFERING &&
+	c.status[Character::SLEEP] != Character::SUFFERING &&
+	c.status[Character::PETRIFY] != Character::SUFFERING)
+
+	if(atb < 65536) {
+		if(c.status[Character::HASTE] == Character::SUFFERING)
+			atb += 63*(c.speed+20) / 16;
+		else if(c.status[Character::SLOW] == Character::SUFFERING)
+			atb += 24*(c.speed+20) / 16;
+		else
+			atb += 3*(c.speed+20);
+	}
+}
+
+void Hero::draw(BITMAP *buffer, int x, int y) {
+	switch(current_animation) {
+		case ATTACK:
+			x -= (get_side()-1)*(step*3*PC_RESOLUTION_X/8)/GAME_TIMER_BPS;
+			if(ts.saved == FighterTileset::ATTACK_WAIT) {
+				ts.current = FighterTileset::ATTACK;
+				ts.saved = FighterTileset::NORMAL;
+			} else if(ts.saved == FighterTileset::MAGIC_WAIT) {
+				ts.current = FighterTileset::MAGIC;
+				ts.saved = FighterTileset::NORMAL;
+			}
+		break;
+
+		case RETURN:
+			x -= (get_side()-1)*((GAME_TIMER_BPS/3-step)*3*PC_RESOLUTION_X/8)/GAME_TIMER_BPS;
+			ts.current = FighterTileset::ATTACK;
+		break;
+
+		case NORMAL:
+			if(c.status[Character::WOUND] == Character::SUFFERING) {
+				ts.current = FighterTileset::WOUND;
+				ts.saved = FighterTileset::WOUND;
+			}
+
+			if(ts.saved == FighterTileset::NORMAL) {
+				if(	c.status[Character::NEAR_FATAL] == Character::SUFFERING ||
+					c.status[Character::POISON] == Character::SUFFERING ||
+					c.status[Character::SEIZURE] == Character::SUFFERING) {
+					ts.current = FighterTileset::CRITICAL;
+				} else {
+					ts.current = FighterTileset::NORMAL;
+				}
+			} else {
+				ts.current = ts.saved;
+			}
+		break;
+
+		case WAIT_TO_CAST_SPELL:
+			ts.saved = FighterTileset::MAGIC_WAIT;
+			ts.current = FighterTileset::MAGIC_WAIT;
+		break;
+
+		case WAIT_TO_ATTACK:
+			ts.saved = FighterTileset::ATTACK_WAIT;
+		case DEFEND:
+		case EVADE:
+			ts.current = FighterTileset::ATTACK_WAIT;
+		break;
+
+		case ATTACK_IN_PROGRESS:
+			x -= (get_side()-1)*(PC_RESOLUTION_X/8);
+			if(ts.current == FighterTileset::ATTACK)
+				ts.current = FighterTileset::ATTACK_EXEC;
+			else if(ts.current == FighterTileset::MAGIC)
+				ts.current = FighterTileset::MAGIC_EXEC;
+		break;
+
+		case HURT:
+			if(c.status[Character::WOUND] != Character::SUFFERING)
+				ts.current = FighterTileset::HIT;
+		break;
+		
+		case CHEERING:
+			if(((4*step)/GAME_TIMER_BPS)%2 == 0) {
+				ts.current = FighterTileset::MAGIC_EXEC;
+			} else {
+				ts.current = FighterTileset::NORMAL;
+			}
+		break;
+
+		default:
+		break;
+	}
+
+	Fighter::draw(buffer, x, y);
 }
 
 Monster::Monster(Fight *f, Character c, string name, PlayerSide side, int dir)
@@ -555,10 +645,76 @@ Monster::Monster(Fight *f, Character c, string name, PlayerSide side, int dir)
 
 void Monster::update() {
 	Fighter::update();
-	if(c.status[Character::WOUND] == Character::SUFFERING) {
-		//Auflöseanimation fehlt noch…
-		parent->defeated_fighter(this);
+
+	if(c.status[Character::WOUND] != Character::SUFFERING &&
+	c.status[Character::STOP] != Character::SUFFERING &&
+	c.status[Character::SLEEP] != Character::SUFFERING &&
+	c.status[Character::PETRIFY] != Character::SUFFERING)
+
+	if(atb < 65536) {
+		if(c.status[Character::HASTE] == Character::SUFFERING) // Berechnungen in der Algorithms FAQ sind offensichtlich falsch…
+			atb += 63*(c.speed+20) / 16;
+		else if(c.status[Character::SLOW] == Character::SUFFERING)
+			atb += 24*(c.speed+20) / 16;
+		else
+			atb += 3*(c.speed+20);
 	}
+
+	if(c.status[Character::WOUND] == Character::SUFFERING ||
+		c.status[Character::PETRIFY] == Character::SUFFERING) {
+		if(current_animation != DIE) {
+			set_animation(DIE);
+		} else if(step > GAME_TIMER_BPS/3) {
+			parent->defeated_fighter(this);
+		}
+	}
+}
+
+void Monster::draw(BITMAP *buffer, int x, int y) {
+	switch(current_animation) {
+		case HURT:
+			x += step%3-1;
+		break;
+	
+		case DIE:
+		{
+			set_trans_blender(200, 128, 255, 0);
+			int index = (step/SPRITE_ANIMATION_SPEED)%ts.imgs[ts.current].size();
+
+			//spiegeln, wenn direction = 0(links)
+			if(direction == 0) {
+				BITMAP *temp = create_bitmap(ts.imgs[ts.current][index]->w, ts.imgs[ts.current][index]->h);
+				draw_sprite_h_flip(temp, ts.imgs[ts.current][index], 0, 0);
+				draw_lit_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2, 100+step*300/GAME_TIMER_BPS);
+				destroy_bitmap(temp);
+			} else {
+				draw_lit_sprite(buffer, ts.imgs[ts.current][index], x-ts.imgs[ts.current][index]->w/2, y-ts.imgs[ts.current][index]->h/2, 100+step*300/GAME_TIMER_BPS);
+			}
+			if(textremframes) {
+				textremframes--;
+				textout_ex(buffer, font, texttoshow.c_str(), x-10, y-25+textremframes/2, textcol, -1);
+			}
+		}
+		return;
+
+		default:
+		break;
+	}
+
+	Fighter::draw(buffer, x, y);
+}
+
+Command Monster::get_command() {
+	Command c(this);
+	if(!start || Fighter::c.status[Character::BERSERK] == Character::SUFFERING) {
+		c.set_attack("Battle");
+		return c;
+	}
+
+	run();
+
+	c.set_attack(vars["CMD"]);
+	return c;
 }
 
 void Monster::laden(string name) {
@@ -572,6 +728,9 @@ void Monster::laden(string name) {
 	t.stolen_items = parser.get("Treasure", "Stolen");
 	t.morph_items = parser.get("Treasure", "MorphItems");
 	t.morph = parser.getvalue("Treasure", "Morph", 0);
+
+	if(!set_script(parser.getsection_raw("Script")))
+		start = NULL;
 }
 
 Monster::Treasure Monster::treasure() {

@@ -18,7 +18,7 @@
 #include "guihelper.h"
 
 MenuBase::~MenuBase() {
-	for(int i = 0; i < player.size(); i++) {
+	for(unsigned int i = 0; i < player.size(); i++) {
 		shutdown_dialog(player[i]);
 		delete [] dialog[i];
 	}
@@ -62,9 +62,10 @@ void MenuBase::delete_last_dialog() {
 }
 
 int MenuBase::update_game_menu(bool esc_possible, DIALOG_PLAYER *p) {
-   int c, cascii = 0, cscan = 0, ccombo, r, ret, nowhere, z;
+   int c, cascii = 0, cscan = 0, ccombo, r, ret;
    ASSERT(p);
 
+	p->res = 0;
    /* need to give the input focus to someone? */
    if (p->res & D_WANTFOCUS) {
       p->res ^= D_WANTFOCUS;
@@ -81,12 +82,14 @@ int MenuBase::update_game_menu(bool esc_possible, DIALOG_PLAYER *p) {
       /* let object deal with the key */
       if (p->focus_obj >= 0) {
 	 MESSAGE(p->focus_obj, MSG_CHAR, ccombo);
-	 if (p->res & (D_USED_CHAR | D_CLOSE))
+	 if (p->res & (D_USED_CHAR | D_CLOSE)) {
 	    goto getout;
+	}
 
 	 MESSAGE(p->focus_obj, MSG_UCHAR, cascii);
-	 if (p->res & (D_USED_CHAR | D_CLOSE))
+	 if (p->res & (D_USED_CHAR | D_CLOSE)) {
 	    goto getout;
+	}
       }
 
       /* keyboard shortcut? */
@@ -104,8 +107,9 @@ int MenuBase::update_game_menu(bool esc_possible, DIALOG_PLAYER *p) {
       for (c=0; p->dialog[c].proc; c++) {
 	 if (!(p->dialog[c].flags & (D_HIDDEN | D_DISABLED))) {
 	    MESSAGE(c, MSG_XCHAR, ccombo);
-	    if (p->res & D_USED_CHAR)
+	    if (p->res & D_USED_CHAR) {
 	       goto getout;
+		}
 	 }
       }
 

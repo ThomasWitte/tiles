@@ -42,10 +42,11 @@ class Fight : public MenuBase {
 		inline int statusbox(int msg, DIALOG *d, int c);
 		inline int fightermenu(int msg, DIALOG *d, int c);
 		inline int nestedmenu(int msg, DIALOG *d, int c);
+		inline int target_choose(int msg, DIALOG *d, int c);
+		inline int listwin(int msg, DIALOG *d, int c);
 
 		void enqueue_ready_fighter(FighterBase *f);
 		void enqueue_command(class Command c);
-		void block_comqueue(bool state) {command_is_executed = state;}
 		int get_fighter_count(int side);
 		int get_fighter_count(PlayerSide side);
 		void add_fighter_target(Command &c, int fighter, int side);
@@ -59,7 +60,7 @@ class Fight : public MenuBase {
 		PlayerSide get_PlayerSide(FighterBase*);
 
 	private:
-		enum DIALOG_ID{MAIN_DLG, LIST_WIN};
+		enum DIALOG_ID{MAIN_DLG, LIST_WIN, TARGET_CHOOSER};
 		enum FightType{NORMAL, BACK, PINCER, SIDE} type;
 		enum FightState{FIGHT, MENU} state;
 
@@ -67,15 +68,23 @@ class Fight : public MenuBase {
 		DIALOG *create_dialog(int id);
 		int update_fightarea();
 		void draw_fightarea(BITMAP *buffer, DIALOG *dlg);
+		int get_active_menu_fighter(int defval = -1);
+		void set_fightarea_message(int timeout, string text = "");
 
+		Command *cur_cmd;
 		Game *parent;
-		long time;
+		//long time;
+
+		string fightarea_message;
+		int fightarea_message_timeout;
+
 		BITMAP *bg, *menu_bg, *auswahl;
 		deque<Command> comqueue;
-		bool command_is_executed;
+		int command_is_executed;
 		deque<FighterBase*> fighters[2]; //Friends, Enemies
 		deque<FighterBase*> ready_fighters;
 		deque<FighterBase*> defeated_fighters;
+		FighterBase *curmf; //Notlösung um zu verhindern, dass falsches Fightermenü angezeigt wird.
 		bool marked_fighters[2][20];
 };
 

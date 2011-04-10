@@ -28,7 +28,12 @@ enum PlayerSide {LEFT, MIDDLE, RIGHT};
 
 struct Character {
 	enum {NORMAL, WEAK, ABSORB, IMMUNE, RESISTANT, SUFFERING};
-	enum {DARK, ZOMBIE, POISON, MTEK, CLEAR, IMP, PETRIFY, WOUND, CONDEMNED, NEAR_FATAL, IMAGE, MUTE, BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT, MORPH};
+	enum {	DARK, ZOMBIE, POISON, MTEK, CLEAR, IMP, PETRIFY, WOUND, CONDEMNED, NEAR_FATAL, IMAGE, MUTE,
+			BERSERK, MUDDLE, SEIZURE, SLEEP, DANCE, REGEN, SLOW, HASTE, STOP, SHELL, SAFE, REFLECT,
+			MORPH, FLOAT, LIFE3};
+
+	enum {	MP_DEATH, HUMAN, CRITHITIFIMP, UNDEAD, HARDTORUN, ATKFIRST, BLOCKSUPLEX, CANTRUN, CANTSCAN,
+			CANTSKETCH, SPECIALEVENT, CANTCONTROL, TRUEKNIGHT, RUNIC, REMOVABLEFLOAT};
 
 	string name;
 	bool defensive;
@@ -49,12 +54,15 @@ struct Character {
 	int levelupxp;
 	int level;
 	int hitrate; // wird von waffe vorgegeben, bei kampf ohne waffe gild dieser wert
+	bool special[15];
 	int elements[11];
-	int status[25];
+	int status[27];
 };
 
 class FighterBase {
 	public:
+		enum AnimationType {NORMAL, WAIT_TO_CAST_SPELL, WAIT_TO_ATTACK, DEFEND, ATTACK, ATTACK_IN_PROGRESS, RETURN, HURT, DIE, EVADE, CHEERING};
+
 		struct MenuEntry {
 			string text;
 			deque<MenuEntry> submenu; 
@@ -70,17 +78,26 @@ class FighterBase {
 		virtual void draw_status(BITMAP *buffer, int x, int y, int w, int h) = 0;
 		virtual PlayerSide get_side() = 0;
 		virtual int get_dir() = 0;
+		virtual void set_dir(int dir) = 0;
 		virtual void get_ready() = 0;
 		virtual bool is_monster() = 0;
 		virtual bool is_friend() = 0;
 		virtual Character get_character() = 0;
 		virtual void override_character(Character) = 0;
 		virtual void lose_health(int) = 0;
+		virtual bool lose_mp(int mp) = 0;
 		virtual void show_text(string text, int color, int frames) = 0;
 		virtual int get_status(int status) = 0;
+		virtual bool get_special(int special) = 0;
 		virtual void set_status(int status, int state) = 0;
+		virtual void set_special(int special, bool state) = 0;
 		virtual string get_spritename() = 0;
+		virtual void set_animation(AnimationType) = 0;
 		virtual MenuEntry* get_menu_entry(string name) = 0;
+		virtual bool has_menu_entry(string name) = 0;
+		virtual void get_screen_position(int *x, int *y) = 0;
+
+		int condemnedcounter;
 };
 
 #include "fight.h"

@@ -19,12 +19,13 @@
 
 //TODO Imageloader Cache
 
+#include <allegro.h>
 #include <deque>
-#include <map>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
+#include "config.h"
 
 using namespace std;
 
@@ -49,6 +50,7 @@ class FileParser {
 		deque<string> get(string section, string element);
 		deque<deque<string> > getall(string section, string element);
 		deque<deque<string> > getsection(string section);
+		string getsection_raw(string section);
 	protected:
 		deque<deque<string> > daten;
 };
@@ -56,6 +58,7 @@ class FileParser {
 
 class ImageLoader {
 	public:
+		ImageLoader();
 		~ImageLoader();
 		BITMAP* load(string name);
 		BITMAP* create(int w, int h);
@@ -63,13 +66,16 @@ class ImageLoader {
 		void destroy(BITMAP *bmp);
 		void destroy_all(string name);
 		void clear();
+		BITMAP* copy(BITMAP *bmp);
 	protected:
-		class Image {
-			public:
+		struct Image {
+			string name;
 			BITMAP *bmp;
 			int count;
 		};
-		map<string, Image> imgs;
+		deque<Image> imgs;
+		float data_size;
+		void cleanup(float size);
 };
 
 extern ImageLoader imageloader;

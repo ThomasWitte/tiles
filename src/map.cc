@@ -50,16 +50,16 @@ Map::~Map() {
 			delete [] walkable[i];
 		delete [] walkable;
 
-	for(int i = 0; i < objects.size(); i++)
+	for(unsigned int i = 0; i < objects.size(); i++)
 		delete objects[i];
 
-	for(int i = 0; i < sprites.size(); i++)
+	for(unsigned int i = 0; i < sprites.size(); i++)
 		delete sprites[i];
 
-	for(int i = 0; i < animations.size(); i++)
+	for(unsigned int i = 0; i < animations.size(); i++)
 		delete animations[i];
 
-	for(int i = 0; i < dialoge.size(); i++)
+	for(unsigned int i = 0; i < dialoge.size(); i++)
 		imageloader.destroy(dialoge[i].dlg);
 }
 
@@ -67,7 +67,7 @@ bool Map::is_walkable(int x, int y) {
 	x/=current_tileset.get_tilesize();
 	y/=current_tileset.get_tilesize();
 
-	for(int i = 0; i < objects.size(); i++) {
+	for(unsigned int i = 0; i < objects.size(); i++) {
 		if(objects[i]->is_solid()) {
 			int xp, yp;
 			objects[i]->get_position(xp, yp);
@@ -85,6 +85,7 @@ bool Map::is_walkable(int x, int y) {
 		return false;
 	if(walkable[x][y] == 1)
 		return true;
+	return false;
 }
 
 void Map::laden(string dateiname, Game *parent) {
@@ -103,20 +104,20 @@ void Map::laden(string dateiname, Game *parent) {
 		delete [] walkable;
 	}
 
-	for(int i = 1; i < objects.size(); i++) //alle außer dem ersten objekt löschen
+	for(unsigned int i = 1; i < objects.size(); i++) //alle außer dem ersten objekt löschen
 		delete objects[i];
 	objects.resize(1);
 	centre(0);
 
-	for(int i = 0; i < sprites.size(); i++)
+	for(unsigned int i = 0; i < sprites.size(); i++)
 		delete sprites[i];
 	sprites.resize(0);
 
-	for(int i = 0; i < animations.size(); i++)
+	for(unsigned int i = 0; i < animations.size(); i++)
 		delete animations[i];
 	animations.resize(0);
 
-	for(int i = 0; i < dialoge.size(); i++)
+	for(unsigned int i = 0; i < dialoge.size(); i++)
 		imageloader.destroy(dialoge[i].dlg);
 	dialoge.resize(0);
 
@@ -153,13 +154,13 @@ void Map::laden(string dateiname, Game *parent) {
 	}
 
 	retall = parser.getall("Object", "bobj");
-	for(int i = 0; i < retall.size(); i++)
+	for(unsigned int i = 0; i < retall.size(); i++)
 		objects.push_back(new BaseObject(
 			(atoi(retall[i][0].c_str())+0.5)*current_tileset.get_tilesize(),
 			(atoi(retall[i][1].c_str())+0.5)*current_tileset.get_tilesize(), false, this));
 
 	retall = parser.getall("Object", "sprite");
-	for(int n = 0; n < retall.size(); n++) {
+	for(unsigned int n = 0; n < retall.size(); n++) {
 		if(retall[n][2] == "DefaultSprite" && parent->get_var("Map.DefaultSprite") != "") {
 			sprites.push_back(new SpriteSet(parent->get_var("Map.DefaultSprite")));
 		} else {
@@ -181,9 +182,9 @@ void Map::laden(string dateiname, Game *parent) {
 	}
 
 	retall = parser.getall("Object", "object");
-	for(int n = 0; n < retall.size(); n++) {
+	for(unsigned int n = 0; n < retall.size(); n++) {
 		int index = -1;
-		for(int i = 0; i < animations.size(); i++) {
+		for(unsigned int i = 0; i < animations.size(); i++) {
 			if(animations[i]->get_name() == retall[n][2]) index = i;
 		}
 		if(index == -1) {
@@ -196,7 +197,7 @@ void Map::laden(string dateiname, Game *parent) {
 	}
 
 	retall = parser.getsection("Event");
-	for(int i = 0; i < retall.size(); i++)
+	for(unsigned int i = 0; i < retall.size(); i++)
 		parent->register_event(retall[i]);
 
 	cout << dateiname << ": [Information] Map geladen" << endl;
@@ -206,7 +207,7 @@ int Map::get_tilesize() {
 	return current_tileset.get_tilesize();
 }
 
-void Map::centre(int index) {
+void Map::centre(unsigned int index) {
 	if(index < objects.size())
 		focus = index;
 	else
@@ -214,7 +215,7 @@ void Map::centre(int index) {
 }
 
 void Map::update() {
-	for(int i = 0; i < objects.size(); i++) {
+	for(unsigned int i = 0; i < objects.size(); i++) {
 		objects[i]->update();
 	}
 
@@ -226,7 +227,7 @@ void Map::update() {
 		dialoge[0].max_frames--;
 
 		bool action = false;
-		for(int i = 0; i < objects.size(); i++) {
+		for(unsigned int i = 0; i < objects.size(); i++) {
 			if(objects[i]->action) {
 				action = true;
 			}
@@ -270,7 +271,7 @@ void Map::draw(BITMAP *buffer) {
 				(x*ts)-(camx-buffer->w/2), (y*ts)-(camy-buffer->h/2), ts, ts);
 		}
 
-	for(int i = 0; i < objects.size(); i++) {
+	for(unsigned int i = 0; i < objects.size(); i++) {
 		objects[i]->get_position(ox, oy);
 		ox -= (camx-buffer->w/2);
 		oy -= (camy-buffer->h/2);
