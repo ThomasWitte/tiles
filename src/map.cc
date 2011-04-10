@@ -274,8 +274,8 @@ void Map::draw(BITMAP *buffer) {
 		objects[i]->get_position(ox, oy);
 		ox -= (camx-buffer->w/2);
 		oy -= (camy-buffer->h/2);
-		if(ox > -(ts+5) && ox < buffer->w+5 &&
-			oy > -(ts+5) && oy < buffer->h+5)
+		if(ox > -(ts*15) && ox < buffer->w+ts &&
+			oy > -(ts+5) && oy < buffer->h+15*ts)
 			objects[i]->draw(ox, oy, buffer);
 	}
 

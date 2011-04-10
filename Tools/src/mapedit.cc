@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 	if(argc > 1) {
 		allegro_init();
 		set_color_depth(32);
-		set_gfx_mode(GFX_AUTODETECT_WINDOWED, 800, 600, 0, 0);
+		set_gfx_mode(GFX_AUTODETECT_WINDOWED, 1024, 768, 0, 0);
 		install_keyboard();
 		install_timer();
 
@@ -163,7 +163,7 @@ int mapedit_proc(int msg, DIALOG *d, int c) {
 				default:
 				return D_O_K;
 			}
-			sprintf(postxt, "[c: %3i][x: %3i     y: %3i]", d->flags, d->fg, d->bg);
+			sprintf(postxt, "[c: %3i][x: %3i    y: %3i]", d->flags/D_USER, d->fg, d->bg);
 		return D_USED_CHAR | D_REDRAW;
 
 		case MSG_WANTFOCUS:
@@ -210,9 +210,9 @@ int mapedit(std::string level) {
 	DIALOG mapedit_dlg[] =
 	{
 	   /* (proc)       (x) (y)  (w)  (h)  (fg) (bg) (key) (flags) (d1) (d2) (dp)  (dp2) (dp3) */
-	   { mapedit_proc, 0,  0,   800, 590, 0,   0,   0,    D_EXIT, tilesx, tilesy, (void*)tilemap, (void*)&ts, (void*)&level },
-	   { d_text_proc,  0,  591, 800, 10,  makecol(255,255,255),   0,   0,    0,      0,   0,   (void*)"[c]copy [v]paste [s]save [q]quit [w]toggle walkable", NULL, NULL },
-	   { d_text_proc,  600,591, 200, 10,  makecol(255,255,255),   0,   0,    0,      0,   0,   (void*)postxt, NULL, NULL },
+	   { mapedit_proc, 0,  0,   SCREEN_W, SCREEN_H, 0,   0,   0,    D_EXIT, tilesx, tilesy, (void*)tilemap, (void*)&ts, (void*)&level },
+	   { d_text_proc,  0,  SCREEN_H-9, SCREEN_W, 10,  makecol(255,255,255),   0,   0,    0,      0,   0,   (void*)"[c]copy [v]paste [s]save [q]quit [w]toggle walkable", NULL, NULL },
+	   { d_text_proc,  600,SCREEN_H-9, 200, 10,  makecol(255,255,255),   0,   0,    0,      0,   0,   (void*)postxt, NULL, NULL },
 	   { NULL,         0,  0,   0,   0,   0,   0,   0,    0,      0,   0,   NULL, NULL, NULL }
 	};
 

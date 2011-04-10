@@ -112,7 +112,7 @@ Sprite::~Sprite() {
 
 void Sprite::draw(int xpos, int ypos, BITMAP *buffer) {
 	BITMAP *sprite = spriteset->get_sprite(current_direction, walking, frame);
-	draw_sprite(buffer, sprite, xpos-sprite->w/2, ypos-sprite->h/2);
+	draw_sprite(buffer, sprite, xpos-parent->get_tilesize()/2, ypos-sprite->h+parent->get_tilesize()/2);
 }
 
 int Sprite::get_direction() {

@@ -74,5 +74,6 @@ BITMAP* Animation::get_frame(int frame) {
 
 void Object::draw(int xpos, int ypos, BITMAP *buffer) {
 	BITMAP *sprite = ani->get_frame(frame);
-	draw_sprite(buffer, sprite, xpos-sprite->w/2, ypos-sprite->h/2);
+	if(parent)
+		draw_sprite(buffer, sprite, xpos-parent->get_tilesize()/2, ypos-sprite->h+parent->get_tilesize()/2);
 }

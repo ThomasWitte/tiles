@@ -66,5 +66,21 @@ Data
 ;;
 [Object]
 sprite 36 55 Terra player ;;
+object 50 16 barrel ;;
+object 31 17 barrel ;;
+object 41 22 barrel ;;
+object 40 23 barrel ;;
+object 41 23 barrel ;;
+object 44 28 barrel ;;
+object 44 29 barrel ;;
+object 41 39 barrel ;;
+object 42 40 barrel ;;
+object 42 41 barrel ;;
+object 41 41 barrel ;;
+object 40 41 barrel ;;
+object 28 55 barrel ;;
+object 27 55 barrel ;;
+object 24 39 Narshe_house1 ;;
+object 29 46 Narshe_gate ;;
 [Event]
 [eof]
