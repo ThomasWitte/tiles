@@ -67,6 +67,8 @@ int AttackLib::inflict<Character::HASTE>(FighterBase *caster, FighterBase *targe
 	return 0;
 }
 
+typedef int (*EFFECT_FUNCTION)(FighterBase *caster, FighterBase *target);
+
 AttackLib::Attack AttackLib::lib[] = {
 	// pow = -1: Angriffskraft wird durch Characterwert bestimmt
 	// hitr = 255: trifft immer
@@ -359,13 +361,14 @@ int AttackLib::calc_damage(FighterBase *caster, FighterBase *target, Attack a, b
 		return MAX_DAMAGE + 1;
 	else if(!a.physical && ctarget.status[Character::CLEAR] == Character::SUFFERING) {
 		//Magic removes Clear status
-		if(a.effect_function != &toggle<Character::CLEAR>)
+		if(a.effect_function != (EFFECT_FUNCTION)&toggle<Character::CLEAR>)
 			heal<Character::CLEAR>(caster, target);
 
 		goto hit;
 	}
 	//Step2
-	if(ctarget.status[Character::WOUND] == Character::IMMUNE && a.effect_function == &inflict<Character::WOUND>)
+	if(ctarget.status[Character::WOUND] == Character::IMMUNE &&
+		a.effect_function == (EFFECT_FUNCTION)&inflict<Character::WOUND>)
 		return MAX_DAMAGE + 1;
 	//Step3
 	if(a.unblock) goto hit;

@@ -17,7 +17,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <sstream>
 #include "game.h"
 
 Game::Game() : m("defaultLevel", this) {
@@ -348,7 +347,7 @@ void Game::update() {
 					int pos = chars.find_first_of(";");
 					while(pos != (int)string::npos) {
 						string curchar = chars.substr(0, pos);
-						if(get_var(curchar + ".status" + to_string(Character::POISON)) == "suffering") {
+						if(get_var(curchar + ".status" + to_string((int)Character::POISON)) == "suffering") {
 							int curhp = atoi(get_var(curchar + ".curhp").c_str());
 							curhp -= atoi(get_var(curchar + ".hp").c_str())/32;
 							if(curhp < 1) curhp = 1;

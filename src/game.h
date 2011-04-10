@@ -22,6 +22,7 @@
 #include <string>
 #include "map.h"
 #include "fight.h"
+#include "fighter_base.h"
 #include "game_menu.h"
 #include "iohelper.h"
 

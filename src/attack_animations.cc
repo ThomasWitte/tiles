@@ -37,9 +37,16 @@ int fight_ani(int step, AnimationData *data, BITMAP *buffer) {
 		return -1;
 
 	BITMAP *bmp = (BITMAP*)data->dp[(16*step) / GAME_TIMER_BPS];
+#if ALLEGRO_SUB_VERSION >= 4
 	draw_sprite_ex(buffer, bmp, data->caster.x-bmp->w/2, data->caster.y-bmp->h/2, DRAW_SPRITE_NORMAL,
 		(data->caster.x > data->targets[0].x ? DRAW_SPRITE_NO_FLIP : DRAW_SPRITE_H_FLIP));
-	
+#else
+	if(data->caster.x > data->targets[0].x)
+		draw_sprite(buffer, bmp, data->caster.x-bmp->w/2, data->caster.y-bmp->h/2);
+	else
+		draw_sprite_h_flip(buffer, bmp, data->caster.x-bmp->w/2, data->caster.y-bmp->h/2);
+#endif
+
 	return 0;
 }
 
@@ -60,7 +67,7 @@ int heal_ani(int step, AnimationData *data, BITMAP *buffer) {
 
 	BITMAP *bmp = (BITMAP*)data->dp[(15*step) / GAME_TIMER_BPS];
 	for(unsigned int i = 0; i < data->targets.size(); i++)
-		draw_sprite_ex(buffer, bmp, data->targets[i].x-bmp->w/2, data->targets[i].y-bmp->h/2, DRAW_SPRITE_NORMAL, DRAW_SPRITE_NO_FLIP);
+		draw_sprite(buffer, bmp, data->targets[i].x-bmp->w/2, data->targets[i].y-bmp->h/2);
 	
 	return 0;
 }
