@@ -29,13 +29,13 @@ Tileset::Tileset() {
 Tileset::~Tileset() {
 	for(int i = 0; i < MAX_TILES_PER_TILESET; i++)
 		if(tiles[i])
-			imageloader.destroy(tiles[i]);
+			IMGLOADER.destroy(tiles[i]);
 }
 
 void Tileset::load(string name) {
 	for(int i = 0; i < MAX_TILES_PER_TILESET; i++) {
 		if(tiles[i])
-			imageloader.destroy(tiles[i]);
+			IMGLOADER.destroy(tiles[i]);
 		tiles[i] = NULL;
 		walk[i] = 0;
 	}
@@ -50,16 +50,16 @@ void Tileset::load(string name) {
 	for(unsigned int i = 0; i < ret.size(); i++) {
 		index = atoi(ret[i][0].c_str());
 		if(index < MAX_TILES_PER_TILESET && index > -1) {
-			tiles[index] = imageloader.load(prefix + ret[i][1]);
+			tiles[index] = IMGLOADER.load(prefix + ret[i][1]);
 			walk[index] = atoi(ret[i][2].c_str());
 		}
 	}
 
 	if(!tiles[0]) {
-		tiles[0] = imageloader.create(16, 16);
-		cout << name << ": [Fehler] Tileset konnte nicht geladen werden." << endl;
+		tiles[0] = IMGLOADER.create(16, 16);
+		MSG(Log::ERROR, "Tileset", "Tileset " + name + " konnte nicht geladen werden.");
 	} else
-		cout << name << ": [Information] Tileset geladen" << endl;
+		MSG(Log::DEBUG, "Tileset", "Tileset " + name + " geladen.");
 }
 
 int Tileset::is_walkable(int index) {

@@ -35,11 +35,11 @@ int ff6_list(int msg, DIALOG *d, int c) {
 	//d->bg wird für den zeigeroffset missbraucht
 	switch(msg) {
 		case MSG_START:
-			d->dp3 = (void*)imageloader.load("Images/auswahl.tga");
+			d->dp3 = (void*)IMGLOADER.load("Images/auswahl.tga");
 		break;
 
 		case MSG_END:
-			imageloader.destroy((BITMAP*)d->dp3);
+			IMGLOADER.destroy((BITMAP*)d->dp3);
 		break;
 
 		case MSG_CHAR:
@@ -199,9 +199,9 @@ int char_select(int msg, DIALOG *d, int c) {
 			}
 			//portrait laden…
 			d->dp2 = (void*)new BITMAP*[2];
-			((BITMAP**)d->dp2)[0] = imageloader.load("Fights/Fighters/" + *name + "/face.tga");
+			((BITMAP**)d->dp2)[0] = IMGLOADER.load("Fights/Fighters/" + *name + "/face.tga");
 			//finger
-			((BITMAP**)d->dp2)[1] = imageloader.load("Images/auswahl.tga");
+			((BITMAP**)d->dp2)[1] = IMGLOADER.load("Images/auswahl.tga");
 			d->dp3 = (void*)name;
 
 			if(!(d->flags & D_DISABLED)) {
@@ -293,8 +293,8 @@ int char_select(int msg, DIALOG *d, int c) {
 				d->d1 = GAME_TIMER_BPS/6;
 		break;
 		case MSG_END:
-			imageloader.destroy(((BITMAP**)d->dp2)[0]);
-			imageloader.destroy(((BITMAP**)d->dp2)[1]);
+			IMGLOADER.destroy(((BITMAP**)d->dp2)[0]);
+			IMGLOADER.destroy(((BITMAP**)d->dp2)[1]);
 			delete [] (BITMAP*)d->dp2;
 			delete (string*)d->dp3;
 		break;
@@ -329,10 +329,10 @@ int r_box_proc(int msg, DIALOG *d, int c) {
 int transp_bmp(int msg, DIALOG *d, int c) {
 	switch(msg) {
 		case MSG_START:
-			d->dp3 = (void*)imageloader.load((char*)d->dp);
+			d->dp3 = (void*)IMGLOADER.load((char*)d->dp);
 		break;
 		case MSG_END:
-			imageloader.destroy((BITMAP*)d->dp3);
+			IMGLOADER.destroy((BITMAP*)d->dp3);
 		break;
 		case MSG_DRAW:
 			if(d->dp3)
@@ -363,19 +363,19 @@ int ch_button(int msg, DIALOG *d, int c) {
 			}
 
 			d->dp2 = (void*)new BITMAP*[2];
-			((BITMAP**)d->dp2)[0] = ausw = imageloader.load("Images/auswahl.tga");
+			((BITMAP**)d->dp2)[0] = ausw = IMGLOADER.load("Images/auswahl.tga");
 			((BITMAP**)d->dp2)[1] = bg = NULL;
 			return D_O_K;
 		break;
 		case MSG_END:
-			imageloader.destroy(((BITMAP**)d->dp2)[0]);
-			imageloader.destroy(((BITMAP**)d->dp2)[1]);
+			IMGLOADER.destroy(((BITMAP**)d->dp2)[0]);
+			IMGLOADER.destroy(((BITMAP**)d->dp2)[1]);
 			delete [] (BITMAP*)d->dp2;
 			return D_O_K;
 		break;
 		case MSG_DRAW:
 			if(!((BITMAP**)d->dp2)[1]) {
-				((BITMAP**)d->dp2)[1] = bg = imageloader.create(((BITMAP**)d->dp2)[0]->w+10, ((BITMAP**)d->dp2)[0]->h);
+				((BITMAP**)d->dp2)[1] = bg = IMGLOADER.create(((BITMAP**)d->dp2)[0]->w+10, ((BITMAP**)d->dp2)[0]->h);
 				blit(scr, bg, d->x-((BITMAP**)d->dp2)[0]->w+5, d->y+10, 0, 0, bg->w, bg->h);
 			}
 
@@ -406,10 +406,10 @@ int ff6_button(int msg, DIALOG *d, int c) {
 	int offset;
 	switch(msg) {
 		case MSG_START:
-			d->dp2 = (void*)imageloader.load("Images/auswahl.tga");
+			d->dp2 = (void*)IMGLOADER.load("Images/auswahl.tga");
 		break;
 		case MSG_END:
-			imageloader.destroy((BITMAP*)d->dp2);
+			IMGLOADER.destroy((BITMAP*)d->dp2);
 		break;
 		case MSG_DRAW:
 			if(~d->flags & D_HIDDEN) {
@@ -455,7 +455,7 @@ int dialog_cleanup(int msg, DIALOG *d, int c) {
 
 int animated_dialog(DIALOG *dlg, int active) {
 	DIALOG_PLAYER *player = init_dialog(dlg, active);
-	BITMAP *buffer = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *buffer = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	clear_to_color(buffer, makecol(255,0,255));
 	bool ende = false;
 	while(!ende) {
@@ -474,7 +474,7 @@ int animated_dialog(DIALOG *dlg, int active) {
 		}
 	}
 	int ret = shutdown_dialog(player);
-	imageloader.destroy(buffer);
+	IMGLOADER.destroy(buffer);
 	return ret;
 }
 

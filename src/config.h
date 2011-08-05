@@ -51,6 +51,12 @@
 //fps anzeigen?
 //#define ENABLE_FRAME_COUNTER
 
+//Terminal-Ausgaben
+#define SHOW_DEBUG_MSG
+#define SHOW_INFO_MSG
+#define SHOW_WARN_MSG
+#define SHOW_ERROR_MSG
+
 //Spieleinstellungen
 //Während Dialogen bewegung verbieten?
 #define ENABLE_DIALOG_MOVE_LOCK

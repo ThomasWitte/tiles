@@ -28,13 +28,13 @@ Game::Game() : m("defaultLevel", this) {
 	buffer = NULL;
 
 	#ifdef GP2X
-	buffer = imageloader.create(SCREEN_W, SCREEN_H);
+	buffer = IMGLOADER.create(SCREEN_W, SCREEN_H);
 	#else
-	buffer = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	buffer = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	#endif
 
 	if(!buffer)
-		cerr << "Konnte Doublebuffer nicht erzeugen" << endl;
+		MSG(Log::ERROR, "Game", "Konnte Doublebuffer nicht erzeugen");
 }
 
 Game::~Game() {
@@ -47,7 +47,7 @@ Game::~Game() {
 		menu = NULL;
 	}
 	if(buffer)
-		imageloader.destroy(buffer);
+		IMGLOADER.destroy(buffer);
 }
 
 Game::Game(string spielstand) {
@@ -224,8 +224,8 @@ void Game::change_map(Event *e) {
 	for(int i = 0; i < 6; i++)
 		events[i].resize(0);
 
-	BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-	BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *start = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 
 	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 	m.laden(map_to_load, this);
@@ -243,8 +243,8 @@ void Game::change_map(Event *e) {
 void Game::start_fight(Event *e) {
 	f = new Fight(e->arg[0], this);
 	
-	BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-	BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *start = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+	BITMAP *ziel = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 
 	blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 
@@ -255,7 +255,7 @@ void Game::start_fight(Event *e) {
 
 void Game::dialog(Event *e) {
 	Dlg d;
-	d.dlg = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
+	d.dlg = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
 	for(int i = 0; i < d.dlg->h; i++) {
 		line(d.dlg, 0, i, d.dlg->w, i, makecol(i, i, 255-i));
 	}
@@ -315,8 +315,8 @@ void Game::update() {
 				mode = MENU;
 				clear_keybuf();
 
-				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *start = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 				menu->draw(ziel);
 				mode = BLENDE;
@@ -398,8 +398,8 @@ void Game::update() {
 				delete f;
 				f = NULL;
 
-				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *start = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 				m.draw(ziel);
 				mode = BLENDE;
@@ -410,8 +410,8 @@ void Game::update() {
 			if(menu->update() == 0) {//Menü wurde geschlossen
 				mode = MAP;
 
-				BITMAP *start = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
-				BITMAP *ziel = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *start = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
+				BITMAP *ziel = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y);
 				blit(buffer, start, 0, 0, 0, 0, PC_RESOLUTION_X, PC_RESOLUTION_Y);
 				m.draw(ziel);
 				mode = BLENDE;
@@ -531,24 +531,24 @@ Game::GAME_MODE Game::Blende::update() {
 		case SCHIEBEN:
 			versatz -= delta;
 			if(versatz <= 0) {
-				imageloader.destroy(start);
-				imageloader.destroy(ziel);
+				IMGLOADER.destroy(start);
+				IMGLOADER.destroy(ziel);
 				return mode;
 			}
 		break;
 		case ZOOM:
 			versatz += delta;
 			if(versatz >= PC_RESOLUTION_Y) {
-				imageloader.destroy(start);
-				imageloader.destroy(ziel);
+				IMGLOADER.destroy(start);
+				IMGLOADER.destroy(ziel);
 				return mode;
 			}
 		break;
 		case REV_ZOOM:
 			versatz -= delta;
 			if(versatz <= 0) {
-				imageloader.destroy(start);
-				imageloader.destroy(ziel);
+				IMGLOADER.destroy(start);
+				IMGLOADER.destroy(ziel);
 				return mode;
 			}
 		break;
@@ -559,8 +559,8 @@ Game::GAME_MODE Game::Blende::update() {
 			}
 			versatz += delta;
 			if(versatz >= PC_RESOLUTION_Y) {
-				imageloader.destroy(start);
-				imageloader.destroy(ziel);
+				IMGLOADER.destroy(start);
+				IMGLOADER.destroy(ziel);
 				return mode;
 			}
 		break;

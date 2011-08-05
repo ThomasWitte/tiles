@@ -82,7 +82,7 @@ DIALOG *GameMenu::create_item_dialog() {
 	   { NULL,          0,   0,  0,   0,   0,         0,   0,    0,      0,   0,   				NULL,             NULL, NULL }
 	};
 	memcpy(ret, menu, 10*sizeof(DIALOG));
-	cout << "item_dialog created" << endl;
+	MSG(Log::INFO, "GameMenu", "item_dialog created");
 	return ret;
 }
 
@@ -103,7 +103,7 @@ DIALOG *GameMenu::create_item_sp_dialog() {
 	   { NULL,          0,   0,  0,   0,   0,         0,   0,    0,      0,   0,   				NULL,             NULL, NULL }
 	};
 	memcpy(ret, menu, 10*sizeof(DIALOG));
-	cout << "item_sp_dialog created" << endl;
+	MSG(Log::INFO, "GameMenu", "item_sp_dialog created");
 	return ret;
 }
 
@@ -136,7 +136,7 @@ DIALOG *GameMenu::create_main_dialog() {
 	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,             NULL,               NULL,                   NULL }
 	};
 	memcpy(ret, menu, 22*sizeof(DIALOG));
-	cout << "main_dialog created" << endl;
+	MSG(Log::INFO, "GameMenu", "main_dialog created");
 	return ret;
 }
 
@@ -153,7 +153,7 @@ DIALOG *GameMenu::create_ch_chooser(DIALOG_ID id) {
 	   { NULL,         0,   0,   0,   0,   0,         0,   0,    0,          0,   0,    NULL,               NULL,                  	NULL }
 	};
 	memcpy(ret, menu, 6*sizeof(DIALOG));
-	cout << "character_chooser created" << endl;
+	MSG(Log::INFO, "GameMenu", "character_chooser created");
 	return ret;
 }
 
@@ -171,7 +171,7 @@ DIALOG *GameMenu::create_skill_dialog() {
 	};
 	
 	memcpy(ret, menu, 3*sizeof(DIALOG));
-	cout << "skill_dialog created" << endl;
+	MSG(Log::INFO, "GameMenu", "skill_dialog created");
 	return ret;
 }
 
@@ -205,7 +205,7 @@ DIALOG *GameMenu::create_equip_dialog() {
 	};
 	
 	memcpy(ret, menu, 16*sizeof(DIALOG));
-	cout << "equip_dialog created" << endl;
+	MSG(Log::INFO, "GameMenu", "equip_dialog created");
 	return ret;
 }
 
@@ -235,7 +235,7 @@ DIALOG *GameMenu::create_relic_dialog() {
 	};
 	
 	memcpy(ret, menu, 12*sizeof(DIALOG));
-	cout << "relic_dialog created" << endl;
+	MSG(Log::INFO, "GameMenu", "relic_dialog created");
 	return ret;
 }
 
@@ -294,7 +294,7 @@ DIALOG *GameMenu::create_status_dialog() {
 	};
 	//ich brauche ein array mit den speicheradressen das an ein dialogelement übergeben wird: dieses dialog_cleanup element gibt den speicher frei…
 	memcpy(ret, menu, 40*sizeof(DIALOG));
-	cout << "status_dialog created" << endl;
+	MSG(Log::INFO, "GameMenu", "status_dialog created");
 	return ret;
 }
 

@@ -77,7 +77,7 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 
 	if(aufb == "=;") {
 		if(pl[1][0] != '"' || pl[1][pl[1].length()-1] != '"') {
-			cout << "Scriptable: [Fehler] Fehlerhafte Zuweisung" << endl;
+			MSG(Log::ERROR, "Scriptable", "Fehlerhafte Zuweisung");
 			return NULL;
 		}
 		args.push_back(new StringArgument(pl[1].substr(1, pl[1].length()-2)));
@@ -85,11 +85,11 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 
 	} else if(aufb == "=();") {
 		if(assoc_list.count(pl[1]) == 0) {
-			cout << "Scriptable: [Fehler] Unbekannte Funktion" << endl;
+			MSG(Log::ERROR, "Scriptable", "Unbekannte Funktion");
 			return NULL;
 		}
 		if(pl[3] != "") {
-			cout << "Scriptable: [Fehler] Fehlerhafter Funktionsaufruf" << endl;
+			MSG(Log::ERROR, "Scriptable", "Fehlerhafter Funktionsaufruf");
 			return NULL;
 		}
 
@@ -103,7 +103,7 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 			} else if(a.find('"') == string::npos) {
 				args.push_back(new VarArgument(this, a));
 			} else {
-				cout << "Scriptable: [Fehler] Fehlerhafter Parameter" << endl;
+				MSG(Log::ERROR, "Scriptable", "Fehlerhafter Parameter");
 				return NULL;
 			}
 
@@ -112,18 +112,18 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 		}
 		int argc = assoc_list[pl[1]].argc;
 		if(argc != -1 && (int)args.size() != argc) {
-			cout << "Scriptable: [Fehler] Falsche Parameterzahl" << endl;
+			MSG(Log::ERROR, "Scriptable", "Falsche Parameterzahl");
 			return NULL;
 		}
 
 		return new ScriptInstruction(assoc_list[pl[1]].func, args, pl[0], this);
 	} else if(aufb == "();") {
 		if(assoc_list.count(pl[0]) == 0) {
-			cout << "Scriptable: [Fehler] Unbekannte Funktion" << endl;
+			MSG(Log::ERROR, "Scriptable", "Unbekannte Funktion");
 			return false;
 		}
 		if(pl[2] != "") {
-			cout << "Scriptable: [Fehler] Fehlerhafter Funktionsaufruf" << endl;
+			MSG(Log::ERROR, "Scriptable", "Fehlerhafter Funktionsaufruf");
 			return false;
 		}
 
@@ -137,7 +137,7 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 			} else if(a.find('"') == string::npos) {
 				args.push_back(new VarArgument(this, a));
 			} else {
-				cout << "Scriptable: [Fehler] Fehlerhafter Parameter" << endl;
+				MSG(Log::ERROR, "Scriptable", "Fehlerhafter Parameter");
 				return false;
 			}
 
@@ -146,14 +146,14 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 		}
 		int argc = assoc_list[pl[0]].argc;
 		if(argc != -1 && (int)args.size() != argc) {
-			cout << "Scriptable: [Fehler] Falsche Parameterzahl" << endl;
+			MSG(Log::ERROR, "Scriptable", "Falsche Parameterzahl");
 			return false;
 		}
 
 		return new ScriptInstruction(assoc_list[pl[0]].func, args, "void", this);
 	}
 
-	cout << "Scriptable: [Fehler] Missgestaltete Anweisung" << endl;
+	MSG(Log::ERROR, "Scriptable", "Missgestaltete Anweisung");
 	return NULL;
 }
 
@@ -161,7 +161,7 @@ Scriptable::ScriptNode *Scriptable::create_switch(string bed) {
 	size_t trenner = bed.find_first_of("=!><");
 
 	if(trenner == string::npos) {
-		cout << "Scriptable: [Fehler] Fehlerhafte Bedingung" << endl;
+		MSG(Log::ERROR, "Scriptable", "Fehlerhafte Bedingung");
 		return NULL;
 	}
 
@@ -174,7 +174,7 @@ Scriptable::ScriptNode *Scriptable::create_switch(string bed) {
 		} else if(as[i].find('"') == string::npos) {
 			a[i] = new VarArgument(this, as[i]);
 		} else {
-			cout << "Scriptable: [Fehler] Fehlerhaftes Argument in Bedingung" << endl;
+			MSG(Log::ERROR, "Scriptable", "Fehlerhaftes Argument in Bedingung");
 			return false;
 		}
 	}
@@ -186,7 +186,7 @@ Scriptable::ScriptNode *Scriptable::process_chunk(string s, Scriptable::ScriptNo
 		return start;
 
 	if(s[s.length()-1] != ';') {
-		cout << "Scriptable: [Fehler] Unerwartetes Blockende" << endl;
+		MSG(Log::ERROR, "Scriptable", "Unerwartetes Blockende");
 		return NULL;
 	}
 
@@ -229,7 +229,7 @@ Scriptable::ScriptNode *Scriptable::process_script(string &s, ScriptNode *start)
 	//Es folgt eine If/While-Anweisung
 	size_t condend = s.find("{");
 	if(s[(posif < poswhile ? 2 : 5)] != '(' || s[condend-1] != ')') {
-		cout << "Scriptable: [Fehler] Fehlerhaftes " << (posif<poswhile ? "If" : "While") << endl;
+		MSG(Log::ERROR, "Scriptable", "Fehlerhaftes " + to_string(posif<poswhile ? "If" : "While"));
 		return NULL;
 	}
 
@@ -276,7 +276,7 @@ bool Scriptable::set_script(string s) {
 	if(!position)
 		return false;
 	if(!s.empty()) {
-		cout << "Scriptable: [Fehler] Fehlerhafte Blockstruktur" << endl;
+		MSG(Log::ERROR, "Scriptable", "Fehlerhafte Blockstruktur");
 		return false;
 	}
 
@@ -392,8 +392,8 @@ Scriptable::ScriptNode *Scriptable::ScriptSwitch::exec() {
 				return next[0];
 		break;
 		default:
-			cout << "Scriptable: [Fehler] Unbekannter Operator " << op << " in" << endl;
-			cout << "    " << arg[0]->debug() << op << arg[1]->debug() << endl;
+			MSG(Log::ERROR, "Scriptable", "Unbekannter Operator " + to_string(op) + " in\n" +
+							">   " + arg[0]->debug() + to_string(op) + arg[1]->debug());
 	}
 	return next[1];
 }

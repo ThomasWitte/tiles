@@ -19,16 +19,16 @@
 #include <iostream>
 int fight_ani(int step, AnimationData *data, BITMAP *buffer) {
 	if(step == AnimationData::INITIALIZE) {
-		data->dp.push_back((void*)imageloader.load("Fights/Images/Animation/fight1.tga"));
-		data->dp.push_back((void*)imageloader.load("Fights/Images/Animation/fight2.tga"));
-		data->dp.push_back((void*)imageloader.load("Fights/Images/Animation/fight3.tga"));
-		data->dp.push_back((void*)imageloader.load("Fights/Images/Animation/fight4.tga"));
+		data->dp.push_back((void*)IMGLOADER.load("Fights/Images/Animation/fight1.tga"));
+		data->dp.push_back((void*)IMGLOADER.load("Fights/Images/Animation/fight2.tga"));
+		data->dp.push_back((void*)IMGLOADER.load("Fights/Images/Animation/fight3.tga"));
+		data->dp.push_back((void*)IMGLOADER.load("Fights/Images/Animation/fight4.tga"));
 		return 0;
 	} else if(step == AnimationData::DESTROY) {
-		imageloader.destroy("Fights/Images/Animation/fight1.tga");
-		imageloader.destroy("Fights/Images/Animation/fight2.tga");
-		imageloader.destroy("Fights/Images/Animation/fight3.tga");
-		imageloader.destroy("Fights/Images/Animation/fight4.tga");
+		IMGLOADER.destroy("Fights/Images/Animation/fight1.tga");
+		IMGLOADER.destroy("Fights/Images/Animation/fight2.tga");
+		IMGLOADER.destroy("Fights/Images/Animation/fight3.tga");
+		IMGLOADER.destroy("Fights/Images/Animation/fight4.tga");
 		return 0;
 	}
 
@@ -53,11 +53,11 @@ int fight_ani(int step, AnimationData *data, BITMAP *buffer) {
 int heal_ani(int step, AnimationData *data, BITMAP *buffer) {
 	if(step == AnimationData::INITIALIZE) {
 		for(int i = 1; i <= 25; i++)
-			data->dp.push_back((void*)imageloader.load("Fights/Images/Animation/cure" + to_string(i) + ".tga"));
+			data->dp.push_back((void*)IMGLOADER.load("Fights/Images/Animation/cure" + to_string(i) + ".tga"));
 		return 0;
 	} else if(step == AnimationData::DESTROY) {
 		for(int i = 1; i <= 25; i++)
-			imageloader.destroy("Fights/Images/Animation/cure" + to_string(i) + ".tga");
+			IMGLOADER.destroy("Fights/Images/Animation/cure" + to_string(i) + ".tga");
 		return 0;
 	}
 

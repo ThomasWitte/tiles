@@ -171,7 +171,7 @@ int main()
 #ifdef ENABLE_FRAME_COUNTER
 			if(framecounter >= GAME_TIMER_BPS) {//1 Sekunde vergangen
 				framecounter = 0;
-				cout << drawn_frames << " fps" << endl;
+				MSG(Log::INFO, "main", to_string(drawn_frames) + " fps");
 				drawn_frames = 0;
 			}
 #endif
@@ -208,7 +208,8 @@ int main()
 		}
 	}
 
-	imageloader.clear();
+	IMGLOADER.clear();
+	Log::destroy();
 	#ifdef GP2X	
 		gp2x_exit();
 	#endif

@@ -18,7 +18,29 @@
 #include "config.h"
 #include <cstdlib>
 
-char* tochar(string s) {
+Log *Log::l = NULL;
+
+#ifndef SHOW_DEBUG_MSG
+template <>
+inline void Log::msg<Log::DEBUG>(std::string sender, std::string message) {}
+#endif
+
+#ifndef SHOW_INFO_MSG
+template <>
+inline void Log::msg<Log::INFO>(std::string sender, std::string message) {}
+#endif
+
+#ifndef SHOW_WARN_MSG
+template <>
+inline void Log::msg<Log::WARN>(std::string sender, std::string message) {}
+#endif
+
+#ifndef SHOW_ERROR_MSG
+template <>
+inline void Log::msg<Log::ERROR>(std::string sender, std::string message) {}
+#endif
+
+char* tochar(std::string s) {
 	char* ret = new char[s.length()+1];
 	sprintf(ret, "%s", s.c_str());
 	return ret;
@@ -27,54 +49,55 @@ char* tochar(string s) {
 FileParser::FileParser() {
 }
 
-FileParser::FileParser(string dateiname, string type) {
+FileParser::FileParser(std::string dateiname, std::string type) {
 	laden(dateiname, type);
 }
 
-void FileParser::laden(string dateiname, string type) {
+void FileParser::laden(std::string dateiname, std::string type) {
+	MSG(Log::INFO, "FileParser", "\"" + dateiname + "\" wird gelesen.");
 	daten.resize(0);
-	ifstream file;
-	string s, cursection = "";
-	file.open(dateiname.c_str(), ios_base::in);
+	std::ifstream file;
+	std::string s, cursection = "";
+	file.open(dateiname.c_str(), std::ios_base::in);
 	if(!file) {
-		cerr << dateiname << ": [Fehler] Datei konnte nicht geöffnet werden." << endl;
+		MSG(Log::ERROR, "FileParser", "Datei \"" + dateiname + "\" konnte nicht geöffnet werden.");
 		return;
 	}
 
 	file >> s; // <
 
 	if(!(file >> s)) {
-		cerr << dateiname << ": [Fehler] Unerwartetes Dateiende" << endl;
+		MSG(Log::ERROR, "FileParser", "Unerwartetes Dateiende in \"" + dateiname + "\".");
 		return;
 	}
 	if(s != TILES_NAME) {
-		cerr << dateiname << ": [Fehler] Falsche Anwendung" << endl;
+		MSG(Log::ERROR, "FileParser", "Falsche Anwendung angegeben in \"" + dateiname + "\".");
 		return;
 	}
 	if(!(file >> s)) {
-		cerr << dateiname << ": [Fehler] Unerwartetes Dateiende" << endl;
+		MSG(Log::ERROR, "FileParser::laden", "Unerwartetes Dateiende in \"" + dateiname + "\".");
 		return;
 	}
 	if(atof(s.c_str()) > TILES_VERSION) {
-		cerr << dateiname << ": [Fehler] Datei stammt aus einer neueren Spielversion" << endl;
+		MSG(Log::ERROR, "FileParser", "Datei \"" + dateiname + "\" stammt aus einer neueren Version.");
 		return;
 	} else if(atof(s.c_str()) < TILES_VERSION) {
-		cerr << dateiname << ": [Warnung] Datei stammt aus einer älteren Spielversion" << endl;
+		MSG(Log::WARN, "FileParser", "Datei \"" + dateiname + "\" stammt aus einer neueren Version.");
 	}
 	if(!(file >> s)) {
-		cerr << dateiname << ": [Fehler] Unerwartetes Dateiende" << endl;
+		MSG(Log::ERROR, "FileParser", "Unerwartetes Dateiende in \"" + dateiname + "\".");
 		return;
 	}
 	if(s != type) {
-		cerr << dateiname << ": [Fehler] Datei ist kein " << type << endl;
+		MSG(Log::ERROR, "FileParser", "Datei \"" + dateiname + "\" ist kein " + type + ".");
 		return;
 	}
 	if(!(file >> s)) {
-		cerr << dateiname << ": [Fehler] Unerwartetes Dateiende" << endl;
+		MSG(Log::ERROR, "FileParser", "Unerwartetes Dateiende in \"" + dateiname + "\".");
 		return;
 	}
 	if(s != ">") {
-		cerr << dateiname << ": [Fehler] Beschädigter Dateiheader" << endl;
+		MSG(Log::ERROR, "FileParser", "Beschädigter Dateiheader in \"" + dateiname + "\".");
 		return;
 	}
 
@@ -87,26 +110,26 @@ void FileParser::laden(string dateiname, string type) {
 		} else if(s == "#") {
 			while(s != ";;") {
 				if(!(file >> s)) {
-					cerr << dateiname << ": [Warnung] Unerwartetes Dateiende" << endl;
+					MSG(Log::WARN, "FileParser", "Unerwartetes Dateiende in \"" + dateiname + "\".");
 					break;
 				}
 			}
 		} else {
-			deque<string> temp;
+			std::deque<std::string> temp;
 			temp.push_back(cursection);
 
 			if(s == ";;")
-				cerr << dateiname << ": [Warnung] Leere Anweisung oder beschädigte Datei" << endl;
+				MSG(Log::WARN, "FileParser", "Leere Anweisung oder beschädigte Datei \"" + dateiname + "\".");
 
 			while(s != ";;") {
 				temp.push_back(s);
 
 				if(s.at(0) == '[' && s.at(s.length()-1) == ']') {
-					cerr << dateiname << ": [Warnung] Die Datei scheint beschädigt zu sein." << endl;
+					MSG(Log::WARN, "FileParser", "Datei \"" + dateiname + "\" scheint beschädigt zu sein.");
 				}
 
 				if(!(file >> s)) {
-					cerr << dateiname << ": [Warnung] Unerwartetes Dateiende" << endl;
+					MSG(Log::WARN, "FileParser", "Unerwartetes Dateiende in \"" + dateiname + "\".");
 					break;
 				}
 			}
@@ -117,32 +140,38 @@ void FileParser::laden(string dateiname, string type) {
 }
 
 void FileParser::dump() {
+	MSG(Log::DEBUG, "FileParser", "Filedump:");
 	for(unsigned int i = 0; i < daten.size(); i++) {
+		std::string s;
 		for(unsigned int j = 0; j < daten[i].size(); j++)
-			cout << daten[i][j] << " ";
-		cout << endl;
+			s = s + daten[i][j] + " ";
+		MSG(Log::DEBUG, ">", s);
 	}
 }
 
 FileParser::~FileParser() {
 }
 
-string FileParser::getstring(string section, string element, string def) {
+std::string FileParser::getstring(std::string section, std::string element, std::string def) {
 	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element)
 			return daten[i][2];
+
+	MSG(Log::DEBUG, "FileParser", "Konnte String \"" + section + "/" + element + "\" nicht finden.");
 	return def;
 }
 
-double FileParser::getvalue(string section, string element, double def) {
+double FileParser::getvalue(std::string section, std::string element, double def) {
 	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element)
 			return atof(daten[i][2].c_str());
+
+	MSG(Log::DEBUG, "FileParser", "Konnte Double \"" + section + "/" + element + "\" nicht finden.");
 	return def;
 }
 
-deque<string> FileParser::get(string section, string element) {
-	deque<string> temp;
+std::deque<std::string> FileParser::get(std::string section, std::string element) {
+	std::deque<std::string> temp;
 	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element) {
 			temp = daten[i];
@@ -150,11 +179,13 @@ deque<string> FileParser::get(string section, string element) {
 			temp.pop_front();
 			return temp;
 		}
+
+	MSG(Log::DEBUG, "FileParser", "Konnte Wert \"" + section + "/" + element + "\" nicht finden.");
 	return temp;
 }
 
-deque<deque<string> > FileParser::getall(string section, string element) {
-	deque<deque<string> > temp;
+std::deque<std::deque<std::string> > FileParser::getall(std::string section, std::string element) {
+	std::deque<std::deque<std::string> > temp;
 	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element) {
 			temp.push_back(daten[i]);
@@ -164,8 +195,8 @@ deque<deque<string> > FileParser::getall(string section, string element) {
 	return temp;
 }
 
-deque<deque<string> > FileParser::getsection(string section) {
-	deque<deque<string> > temp;
+std::deque<std::deque<std::string> > FileParser::getsection(std::string section) {
+	std::deque<std::deque<std::string> > temp;
 	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section) {
 			temp.push_back(daten[i]);
@@ -175,10 +206,10 @@ deque<deque<string> > FileParser::getsection(string section) {
 }
 
 //Nicht schön, aber funktioniert erstmal
-//Durch die Leerzeichen versuchen ich den Originalstring so gut wie mäglich wieder aufzubauen
-string FileParser::getsection_raw(string section) {
-	deque<deque<string> > temp = getsection(section);
-	string ret;
+//Durch die Leerzeichen versuchen ich den Originalstring so gut wie möglich wieder aufzubauen
+std::string FileParser::getsection_raw(std::string section) {
+	std::deque<std::deque<std::string> > temp = getsection(section);
+	std::string ret;
 	size_t lines = temp.size();
 	for(unsigned int i = 0; i < lines; i++) {
 		size_t words = temp[i].size();
@@ -199,12 +230,12 @@ ImageLoader::ImageLoader() {
 ImageLoader::~ImageLoader() {
 	for(unsigned int i = 0; i < imgs.size(); i++) {
 		if(imgs[i].count > 0) {
-			cout << "Imageloader [Warnung]: " << imgs[i].name << " geladen, aber nicht freigegeben." << imgs[i].count << endl; 
+			MSG(Log::WARN, "ImageLoader", "\"" + imgs[i].name + "\" geladen, aber nicht freigegeben [" + to_string(imgs[i].count) + "].");
 		}
 	}
 }
 
-BITMAP* ImageLoader::load(string name) {
+BITMAP* ImageLoader::load(std::string name) {
 	for(unsigned int i = 0; i < imgs.size(); i++) {
 		if(imgs[i].name == name) {
 			imgs[i].count++;
@@ -256,7 +287,7 @@ BITMAP* ImageLoader::copy(BITMAP *bmp) {
 	return ret;
 }
 
-void ImageLoader::destroy(string name) {
+void ImageLoader::destroy(std::string name) {
 	for(unsigned int i = 0; i < imgs.size(); i++)
 		if(imgs[i].name == name) {
 			imgs[i].count--;
@@ -293,7 +324,7 @@ void ImageLoader::destroy(BITMAP *b) {
 	}
 }
 
-void ImageLoader::destroy_all(string name) {
+void ImageLoader::destroy_all(std::string name) {
 	for(unsigned int i = 0; i < imgs.size(); i++)
 		if(imgs[i].name == name) {
 			if(imgs[i].count) destroy_bitmap(imgs[i].bmp);
@@ -310,7 +341,7 @@ void ImageLoader::clear() {
 }
 
 void ImageLoader::cleanup(float size) {
-	cout << "ImageLoader [Information]: cleaning up " << size << "/" << data_size << "KB." << endl;
+	MSG(Log::DEBUG, "ImageLoader", "Entferne " + to_string(size) + " von " + to_string(data_size) + "kB aus dem Cache.");
 	float deleted = 0.0;
 	data_size = 0.0;
 	for(unsigned int i = 0; i < imgs.size() ; i++) {
@@ -325,7 +356,6 @@ void ImageLoader::cleanup(float size) {
 			data_size += float(imgs[i].bmp->w * imgs[i].bmp->h * COLOR_DEPTH)/8000.0;
 		}
 	}
-	cout << "ImageLoader [Information]: finished freeing " << deleted << "KB." << endl;
+	MSG(Log::DEBUG, "ImageLoader", to_string(deleted) + "kB entfernt.");
 }
 
-ImageLoader imageloader;

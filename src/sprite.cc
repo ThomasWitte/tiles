@@ -28,9 +28,9 @@ SpriteSet::SpriteSet(string name) {
 SpriteSet::~SpriteSet() {
 	for(int i = 0; i < 4; i++) {
 		for(unsigned int j = 0; j < walk[i].size(); j++)
-			imageloader.destroy(walk[i][j]);
+			IMGLOADER.destroy(walk[i][j]);
 		for(unsigned int j = 0; j < wait[i].size(); j++)
-			imageloader.destroy(wait[i][j]);
+			IMGLOADER.destroy(wait[i][j]);
 	}
 }
 
@@ -41,10 +41,10 @@ string SpriteSet::get_name() {
 void SpriteSet::load(string name) {
 	for(int i = 0; i < 4; i++) {
 		for(unsigned int j = 0; j < walk[i].size(); j++)
-			imageloader.destroy(walk[i][j]);
+			IMGLOADER.destroy(walk[i][j]);
 		walk[i].resize(0);
 		for(unsigned int j = 0; j < wait[i].size(); j++)
-			imageloader.destroy(wait[i][j]);
+			IMGLOADER.destroy(wait[i][j]);
 		wait[i].resize(0);
 	}
 
@@ -63,10 +63,10 @@ void SpriteSet::load(string name) {
 	for(int i = 0; i < 4; i++) {
 		ret = parser.getsection(string("walk_") + directions[i]);
 		for(unsigned int j = 0; j < ret.size(); j++)
-			walk[i].push_back(imageloader.load(prefix + ret[j][0]));
+			walk[i].push_back(IMGLOADER.load(prefix + ret[j][0]));
 		ret = parser.getsection(string("wait_") + directions[i]);
 		for(unsigned int j = 0; j < ret.size(); j++)
-			wait[i].push_back(imageloader.load(prefix + ret[j][0]));
+			wait[i].push_back(IMGLOADER.load(prefix + ret[j][0]));
 	}
 }
 

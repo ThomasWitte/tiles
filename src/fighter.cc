@@ -87,7 +87,7 @@ Fighter::Fighter(Fight *f, Character c, string name, PlayerSide side, int dir) {
 Fighter::~Fighter() {
 	for(int j = FighterTileset::NORMAL; j < FighterTileset::MAGIC_WAIT; j++)
 		for(unsigned int i = 0; i < ts.imgs[j].size(); i++)
-			imageloader.destroy(ts.imgs[j][i]);
+			IMGLOADER.destroy(ts.imgs[j][i]);
 }
 
 void Fighter::laden(string name) {
@@ -101,7 +101,7 @@ void Fighter::laden(string name) {
 	for(int j = FighterTileset::NORMAL; j <= FighterTileset::MAGIC_WAIT; j++) {
 		deque< deque<string> > ret = parser.getsection(sections[j]);
 		for(unsigned int i = 0; i < ret.size(); i++)
-			ts.imgs[j].push_back(imageloader.load(path + ret[i][0]));
+			ts.imgs[j].push_back(IMGLOADER.load(path + ret[i][0]));
 	}
 
 	c.defensive = true;

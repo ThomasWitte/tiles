@@ -60,7 +60,7 @@ Map::~Map() {
 		delete animations[i];
 
 	for(unsigned int i = 0; i < dialoge.size(); i++)
-		imageloader.destroy(dialoge[i].dlg);
+		IMGLOADER.destroy(dialoge[i].dlg);
 }
 
 bool Map::is_walkable(int x, int y) {
@@ -118,7 +118,7 @@ void Map::laden(string dateiname, Game *parent) {
 	animations.resize(0);
 
 	for(unsigned int i = 0; i < dialoge.size(); i++)
-		imageloader.destroy(dialoge[i].dlg);
+		IMGLOADER.destroy(dialoge[i].dlg);
 	dialoge.resize(0);
 
 	dateiname.insert(0, "Levels/");
@@ -200,7 +200,7 @@ void Map::laden(string dateiname, Game *parent) {
 	for(unsigned int i = 0; i < retall.size(); i++)
 		parent->register_event(retall[i]);
 
-	cout << dateiname << ": [Information] Map geladen" << endl;
+	MSG(Log::INFO, "Map", dateiname + " geladen");
 }
 
 int Map::get_tilesize() {
@@ -236,13 +236,13 @@ void Map::update() {
 
 		if(dialoge[0].min_frames < 0) {
 			if(action) {
-				imageloader.destroy(dialoge[0].dlg);
+				IMGLOADER.destroy(dialoge[0].dlg);
 				dialoge.pop_front();
 				parent->action();
 			}
 		}
 		if(dialoge[0].max_frames < 0) {
-			imageloader.destroy(dialoge[0].dlg);
+			IMGLOADER.destroy(dialoge[0].dlg);
 			dialoge.pop_front();
 		}
 	} else {

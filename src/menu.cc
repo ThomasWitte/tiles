@@ -62,15 +62,15 @@ int Menu::main_menu() {
 
 	resize_menu(PC_RESOLUTION_X, PC_RESOLUTION_Y, menu);
 
-	BITMAP *logo = imageloader.load("Images/title.tga");
-	BITMAP *st_logo = imageloader.create(menu[3].w, menu[3].h);
+	BITMAP *logo = IMGLOADER.load("Images/title.tga");
+	BITMAP *st_logo = IMGLOADER.create(menu[3].w, menu[3].h);
 	stretch_blit(logo, st_logo, 0, 0, logo->w, logo->h, 0, 0, st_logo->w, st_logo->h);
-	imageloader.destroy(logo);
+	IMGLOADER.destroy(logo);
 	menu[3].dp = (void*) st_logo;
 
 	int ret = animated_dialog(menu, 2);
 
-	imageloader.destroy(st_logo);
+	IMGLOADER.destroy(st_logo);
 
 	if(ret == 1) ret = GAME;
 	else if(ret == 2) ret = EXIT;
@@ -200,16 +200,16 @@ int Menu::pause_menu() {
 
 	resize_menu(PC_RESOLUTION_X, PC_RESOLUTION_Y, menu);
 
-	BITMAP *gears = imageloader.load("Images/gears.tga");
-	BITMAP *st_gears = imageloader.create(menu[7].w, menu[7].h);
+	BITMAP *gears = IMGLOADER.load("Images/gears.tga");
+	BITMAP *st_gears = IMGLOADER.create(menu[7].w, menu[7].h);
 	stretch_blit(gears, st_gears, 0, 0, gears->w, gears->h, 0, 0, st_gears->w, st_gears->h);
-	imageloader.destroy(gears);
+	IMGLOADER.destroy(gears);
 	menu[7].dp = (void*) st_gears;
 
 	clear_keybuf();
 	int ret = animated_dialog(menu, 3);
 
-	imageloader.destroy(st_gears);
+	IMGLOADER.destroy(st_gears);
 
 	int ret2 = CANCEL;
 

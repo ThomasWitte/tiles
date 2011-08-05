@@ -46,13 +46,13 @@ void BaseObject::update() {
 
 Animation::~Animation() {
 	for(unsigned int i = 0; i < frames.size(); i++)
-		imageloader.destroy(frames[i]);
+		IMGLOADER.destroy(frames[i]);
 }
 
 void Animation::load(string dateiname) {
 	name = dateiname;
 	for(unsigned int i = 0; i < frames.size(); i++)
-		imageloader.destroy(frames[i]);
+		IMGLOADER.destroy(frames[i]);
 	frames.resize(0);
 
 	string prefix = string("Objects/") + dateiname + string("/");
@@ -63,7 +63,7 @@ void Animation::load(string dateiname) {
 
 	for(unsigned int i = 0; i< ret.size(); i++) {
 		dateiname = prefix + ret[i][0];
-		frames.push_back(imageloader.load(dateiname));
+		frames.push_back(IMGLOADER.load(dateiname));
 	}
 }
 

@@ -27,57 +27,108 @@
 #include <sstream>
 #include "config.h"
 
-using namespace std;
+#define IMGLOADER ImageLoader::get_instance()
+#define MSG(LVL, SENDER, STR) Log::get_log().msg<LVL>(SENDER, STR)
 
 template <class T>
-string to_string(T toBeConverted) {
-	stringstream buffer;
+std::string to_string(T toBeConverted) {
+	std::stringstream buffer;
 	buffer << toBeConverted;
 	return buffer.str();
 }
 
-char* tochar(string s);
+template <class T>
+T from_string(std::string Converted)
+{
+	std::stringstream buffer;
+	T ret;
+	buffer << Converted;
+	buffer >> ret;
+	return ret;
+}
+
+char* tochar(std::string s);
 
 class FileParser {
 	public:
 		FileParser();
-		FileParser(string dateiname, string type);
-		void laden(string dateiname, string type);
+		FileParser(std::string dateiname, std::string type);
+		void laden(std::string dateiname, std::string type);
 		void dump();
 		~FileParser();
-		string getstring(string section, string element, string def = "");
-		double getvalue(string section, string element, double def = 0.0);
-		deque<string> get(string section, string element);
-		deque<deque<string> > getall(string section, string element);
-		deque<deque<string> > getsection(string section);
-		string getsection_raw(string section);
+		std::string getstring(std::string section, std::string element, std::string def = "");
+		double getvalue(std::string section, std::string element, double def = 0.0);
+		std::deque<std::string> get(std::string section, std::string element);
+		std::deque<std::deque<std::string> > getall(std::string section, std::string element);
+		std::deque<std::deque<std::string> > getsection(std::string section);
+		std::string getsection_raw(std::string section);
 	protected:
-		deque<deque<string> > daten;
+		std::deque<std::deque<std::string> > daten;
 };
 
 
 class ImageLoader {
 	public:
-		ImageLoader();
 		~ImageLoader();
-		BITMAP* load(string name);
+		BITMAP* load(std::string name);
 		BITMAP* create(int w, int h);
-		void destroy(string name);
+		void destroy(std::string name);
 		void destroy(BITMAP *bmp);
-		void destroy_all(string name);
+		void destroy_all(std::string name);
 		void clear();
 		BITMAP* copy(BITMAP *bmp);
+		static ImageLoader& get_instance() {
+			static ImageLoader loader;
+			return loader;
+		}
 	protected:
 		struct Image {
-			string name;
+			std::string name;
 			BITMAP *bmp;
 			int count;
 		};
-		deque<Image> imgs;
+		std::deque<Image> imgs;
 		float data_size;
 		void cleanup(float size);
+	private:
+		ImageLoader();
 };
 
-extern ImageLoader imageloader;
+class Log {
+	public:
+		static Log& get_log() {
+			if(l) return *l;
+			else {
+				l = new Log();
+				return *l;
+			}
+		}
+
+		static void destroy() {
+			delete l;
+			l = NULL;
+		}
+
+		void set_output(std::ostream *o) {
+			if(o)
+				out = o;
+		}
+
+		enum {DEBUG, INFO, WARN, ERROR};
+		template <int L>
+		inline void msg(std::string sender, std::string message) {
+			char strings[][15] = {"Debug", "Information", "Warnung", "Fehler"};
+			*out << sender << ": [" << strings[L] << "] " << message << std::endl;
+		}
+
+	private:
+		static Log *l;
+		std::ostream *out;
+		Log() {
+			out = &std::cout;
+		}
+
+		~Log() {}
+};
 
 #endif

@@ -53,8 +53,8 @@ Fight::Fight(string dateiname, Game *g) {
 	
 	FileParser parser(string("Fights/") + dateiname, "Fight");
 
-	bg = imageloader.load(string("Fights/Images/") + parser.getstring("Fight", "Background"));
-	auswahl = imageloader.load("Images/auswahl_hor.tga");
+	bg = IMGLOADER.load(string("Fights/Images/") + parser.getstring("Fight", "Background"));
+	auswahl = IMGLOADER.load("Images/auswahl_hor.tga");
 
 	for(int i = 0; i < 20; i++) {
 		marked_fighters[0][i] = false;
@@ -142,7 +142,7 @@ Fight::Fight(string dateiname, Game *g) {
 		fighters[ENEMY].push_back(new Monster(this, c, ret[i][0], side, dir));
 	}
 	
-	menu_bg = imageloader.create(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
+	menu_bg = IMGLOADER.create(PC_RESOLUTION_X, PC_RESOLUTION_Y/3);
 	for(int i = 0; i < menu_bg->h; i++) {
 		line(menu_bg, 0, i, menu_bg->w, i, makecol(i, i, 255-i));
 	}
@@ -309,9 +309,9 @@ Fight::~Fight() {
 		}
 	}
 
-	imageloader.destroy(bg);
-	imageloader.destroy(menu_bg);
-	imageloader.destroy(auswahl);
+	IMGLOADER.destroy(bg);
+	IMGLOADER.destroy(menu_bg);
+	IMGLOADER.destroy(auswahl);
 	for(int i = 0; i < 2; i++) 
 		for(unsigned int j = 0; j < fighters[i].size(); j++) {
 			delete fighters[i][j];
@@ -369,7 +369,7 @@ DIALOG *Fight::create_dialog(int id) {
 				{ NULL,				0,  				0,						0,   					0,					0,         0,   0,    0,      0,    0,   				NULL,             NULL, NULL }
 			};
 			memcpy(ret, menu, 8*sizeof(DIALOG));
-			cout << "Fight created" << endl;
+			MSG(Log::INFO, "Fight", "Fight created");
 		}
 		break;
 
