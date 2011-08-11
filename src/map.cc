@@ -134,11 +134,11 @@ void Map::laden(string dateiname, Game *parent) {
 	tilesx = atoi(ret[0].c_str());
 	tilesy = atoi(ret[2].c_str());
 
-	tilemap = new (int*[tilesx]);
+	tilemap = new int*[tilesx];
 	for(int i = 0; i < tilesx; i++)
 		tilemap[i] = new int[tilesy];
 
-	walkable = new (int*[tilesx]);
+	walkable = new int*[tilesx];
 	for(int i = 0; i < tilesx; i++)
 		walkable[i] = new int[tilesy];
 

@@ -120,11 +120,11 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 	} else if(aufb == "();") {
 		if(assoc_list.count(pl[0]) == 0) {
 			MSG(Log::ERROR, "Scriptable", "Unbekannte Funktion");
-			return false;
+			return NULL;
 		}
 		if(pl[2] != "") {
 			MSG(Log::ERROR, "Scriptable", "Fehlerhafter Funktionsaufruf");
-			return false;
+			return NULL;
 		}
 
 		if(!pl[1].empty())
@@ -138,7 +138,7 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 				args.push_back(new VarArgument(this, a));
 			} else {
 				MSG(Log::ERROR, "Scriptable", "Fehlerhafter Parameter");
-				return false;
+				return NULL;
 			}
 
 			pl[1].erase(0, trenner+1);
@@ -147,7 +147,7 @@ Scriptable::ScriptNode *Scriptable::create_instruction(string current) {
 		int argc = assoc_list[pl[0]].argc;
 		if(argc != -1 && (int)args.size() != argc) {
 			MSG(Log::ERROR, "Scriptable", "Falsche Parameterzahl");
-			return false;
+			return NULL;
 		}
 
 		return new ScriptInstruction(assoc_list[pl[0]].func, args, "void", this);
@@ -175,7 +175,7 @@ Scriptable::ScriptNode *Scriptable::create_switch(string bed) {
 			a[i] = new VarArgument(this, as[i]);
 		} else {
 			MSG(Log::ERROR, "Scriptable", "Fehlerhaftes Argument in Bedingung");
-			return false;
+			return NULL;
 		}
 	}
 	return new ScriptSwitch(bed[trenner], a[0], a[1], this);
