@@ -47,6 +47,7 @@ class Game {
 		void action() {last_action = GAME_TIMER_BPS/4;}
 		void set_var(string key, string val) {vars[key] = val;};
 		void set_var(string key, int val);
+		std::deque<std::string> get_var_list(std::string str);
 		string get_var(string key);
 #ifdef ENABLE_DIALOG_MOVE_LOCK
 		void set_move_lock(bool lock);

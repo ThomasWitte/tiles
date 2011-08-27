@@ -211,6 +211,16 @@ void Game::set_var(Event *e) {
 	vars[e->arg[0]] = e->arg[1];
 }
 
+std::deque<std::string> Game::get_var_list(std::string str) {
+	std::deque<std::string> ret;
+	for(std::map<std::string, std::string>::iterator i = vars.begin();
+	  i != vars.end(); ++i) {
+		if(i->first.find(str) != std::string::npos)
+			ret.push_back(i->first);
+	}
+	return ret;
+}
+
 void Game::change_map(Event *e) {
 	for(unsigned int i = 0; i < events[ON_EXIT].size(); i++) {
 		void (Game::*ptr) (Event*);

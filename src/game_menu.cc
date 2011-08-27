@@ -65,8 +65,42 @@ DIALOG *GameMenu::create_dialog(int id) {
 	return ret;
 }
 
+Game *game = NULL;
+const char *get_item_list_entries(int index, int *size) {
+	if(!game || !size) {
+		MSG(Log::ERROR, "GameMenu", "Itemliste kann nicht erzeugt werden, ungültiger Zeiger");
+		return "<Error>";
+	}
+
+	std::deque<std::string> list = game->get_var_list("Inventory.");
+
+	if(index < 0) {
+		*size = list.size();
+		return NULL;
+	}
+
+	if(index < (int)list.size()) {
+		//Speichere die Anzahl in size (höchstes byte)
+		*size += from_string<int>(game->get_var(list[index])) << 24;
+		if(!AttackLib::get_attack(list[index]).cast_outside_battle)
+			*size += D_DISABLED;
+		return list[index].c_str();
+	}
+
+	MSG(Log::ERROR, "GameMenu", "Ungültiger Index bei Zugriff auf Itemliste.");
+	return "<Error>";
+}
+
+std::string get_details(std::string s) {
+	return AttackLib::get_attack(s).description;
+}
+
 DIALOG *GameMenu::create_item_dialog() {
-	DIALOG *ret = new DIALOG[10];
+	int no_inv = 10 << 24;
+	//Da die Liste Items enthält steht vor jedem Eintrag ein "Inventory."
+	//Die im höchsten bit von d->flags gespeicherte Anzahl an Zeichen wird vor jedem Eintrag abgeschnitten
+
+	DIALOG *ret = new DIALOG[11];
 	DIALOG menu[] =
 	{
 	   /* (proc)        (x)  (y) (w)  (h)  (fg)       (bg) (key) (flags) (d1) (d2) 				(dp)              (dp2) (dp3) */
@@ -78,10 +112,12 @@ DIALOG *GameMenu::create_item_dialog() {
 	   { r_box_proc,    8,   24, 304, 48,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
 	   { r_box_proc,    8,   72, 304, 160, COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, NULL },
 	   { d_text_proc,   16,  12, 48,  8,   COL_WHITE, -1,  0,    0,      0,   0,   				(void*)"Item",    NULL, NULL },
-	   { d_text_proc,   16,  28, 290, 40,  COL_WHITE, -1,  0,    0,      0,   0,   				(void*)"",        NULL, NULL },
+	   { list_details,  16,  28, 290, 40,  COL_WHITE, -1,  0,    0,      0,   0,   				NULL,             NULL, (void*)&get_details },
+	   { ff6_list,      16,  80, 288, 144, COL_WHITE, -1,  0,    no_inv, 0,   0,   				(void*)&get_item_list_entries,        NULL, NULL },
 	   { NULL,          0,   0,  0,   0,   0,         0,   0,    0,      0,   0,   				NULL,             NULL, NULL }
 	};
-	memcpy(ret, menu, 10*sizeof(DIALOG));
+	memcpy(ret, menu, 11*sizeof(DIALOG));
+	game = parent;
 	MSG(Log::INFO, "GameMenu", "item_dialog created");
 	return ret;
 }

@@ -32,6 +32,7 @@ int menu_items(int msg, DIALOG *d, int c);			//Kampfmenüeinträge des gewählte
 int ff6_button(int msg, DIALOG *d, int c);			//button mit zeigender Hand
 int ch_button(int msg, DIALOG *d, int c);			//transparenter button mit zeigender Hand und Parameterübergabe
 int dialog_cleanup(int msg, DIALOG *d, int c);		//räumt den dialog anhand eines arrays von char* in d->dp auf
+int list_details(int msg, DIALOG *d, int c);		//ein d_text_proc das automatisch details zum direkt folgenden Listenelement anzeigt
 
 int animated_dialog(DIALOG *dlg, int active);
 

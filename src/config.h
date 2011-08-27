@@ -52,7 +52,7 @@
 //#define ENABLE_FRAME_COUNTER
 
 //Terminal-Ausgaben
-#define SHOW_DEBUG_MSG
+//#define SHOW_DEBUG_MSG
 #define SHOW_INFO_MSG
 #define SHOW_WARN_MSG
 #define SHOW_ERROR_MSG

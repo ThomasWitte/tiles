@@ -1242,17 +1242,13 @@ void Fight::defeated_fighter(FighterBase *f) {
 
 int Fight::get_active_menu_fighter(int defval) {
 	int current_menu = defval;
-	for(unsigned int i = 0; i < ready_fighters.size(); i++) {
-		bool end = false;
-		for(unsigned int j = 0; j < fighters[FRIEND].size(); j++) {
+	for(unsigned int i = 0; i < ready_fighters.size(); i++)
+		for(unsigned int j = 0; j < fighters[FRIEND].size(); j++)
 			if(ready_fighters[i] == fighters[FRIEND][j]) {
 				current_menu = i;
-				end = true;
-				break;
+				goto end;
 			}
-		}
-		if(end) break;
-	}
+	end:
 	return current_menu;
 }
 

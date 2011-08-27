@@ -41,9 +41,11 @@ class AttackLib {
 			bool vulnerable_to_runic;
 			bool reflectable;
 			bool cast_outside_battle;
+			bool cast_in_battle;
 			int hit_rate;
 			Element element;
 			int possible_targets;
+			int sell_value;
 			string description;
 		};
 
@@ -86,6 +88,16 @@ class AttackLib {
 			return 0;
 		}
 
+		template<int DMG, int DAMAGE_MP>
+		static int exactdmg(FighterBase *caster, FighterBase *target) {
+			if(target->get_status(Character::WOUND) != Character::SUFFERING) {
+				Character c = target->get_character();
+				if(DAMAGE_MP) target->lose_mp(DMG);
+				else target->lose_health(DMG);
+			}
+			return 0;
+		}
+
 		static int full_revive(FighterBase *caster, FighterBase *target);
 		static int revive(FighterBase *caster, FighterBase *target);
 		static int unpoison(FighterBase *caster, FighterBase *target);
@@ -97,6 +109,9 @@ class AttackLib {
 		static int rasp(FighterBase *caster, FighterBase *target);
 		static int osmose(FighterBase *caster, FighterBase *target);
 		static int kill(FighterBase *caster, FighterBase *target);
+
+		static int fullhpmp(FighterBase *caster, FighterBase *target);
+		static int superball(FighterBase *caster, FighterBase *target);
 };
 
 #endif

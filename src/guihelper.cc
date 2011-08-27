@@ -32,6 +32,7 @@ void rounded_rect(BITMAP *scr, int x, int y, int x2, int y2, int radius, int col
 
 int ff6_list(int msg, DIALOG *d, int c) {
 	//d1, d2, dp, dp2 sind durch d_list_proc belegt
+	//d->flags >> 24 wird missbraucht um anzugeben, wieviele Zeichen zu Beginn jedes Eintrags entfernt werden müssen
 	//d->bg wird für den zeigeroffset missbraucht
 	switch(msg) {
 		case MSG_START:
@@ -76,7 +77,12 @@ int ff6_list(int msg, DIALOG *d, int c) {
 				if(d->d2+i < listsize) {
 					int dis = D_EXIT;
 					char *text = list_item(d->d2+i, &dis);
-					gui_textout_ex(scr, text, d->x+10, d->y+i*16, (dis == D_DISABLED ? COL_GREY : col), -1, FALSE);
+					gui_textout_ex(scr, text+(d->flags >> 24), d->x+10, d->y+i*16, (dis & D_DISABLED ? COL_GREY : col), -1, FALSE);
+	
+					//Im höchstwertigen byte kann eine Zahl gespeichert werden, die rechts neben dem Eintrag auftaucht
+					int high_byte = dis >> 24;
+					if(high_byte > 0)
+						gui_textout_ex(scr, to_string(high_byte).c_str(), d->x+d->w-24, d->y+i*16, (dis & D_DISABLED ? COL_GREY : col), -1, FALSE);
 				}
 
 				//Zeiger zeichnen
@@ -94,7 +100,7 @@ int ff6_list(int msg, DIALOG *d, int c) {
 			char* (*list_item) (int, int*) = (char*(*)(int,int*))d->dp;
 			int dis = D_EXIT;
 			list_item(d->d1, &dis);
-			if(dis == D_EXIT)
+			if(dis & D_EXIT)
 				return D_EXIT;
 		}
 		return D_O_K;
@@ -440,6 +446,38 @@ int ff6_button(int msg, DIALOG *d, int c) {
 			return d_button_proc(msg, d, c);
 	}
 	return D_O_K;
+}
+
+int list_details(int msg, DIALOG *d, int c) {
+	switch(msg) {
+		case MSG_START:
+			if((d+1)->proc != ff6_list)
+				MSG(Log::ERROR, "list_details", "es folgt keine Liste.");
+			d->dp = new char[200];
+			strcpy((char*)d->dp, "");
+		break;
+
+		case MSG_IDLE:
+		{
+			char* (*list_item) (int, int*) = (char*(*)(int,int*))(d+1)->dp;
+			int i;
+
+			std::string(*detailsfunc)(std::string) = (std::string(*)(std::string))(d->dp3);
+			std::string desc = detailsfunc(list_item((d+1)->d1, &i));
+
+			if(strcmp((char*)d->dp, desc.c_str()) != 0) {
+				sprintf((char*)d->dp, "%s", desc.c_str());
+				return D_REDRAWME;
+			}
+		}
+		break;
+
+		case MSG_END:
+			delete [] (char*)d->dp;
+			d->dp = NULL;
+		break;
+	}
+	return d_text_proc(msg, d, c);
 }
 
 int dialog_cleanup(int msg, DIALOG *d, int c) {

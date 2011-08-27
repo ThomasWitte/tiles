@@ -189,7 +189,7 @@ std::deque<std::deque<std::string> > FileParser::getall(std::string section, std
 	for(unsigned int i = 0; i < daten.size(); i++)
 		if(daten[i][0] == section && daten[i][1] == element) {
 			temp.push_back(daten[i]);
-			temp[temp.size()-1].pop_front();
+			temp[temp.size()-1].pop_front(); //section und element entfernen
 			temp[temp.size()-1].pop_front();
 		}
 	return temp;
