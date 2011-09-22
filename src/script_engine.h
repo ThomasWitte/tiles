@@ -17,156 +17,47 @@
 #ifndef SCRIPT_ENGINE_H
 #define SCRIPT_ENGINE_H
 
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
 #include <string>
-#include <deque>
-#include <map>
 
-using namespace std;
+extern "C" {
+	#include <lua.h>
+	#include <lauxlib.h>
+	#include <lualib.h>
+}
 
-class Scriptable {
+#define SE_CONNECTABLE_METHOD(X, NAME) \
+	inline int NAME(lua_State *L) {		\
+		return X(L);				\
+	}
+
+class ScriptEngine {
 	public:
-		Scriptable();
-		~Scriptable();
+		static ScriptEngine& get_engine() {
+			static ScriptEngine engine;
+			return engine;
+		}
+
+		static void connect_all();
 
 		//skript laden (liefert false bei fehlern)
-		virtual bool set_script(string s);
+		bool do_string(std::string s);
+		bool do_file(std::string file);
+		bool compile_string(std::string s, std::string name);
+		bool compile_file(std::string filename, std::string name);
+		bool run_chunk(std::string name);
+		bool delete_chunk(std::string name);
 
-		//run liefert false, wenn Skript endet
-		virtual bool run();
-
-	protected:
-
-		class Argument {
-			public:
-				virtual string value() = 0;
-				virtual string debug() = 0;
-		};
-
-		class StringArgument : public Argument {
-			public:
-				StringArgument(string value) {
-					val = value;
-				}
-
-				string value() {
-					return val;
-				}
-
-				string debug() {
-					return "(String)" + val;
-				}
-			private:
-				string val;
-		};
-
-		class VarArgument : public Argument {
-			public:
-				VarArgument(Scriptable *p, string value) {
-					parent = p;
-					var = value;
-				}
-
-				string value() {
-					return parent->vars[var];
-				}
-
-				string debug() {
-					return "(Var:" + var + ")" + value();
-				}
-			private:
-				Scriptable *parent;
-				string var;
-		};
-
-		class ScriptNode {
-			public:
-				ScriptNode(Scriptable *p = NULL);
-				virtual ~ScriptNode() {};
-				virtual ScriptNode *exec() = 0;
-				virtual void set_next(ScriptNode *n) = 0;
-				bool delete_mark;
-			protected:
-				Scriptable *parent;
-		};
-
-		class ScriptSwitch : public ScriptNode {
-			public:
-				ScriptSwitch(char op, Argument *arg1, Argument *arg2, Scriptable *p);
-				~ScriptSwitch();
-				ScriptNode *exec();
-				void set_next(ScriptNode *n);
-			protected:
-				ScriptNode *next[2];
-				Argument *arg[2];
-				char op;
-		};
-
-		class ScriptInstruction : public ScriptNode {
-			public:
-				ScriptInstruction(
-					boost::function< string (deque<Argument*>&) > instruction,
-					deque<Argument*> arguments,
-					string rv,
-					Scriptable *p);
-				~ScriptInstruction();
-				void set_next(ScriptNode *n);
-				ScriptNode *exec();
-			protected:
-				ScriptNode *next;
-				string return_var;
-				boost::function< string (deque<Argument*>&) > instruction;
-				deque<Argument*> arguments;
-		};
-
-		class NoOp : public ScriptNode {
-			public:
-				NoOp() {
-					next = NULL;
-				}
-				~NoOp() {
-					delete_mark = true;
-					if(next && !next->delete_mark)
-						delete next;
-				}
-				ScriptNode *exec() {
-					return next;
-				}
-				void set_next(ScriptNode *n) {
-					next = n;
-				}
-			protected:
-				ScriptNode *next;
-		};
-
-		struct Funktion {
-			boost::function< string (deque<Argument*>&) > func;
-			int argc;
-		};
-
-		//verbindet string mit Methodenaufruf
-		virtual void connect(string name, boost::function< string (deque<Argument*>&) > func, int argc);
-
-		map<string,Funktion> assoc_list;
-		map<string,string> vars;
-
-		ScriptNode *start, *position;
-		bool script_is_running;
-
-		//Vordefinierte Funktionen
-		//wait unterbricht Skript (wird beim nächsten run() fortgesetzt)
-		string wait_func(deque<Argument*> &args);
-		string return_func(deque<Argument*> &args);
-		string set_func(deque<Argument*> &args);
-		string random_func(deque<Argument*> &args);
-
+		void push_pointer(std::string name, void *p);
+		void set_string(std::string key, std::string value);
+		void set_number(std::string key, double value);
+		std::string get_string(std::string key, std::string def = "");
+		double get_number(std::string key, double def = 0.0);
 	private:
-		void remove_ws(string &s);
-		ScriptNode *create_instruction(string current);
-		ScriptNode *create_switch(string bed);
-		ScriptNode *process_chunk(string s, ScriptNode *start);
-		ScriptNode *process_script(string &s, ScriptNode *start);
+		ScriptEngine();
+		~ScriptEngine();
+		void connect(std::string name, lua_CFunction f);
+
+		static lua_State *L;
 };
 
 #endif

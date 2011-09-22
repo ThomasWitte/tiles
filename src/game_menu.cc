@@ -72,7 +72,7 @@ const char *get_item_list_entries(int index, int *size) {
 		return "<Error>";
 	}
 
-	std::deque<std::string> list = game->get_var_list("Inventory.");
+	std::deque<std::string> list = game->get_var_list("Inventory");
 
 	if(index < 0) {
 		*size = list.size();

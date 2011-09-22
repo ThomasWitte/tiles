@@ -706,14 +706,14 @@ void Monster::draw(BITMAP *buffer, int x, int y) {
 
 Command Monster::get_command() {
 	Command c(this);
-	if(!start || Fighter::c.status[Character::BERSERK] == Character::SUFFERING) {
+	if(/*!start || */Fighter::c.status[Character::BERSERK] == Character::SUFFERING) {
 		c.set_attack("Battle");
 		return c;
 	}
 
-	run();
+	//run();
 
-	c.set_attack(vars["CMD"]);
+	//c.set_attack(vars["CMD"]);
 	return c;
 }
 
@@ -729,8 +729,8 @@ void Monster::laden(string name) {
 	t.morph_items = parser.get("Treasure", "MorphItems");
 	t.morph = parser.getvalue("Treasure", "Morph", 0);
 
-	if(!set_script(parser.getsection_raw("Script")))
-		start = NULL;
+	//if(!set_script(parser.getsection_raw("Script")))
+	//	start = NULL;
 }
 
 Monster::Treasure Monster::treasure() {

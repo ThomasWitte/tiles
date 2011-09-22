@@ -20,11 +20,13 @@
 #include <map>
 #include <deque>
 #include <string>
+#include "menu.h"
 #include "map.h"
 #include "fight.h"
 #include "fighter_base.h"
 #include "game_menu.h"
 #include "iohelper.h"
+#include "script_engine.h"
 
 struct Event {
 	deque<string> arg;
@@ -35,18 +37,23 @@ struct Event {
 class Game {
 	public:
 		Game();
-		Game(string);
 		~Game();
 
+		static int luaf_load_legacy_map(lua_State *L);
+		static int luaf_game_run(lua_State *L);
+		static int luaf_game_cleanup(lua_State *L);
+		static int luaf_game_exec_events(lua_State *L);
+		static int luaf_game_main_menu_dlg(lua_State *L);
+		static int luaf_game_choose_savefile_dlg(lua_State *L);
+
 		void speichern(string spielstand);
-		void laden(string spielstand);
 		void register_event(deque<string> ev);
 		void update();
 		void draw();
 		void set_player(class Sprite *s) {me = s;}
 		void action() {last_action = GAME_TIMER_BPS/4;}
-		void set_var(string key, string val) {vars[key] = val;};
-		void set_var(string key, int val);
+		void set_var(string key, string val);
+		void set_var(string key, double val);
 		std::deque<std::string> get_var_list(std::string str);
 		string get_var(string key);
 #ifdef ENABLE_DIALOG_MOVE_LOCK
@@ -81,7 +88,6 @@ class Game {
 		Blende b;
 		class Fight *f;
 		class GameMenu *menu;
-		map<string, string> vars;
 		GAME_MODE mode;
 
 		void set_var(Event *e);

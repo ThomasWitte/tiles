@@ -35,6 +35,8 @@ Game::Game() : m("defaultLevel", this) {
 
 	if(!buffer)
 		MSG(Log::ERROR, "Game", "Konnte Doublebuffer nicht erzeugen");
+
+	ScriptEngine::get_engine().push_pointer("game._ptr", this);
 }
 
 Game::~Game() {
@@ -50,89 +52,187 @@ Game::~Game() {
 		IMGLOADER.destroy(buffer);
 }
 
-Game::Game(string spielstand) {
-	me = NULL;
-	last_action = 0;
-	laden(spielstand);
-}
-
 #ifdef ENABLE_DIALOG_MOVE_LOCK
 void Game::set_move_lock(bool lock) {
 	me->locked = lock;
 }
 #endif
 
-void Game::speichern(string spielstand) {
-	if(me) {
-		int x, y;
-		me->get_position(x, y);
-		char p[5];
+void Game::speichern(std::string savefile) {
+	MSG(Log::DEBUG, "Game", "Speichere " + savefile);
 
-		sprintf(p, "%i", x/m.get_tilesize());
-		vars["position_x"] = p;
-		sprintf(p, "%i", y/m.get_tilesize());
-		vars["position_y"] = p;
-	}
-
-	ofstream file;
-	spielstand.insert(0, "Saves/");
-	file.open(spielstand.c_str(), ios_base::out);
-
-	file << "< tiles 1.0 Savefile >" << endl;
-	file << "[Level]" << endl << "Level " << m.get_level_name() << " ;;" << endl;
-	file << "[Userdata]" << endl;
-
-	for(map<string, string>::iterator i = vars.begin(); i != vars.end(); i++) {
-		file << i->first << " " << i->second << " ;;" << endl; 
-	}
-
-	file << "[eof]" << endl;
-
-	file.close();
+	if(!ScriptEngine::get_engine().do_string("game:save(\"Saves/" + savefile + ".lua\")"))
+		MSG(Log::WARN, "Game", "Speichern von " + savefile + " fehlgeschlagen.");
 }
 
-void Game::laden(string spielstand) {
-	if(f) {
-		delete f;
-		f = NULL;
+int Game::luaf_load_legacy_map(lua_State *L) {
+	MSG(Log::DEBUG, "Game", "luaf_load_legacy_map called.");
+	if(lua_gettop(L) != 2)
+		MSG(Log::WARN, "Game", "Falsche Parameterzahl für luaf_load_legacy_map.");
+	//self-referenz wird nicht gebraucht
+	lua_remove(L, 1);
+	//Mapname
+	std::string mapname = lua_tostring(L, 1);
+
+	lua_getglobal(L, "game");
+	lua_getfield(L, -1, "_ptr");
+	lua_remove(L, -2);
+	Game *game = (Game*)lua_touserdata(L, -1);
+
+	game->m.laden(mapname, game);
+	return 0;
+}
+
+int Game::luaf_game_run(lua_State *L) {
+	if(lua_gettop(L) != 1 || !lua_isuserdata(L, 1))
+		MSG(Log::WARN, "Game", "Falsche Parameterzahl für luaf_game_run.");
+	lua_getfield(L, 1, "_ptr");
+	Game *game = (Game*)lua_touserdata(L, -1);
+	lua_pop(L, 2);
+
+	timecounter = 0;
+#ifdef ENABLE_FRAME_COUNTER
+	int drawn_frames = 0;
+#endif
+
+	bool needs_redraw = false;	
+	bool ende = false;
+	
+	while(!ende) {
+		while(timecounter) {
+			timecounter--;
+			needs_redraw = true;
+			if(timecounter > MAX_FRAMESKIP) {
+				timecounter = 0;	
+				break;
+			}
+			game->update();
+		}
+
+#ifdef ENABLE_FRAME_COUNTER
+		if(framecounter >= GAME_TIMER_BPS) {//1 Sekunde vergangen
+			framecounter = 0;
+			MSG(Log::INFO, "main", to_string(drawn_frames) + " fps");
+			drawn_frames = 0;
+		}
+#endif
+	
+		if(needs_redraw) {
+			needs_redraw = false;
+			game->draw();
+#ifdef ENABLE_FRAME_COUNTER
+			drawn_frames++;
+#endif
+		} else {
+			sched_yield();
+		}
+
+		if(key[MENU_KEY]) {
+			switch(Menu::pause_menu()) {
+				case Menu::SAVE:
+					game->speichern(Menu::save_menu());
+				break;
+				case Menu::ENDE:
+					ende = true;
+				break;
+				case Menu::EXIT:
+					ScriptEngine::get_engine().do_string("exit = true");
+					ende = true;
+				break;
+			}
+		}
 	}
-	if(menu) {
-		delete menu;
-		menu = NULL;
+	return 0;
+}
+
+int Game::luaf_game_cleanup(lua_State *L) {
+	if(lua_gettop(L) != 1 || !lua_isuserdata(L, 1))
+		MSG(Log::WARN, "Game", "Falsche Parameterzahl für luaf_game_cleanup.");
+	lua_getfield(L, 1, "_ptr");
+	Game *game = (Game*)lua_touserdata(L, -1);
+	lua_pop(L, 2);
+
+	if(game->f) {
+		delete game->f;
+		game->f = NULL;
+	}
+	if(game->menu) {
+		delete game->menu;
+		game->menu = NULL;
 	}
 
-	last_action = 0;
+	game->last_action = 0;
 	for(int i = 0; i < 6; i++)
-		events[i].resize(0);
+		game->events[i].resize(0);
 
-	spielstand.insert(0, "Saves/");
-	FileParser parser(spielstand, "Savefile");
+	game->mode = MAP;
 
-	//Variablen laden
-	vars.clear();
-	deque<deque<string> > ret = parser.getsection("Userdata");
-	for(unsigned int i = 0; i < ret.size(); i++)
-		if(ret[i].size() > 1)
-			vars[ret[i][0]] = ret[i][1];
+	return 0;
+}
 
-	//Map laden
-	m.laden(parser.getstring("Level", "Level"), this);
+int Game::luaf_game_exec_events(lua_State *L) {
+	if(lua_gettop(L) != 2 || !lua_isuserdata(L, 1) || !lua_isstring(L, 2))
+		MSG(Log::WARN, "Game", "Falsche Parameterzahl für luaf_game_cleanup.");
+	lua_getfield(L, 1, "_ptr");
+	Game *game = (Game*)lua_touserdata(L, -1);
+	std::string type = lua_tostring(L, 2);
+	lua_pop(L, 3);
 
-	//Events laden
-	Event e;
-	e.func = &Game::set_player_position;
-	e.arg.push_back(vars["position_x"]);
-	e.arg.push_back(vars["position_y"]);
-	events[ON_LOAD].push_back(e);
 
-	for(unsigned int i = 0; i < events[ON_LOAD].size(); i++) {
-		void (Game::*ptr) (Event*);
-		ptr = events[ON_LOAD][i].func;
-		(this->*ptr)(&events[ON_LOAD][i]);
+	int x = ON_LOAD;
+	if(type == "on_load") {
+		//Gefällt mir nicht, aber wohin damit?
+		game->menu = new GameMenu(game);
+		x = ON_LOAD;
+	} else if(type == "on_exit") {
+		x = ON_EXIT;
+	} else if(type == "always") {
+		x = ALWAYS;
+	} else if(type == "player_at") {
+		x = PLAYER_AT;
+	} else if(type == "on_action") {
+		x = ON_ACTION;
 	}
 
-	menu = new GameMenu(this);
-	mode = MAP;
+	for(unsigned int i = 0; i < game->events[x].size(); i++) {
+		void (Game::*ptr) (Event*);
+		ptr = game->events[x][i].func;
+		(game->*ptr)(&(game->events[x][i]));
+	}
+
+	return 0;
+}
+
+int Game::luaf_game_main_menu_dlg(lua_State *L) {
+	if(lua_gettop(L) != 1 || !lua_isuserdata(L, 1))
+		MSG(Log::WARN, "Game", "Falsche Parameterzahl für luaf_game_main_menu_dlg.");
+	lua_getfield(L, 1, "_ptr");
+	//Game *game = (Game*)lua_touserdata(L, -1);
+	lua_pop(L, 2);
+
+	switch(Menu::main_menu()) {
+		case Menu::GAME:
+		lua_pushnumber(L, 1);
+		return 1;
+
+		case Menu::EXIT:
+		lua_pushnumber(L, 0);
+		return 0;
+	}
+
+	lua_pushnil(L);
+	return 1;
+}
+
+int Game::luaf_game_choose_savefile_dlg(lua_State *L) {
+	if(lua_gettop(L) != 1 || !lua_isuserdata(L, 1))
+		MSG(Log::WARN, "Game", "Falsche Parameterzahl für luaf_game_choose_savefile_dlg.");
+	lua_getfield(L, 1, "_ptr");
+	//Game *game = (Game*)lua_touserdata(L, -1);
+	lua_pop(L, 2);
+
+	lua_pushstring(L, Menu::load_menu().c_str());
+	return 1;
 }
 
 void Game::register_event(deque<string> ev) {
@@ -208,16 +308,16 @@ void Game::register_event(deque<string> ev) {
 }
 
 void Game::set_var(Event *e) {
-	vars[e->arg[0]] = e->arg[1];
+	ScriptEngine::get_engine().set_string(e->arg[0], e->arg[1]);
 }
 
 std::deque<std::string> Game::get_var_list(std::string str) {
 	std::deque<std::string> ret;
-	for(std::map<std::string, std::string>::iterator i = vars.begin();
-	  i != vars.end(); ++i) {
-		if(i->first.find(str) != std::string::npos)
-			ret.push_back(i->first);
-	}
+	ret.push_back(str + "Funktion");
+	ret.push_back(str + "zur");
+	ret.push_back(str + "Zeit");
+	ret.push_back(str + "entfernt");
+
 	return ret;
 }
 
@@ -227,8 +327,8 @@ void Game::change_map(Event *e) {
 		ptr = events[ON_EXIT][i].func;
 		(this->*ptr)(&events[ON_EXIT][i]);
 	}
-	vars["last_map"] = m.get_level_name();
-
+	ScriptEngine::get_engine().do_string("game.data.last_map = game:get_active_map().level_name");
+	
 	string map_to_load = e->arg[0];
 
 	for(int i = 0; i < 6; i++)
@@ -293,8 +393,7 @@ void Game::if_function(Event *e2) {
 
 	for(unsigned int i = 0; i < e.arg.size(); i++)
 		if(e.arg[i] == "var") {
-			e.arg[i] = vars[e.arg[i+1]];
-			if(e.arg[i] == "") e.arg[i] = "nil";
+			e.arg[i] = ScriptEngine::get_engine().get_string(e.arg[i+1], "nil");
 			e.arg.erase(e.arg.begin()+i+1);
 		}
 
@@ -462,14 +561,20 @@ void Game::draw() {
 	#endif
 }
 
-void Game::set_var(string key, int val) {
-	vars[key] = to_string(val);
+void Game::set_var(string key, string val) {
+	MSG(Log::DEBUG, "Game", key + "<-" + val);
+	ScriptEngine::get_engine().set_string(key, val);
+}
+
+void Game::set_var(string key, double val) {
+	MSG(Log::DEBUG, "Game", key + "<-" + to_string(val));
+	ScriptEngine::get_engine().set_string(key, to_string(val));
 }
 
 string Game::get_var(string key) {
-	if(vars.find(key) != vars.end())
-		return vars[key];
-	return "";
+	string ret = ScriptEngine::get_engine().get_string(key);
+	MSG(Log::DEBUG, "Game", key + "->" + ret);
+	return ret;
 }
 
 void Game::inc_playtime(int seconds) {

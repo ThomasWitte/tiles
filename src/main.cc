@@ -20,7 +20,6 @@
 #include <allegro.h>
 #include <string>
 #include "game.h"
-#include "menu.h"
 #include "config.h"
 #include <iostream>
 #include <ctime>
@@ -135,78 +134,17 @@ int main()
 	LOCK_VARIABLE(timecounter);
 #ifdef ENABLE_FRAME_COUNTER
 	LOCK_VARIABLE(framecounter);
-	int drawn_frames = 0;
 #endif
 	LOCK_FUNCTION(timerupdate);
 	install_int_ex(timerupdate, BPS_TO_TIMER(GAME_TIMER_BPS));
 
 	//spiel
-	bool needs_redraw = true;
-	bool ende = false;
-	bool exit = false;
-
 	srand((unsigned)time(NULL));
 
+	ScriptEngine::get_engine().do_file("Lua/game.lua");
+	ScriptEngine::connect_all();
 	Game game;
-	timecounter = 0;
-	
-	while(!exit) {
-		switch(Menu::main_menu()) {
-		case Menu::GAME:
-		game.laden(Menu::load_menu());
-		ende = false;
-	
-		while(!ende) {
-			while(timecounter) {
-				timecounter--;
-				needs_redraw = true;
-				if(timecounter > MAX_FRAMESKIP) {
-					timecounter = 0;	
-					break;
-				}
-	
-				game.update();
-			}
-
-#ifdef ENABLE_FRAME_COUNTER
-			if(framecounter >= GAME_TIMER_BPS) {//1 Sekunde vergangen
-				framecounter = 0;
-				MSG(Log::INFO, "main", to_string(drawn_frames) + " fps");
-				drawn_frames = 0;
-			}
-#endif
-	
-			if(needs_redraw) {
-				needs_redraw = false;
-				game.draw();
-#ifdef ENABLE_FRAME_COUNTER
-				drawn_frames++;
-#endif
-			} else {
-				sched_yield();
-			}
-
-			if(key[MENU_KEY]) {
-				switch(Menu::pause_menu()) {
-					case Menu::SAVE:
-						game.speichern(Menu::save_menu());
-					break;
-					case Menu::ENDE:
-						ende = true;
-					break;
-					case Menu::EXIT:
-						exit = true;
-						ende = true;
-					break;
-				}
-			}
-		}
-		break;
-		case Menu::EXIT:
-			exit = true;
-		break;
-		}
-	}
+	ScriptEngine::get_engine().do_file("Lua/main.lua");
 
 	IMGLOADER.clear();
 	Log::destroy();

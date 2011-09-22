@@ -1,0 +1,85 @@
+game.data = {
+Map = {
+DefaultSprite = "Terra"
+},
+gp = "216",
+position_x = "6",
+test = "8.6",
+position_y = "3",
+name = "default",
+last_map = "großes_level",
+Locke = {
+defensive = "true"
+},
+Terra = {
+element4 = "normal",
+status10 = "normal",
+element2 = "normal",
+status9 = "normal",
+element10 = "normal",
+status3 = "normal",
+mdefense = "33",
+speed = "33",
+level = "2",
+status23 = "normal",
+element9 = "normal",
+mblock = "7",
+adefense = "42",
+defensive = "false",
+xp = "122",
+element1 = "absorb",
+status1 = "normal",
+name = "Terra",
+vigor = "31",
+stamina = "28",
+element0 = "normal",
+hitrate = "254",
+status8 = "normal",
+apower = "12",
+curhp = "100",
+element5 = "normal",
+status7 = "normal",
+status6 = "normal",
+status14 = "normal",
+hp = "999",
+element6 = "normal",
+status5 = "normal",
+status4 = "noraml",
+status24 = "normal",
+mp = "500",
+status15 = "normal",
+status20 = "normal",
+element3 = "normal",
+status21 = "normal",
+status22 = "normal",
+status0 = "normal",
+status13 = "normal",
+status2 = "normal",
+ablock = "5",
+status18 = "normal",
+status17 = "normal",
+status16 = "normal",
+element7 = "normal",
+status12 = "normal",
+curmp = "10",
+levelupxp = "-58",
+mpower = "39",
+status11 = "normal",
+element8 = "normal",
+status19 = "normal"
+},
+Luigi = {
+
+},
+Game = {
+Steps = "68",
+Playtime = "0: 0: 1"
+},
+CharactersInBattle = "Terra;Locke;",
+Inventory = {
+Tonic = "99",
+Magicite = "99",
+Antidote = "99"
+}
+}
+dofile("Levels/keller.lua")
