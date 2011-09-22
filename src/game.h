@@ -46,7 +46,6 @@ class Game {
 		static int luaf_game_main_menu_dlg(lua_State *L);
 		static int luaf_game_choose_savefile_dlg(lua_State *L);
 
-		void speichern(string spielstand);
 		void register_event(deque<string> ev);
 		void update();
 		void draw();

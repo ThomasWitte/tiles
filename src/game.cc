@@ -58,13 +58,6 @@ void Game::set_move_lock(bool lock) {
 }
 #endif
 
-void Game::speichern(std::string savefile) {
-	MSG(Log::DEBUG, "Game", "Speichere " + savefile);
-
-	if(!ScriptEngine::get_engine().do_string("game:save(\"Saves/" + savefile + ".lua\")"))
-		MSG(Log::WARN, "Game", "Speichern von " + savefile + " fehlgeschlagen.");
-}
-
 int Game::luaf_load_legacy_map(lua_State *L) {
 	MSG(Log::DEBUG, "Game", "luaf_load_legacy_map called.");
 	if(lua_gettop(L) != 2)
@@ -130,7 +123,13 @@ int Game::luaf_game_run(lua_State *L) {
 		if(key[MENU_KEY]) {
 			switch(Menu::pause_menu()) {
 				case Menu::SAVE:
-					game->speichern(Menu::save_menu());
+				{
+					std::string savefile = Menu::save_menu();
+					MSG(Log::DEBUG, "Game", "Speichere " + savefile);
+
+					if(!ScriptEngine::get_engine().do_string("game:save(\"Saves/" + savefile + ".lua\")"))
+						MSG(Log::WARN, "Game", "Speichern von " + savefile + " fehlgeschlagen.");
+				}
 				break;
 				case Menu::ENDE:
 					ende = true;
